@@ -95,7 +95,7 @@ const deck: DeckDefinition = {
       />
     </Frame>,
     <Frame section="What didn't" title="One ask: an Identity engineer for two sprints">
-      <Callout title="Ask" tone="accent-3">
+      <Callout title="Ask">
         Sign-in repeats rose after the new SSO flow. One engineer for two sprints fixes the five most common errors.
       </Callout>
     </Frame>,

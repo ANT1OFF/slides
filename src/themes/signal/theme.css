@@ -36,7 +36,7 @@
 [data-theme="signal"][data-scheme="dark"],
 [data-theme="signal"] .inverted {
   --color-canvas: #0c0c0d;
-  --color-surface: #1b1b1d;
+  --color-surface: #26262a;
   --color-ink: #f4f4ee;
   --color-accent: #ffd60a;
   --color-accent-text: #ffd60a;

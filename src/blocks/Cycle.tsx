@@ -13,7 +13,7 @@ export interface CycleNode {
 export function Cycle({
   nodes,
   width = 720,
-  height = 620,
+  height = 540,
   cardWidth = 280,
   cardHeight = 96,
   start = 300,
@@ -52,7 +52,7 @@ export function Cycle({
     const len = Math.hypot(tx, ty);
     const [ux, uy] = [tx / len, ty / len];
     const tip = `${p.x + ux * 10} ${p.y + uy * 10}`;
-    const wing = (side: number) => `${p.x - ux * 10 + side * uy * 12} ${p.y - uy * 10 - side * ux * 12}`;
+    const wing = (side: number) => `${p.x - ux * 10 + side * uy * 8} ${p.y - uy * 10 - side * ux * 8}`;
     return `M ${wing(1)} L ${tip} L ${wing(-1)}`;
   };
   const ring = `M ${cx} ${cy - ry} A ${rx} ${ry} 0 1 1 ${cx - 0.01} ${cy - ry}`;

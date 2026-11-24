@@ -76,7 +76,7 @@ export function StatRow({
         return (
           <Build key={i} at={stepOf(build, i)} enabled={!!build}>
             <Reveal delay={build ? 0 : start + i * 150} className="rule-top-ink pt-6">
-              <div className="type-stat text-stat-sm">
+              <div className={`type-stat ${stats.length <= 3 ? "text-[calc(var(--text-stat-sm)*1.5)]" : "text-stat-sm"}`}>
                 {v.prefix}
                 <CountUp key={`${display}-${v.to}`} to={v.to} delay={start + i * 150 + 200} format={formatLike(v.to)} />
                 {v.suffix}
