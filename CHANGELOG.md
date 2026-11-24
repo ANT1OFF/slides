@@ -14,6 +14,8 @@ Charts, diagrams and examples:
   label and taller bars. Pass `width` for the old size.
 - `Timeline`'s line runs from the first node to the last instead of to the slide's edge; nodes and
   milestone titles are a step larger.
+- Example decks: the pie slide in `example-update` pairs the chart with its takeaway, the talk's
+  callout uses the deck's accent, and dates agree within each deck.
 
 From dogfooding a team copy:
 

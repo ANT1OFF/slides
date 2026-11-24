@@ -4,9 +4,11 @@ import {
   Bullets,
   Callout,
   Cards,
+  Columns,
   EndSlide,
   Frame,
   HBars,
+  Lead,
   LineChart,
   Pie,
   SectionSlide,
@@ -65,14 +67,17 @@ const deck: DeckDefinition = {
       <HBars rows={tickets.values.byArea} />
     </Frame>,
     <Frame section="What went well" title="Most customers now reach us by chat">
-      <Pie
-        size={420}
-        slices={[
-          { name: "Chat", value: 58 },
-          { name: "Email", value: 31 },
-          { name: "Phone", value: 11 },
-        ]}
-      />
+      <Columns ratio={[3, 2]}>
+        <Pie
+          size={460}
+          slices={[
+            { name: "Chat", value: 58 },
+            { name: "Email", value: 31 },
+            { name: "Phone", value: 11 },
+          ]}
+        />
+        <Lead detail="Phone fell by half once the chat window opened from the help page.">Chat passed email in July.</Lead>
+      </Columns>
     </Frame>,
     <SectionSlide number={2} of={3} title="What didn't" />,
     <Frame section="What didn't" title="Sign-in is the one area where repeats rose">

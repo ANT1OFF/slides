@@ -139,9 +139,7 @@ const deck: DeckDefinition = {
             <b>Allow an escape hatch</b> with a label, reviewed weekly.
           </li>
         </ul>
-        <Callout title="Try it" tone="accent-2">
-          Start with a warning, not a failure. Make it a failure after two weeks.
-        </Callout>
+        <Callout title="Try it">Start with a warning, not a failure. Make it a failure after two weeks.</Callout>
       </Columns>
     </Frame>,
     <EndSlide

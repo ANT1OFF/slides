@@ -27,7 +27,7 @@ const deck: DeckDefinition = {
       title="Ledgerly"
       subtitle="Month-end close for small finance teams, in a day instead of a week."
       byline="Sam Okafor, CEO · Priya Natarajan, CTO"
-      date="March 2027"
+      date="October 2026"
     />,
     <StatementSlide kicker="The problem">
       Small finance teams spend <em>six days</em> every month closing the books.
