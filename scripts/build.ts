@@ -1,5 +1,5 @@
 // npm run build [deck…]  →  dist/<deck>.html, one self-contained file per deck (all decks if none named).
-import { mkdirSync, readdirSync, renameSync, rmSync } from "node:fs";
+import { mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";
 
@@ -33,5 +33,5 @@ for (const deck of named.length ? named : known) {
   }
   renameSync(`dist/.${deck}/index.html`, `dist/${deck}.html`);
   rmSync(`dist/.${deck}`, { recursive: true });
-  console.log(`dist/${deck}.html`);
+  console.log(`dist/${deck}.html  ${Math.round(statSync(`dist/${deck}.html`).size / 1024)} KB`);
 }
