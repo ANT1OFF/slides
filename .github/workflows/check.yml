@@ -11,7 +11,7 @@ jobs:
         with:
           fetch-depth: 0
       # Upstream only (a team's copy changes these paths all the time): team-owned paths are frozen,
-      # so an upgrade never conflicts there. See CONTRIBUTING.md.
+      # so an upgrade never conflicts there. See CONTRIBUTING.md. npm run check checks it too, locally.
       - name: Team-owned paths are untouched
         if: github.event_name == 'pull_request' && github.repository == 'ANT1OFF/slides'
         run: |
