@@ -1,3 +1,4 @@
 dist
+examples/html
 node_modules
 package-lock.json

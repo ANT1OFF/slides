@@ -6,7 +6,8 @@ Thanks for helping. The bar is simple: keep it easy to understand, and keep ever
 2. Make your change. New blocks follow [docs/making-a-block.md](docs/making-a-block.md) and get a
    slide in the showcase.
 3. `npm run check` checks formatting, layer boundaries and types and builds every deck; `npm run verify`
-   opens every built deck offline in Chrome (CI runs both) (`npm run format` fixes formatting).
+   opens every built deck offline in Chrome (CI runs both) (`npm run format` fixes formatting). `check` also fails if the built examples in `examples/html/` are
+   stale: run `npm run build:examples` and commit them.
 4. In the pull request, say what changed and include a screenshot of any slide that looks different.
 
 Keep pull requests small, and keep the README's key table and block table in sync with the code.

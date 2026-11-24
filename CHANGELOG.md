@@ -8,6 +8,9 @@ decks, library or themes is listed under **Upgrade notes**.
 
 First public version.
 
+- Built example decks and the showcase are committed in `examples/html/`; `npm run build:examples`
+  rebuilds them and `npm run check` fails when they are stale.
+
 - Decks as React code (`src/decks/<name>/index.tsx`), built into one self-contained HTML file each.
 - Presenting: build steps, presenter window, overview, print to PDF, fullscreen, blank screen,
   jump to slide, growth mode, key list (`?`).

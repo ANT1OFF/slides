@@ -159,7 +159,7 @@ and `examples/example-pitch` an agent one.
 ## Building and sharing
 
 - `npm run build my-talk` writes `dist/my-talk.html`. That one file is the presentation.
-- `dist/` is not committed. Share the file directly, attach it to the invite, or publish it as a
+- `dist/` is not committed (only upstream's example decks are, in `examples/html/`). Share the file directly, attach it to the invite, or publish it as a
   release asset.
 - To present: open the file, press F. Press N for the presenter window on your laptop and drag the
   deck to the projector. For a PDF: press P, "Save as PDF".
