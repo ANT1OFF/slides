@@ -32,6 +32,8 @@ There is nothing to register and no upstream file to edit. Your folders are `src
 `npm run dev` shows what it finds: decks, themes, the built-in blocks, and a small preview of every
 library slide, library block and motion file ([Previews](#previews)).
 
+The visual rules and references are in [Design](design.md) and [Inspiration](inspiration.md).
+
 ## Motion
 
 One folder, `src/library/motion/`, holds every animation of your own: **one CSS file per effect or
