@@ -22,7 +22,9 @@ const decks = listDecks();
 const built = existsSync(dist) ? readdirSync(dist).filter((f) => f.endsWith(".html")) : [];
 const files = built.filter((f) => decks.includes(f.slice(0, -5)));
 const stale = built.filter((f) => !files.includes(f));
-if (stale.length) console.warn(`Skipping ${stale.join(", ")}: no such deck any more.`);
+if (stale.length) {
+  console.warn(`Skipping ${stale.join(", ")}: no such deck any more.`);
+}
 if (!files.length) {
   console.error("No decks in dist/. Run npm run build first.");
   process.exit(1);
@@ -43,7 +45,9 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
   const blocked: string[] = [];
   await ctx.route("**/*", (route) => {
     const url = route.request().url();
-    if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) return route.continue();
+    if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) {
+      return route.continue();
+    }
     blocked.push(url);
     return route.abort();
   });
@@ -91,8 +95,9 @@ async function selfContained(browser: Browser, file: string) {
     await document.fonts.ready;
     const faces = [...document.fonts].map((f) => ({ family: f.family, status: f.status }));
     const used = new Set<string>();
-    for (const el of document.querySelectorAll("[data-stage] *"))
+    for (const el of document.querySelectorAll("[data-stage] *")) {
       used.add(getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim());
+    }
     const images = [...document.images].map((img) => ({ src: img.currentSrc.slice(0, 40), ok: img.complete && img.naturalWidth > 0 }));
     const media = [...document.querySelectorAll<HTMLMediaElement>("video, audio")];
     await Promise.all(
@@ -211,7 +216,9 @@ async function features(browser: Browser, file: string) {
   check("End → last slide", (await slideNo()) === at.end);
   await key("Home");
   check("Home → first slide", (await slideNo()) === 1);
-  for (const d of String(at.bullets)) await key(d, 50);
+  for (const d of String(at.bullets)) {
+    await key(d, 50);
+  }
   await key("Enter");
   check("a number then Enter jumps there", (await slideNo()) === at.bullets);
 
@@ -299,7 +306,9 @@ async function features(browser: Browser, file: string) {
   check("goto() ignores an unknown id", (await slideNo()) === at.hidden);
 
   await go(at.hidden - 1);
-  for (let k = 0; k < 6 && (await slideNo()) === at.hidden - 1; k++) await key("ArrowRight");
+  for (let k = 0; k < 6 && (await slideNo()) === at.hidden - 1; k++) {
+    await key("ArrowRight");
+  }
   check("a hidden slide is skipped when presenting", (await slideNo()) === at.end, `at ${await slideNo()}`);
   await go(at.bullets);
   check("the footer shows the slide number", (await page.textContent(`${sel} footer`))?.includes(String(at.bullets).padStart(2, "0")));
@@ -422,8 +431,9 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   const animated = mode === "motion";
   const { ctx } = await offline(browser, mode === "reduced motion");
   const page = await ctx.newPage();
-  if (mode === "no View Transitions API")
+  if (mode === "no View Transitions API") {
     await page.addInitScript(() => delete (Document.prototype as { startViewTransition?: unknown }).startViewTransition);
+  }
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   const test = (name: string, ok: unknown, detail: unknown = "") =>
@@ -493,7 +503,9 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
       s.running.length === 2 && s.running.every((r) => r.endsWith(" 1500")),
       s.running,
     );
-  } else test("no view transition starts; the slide just changes", s.slide === "two" && s.transition === null && !s.running.length, s);
+  } else {
+    test("no view transition starts; the slide just changes", s.slide === "two" && s.transition === null && !s.running.length, s);
+  }
   test("<Reveal effect> uses the team's effect", (await style("#revealed", "animation-name")) === "verify-swoop");
   await page.waitForTimeout(settle);
   s = await state();
@@ -525,7 +537,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await page.waitForTimeout(settle);
   await key("ArrowLeft", DURING);
   s = await state();
-  if (animated)
+  if (animated) {
     test(
       "going back plays the same transition the other way round",
       s.transition === "fade" &&
@@ -534,6 +546,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
         s.running.some((r) => r.startsWith("fade-in old reverse")),
       s,
     );
+  }
   await page.waitForTimeout(settle);
   test("← lands on the slide before, every step shown", (await state()).slide === "two" && (await state()).build === "1", await state());
 
@@ -744,7 +757,9 @@ async function upstreamDecksAlone() {
   } finally {
     delete process.env.LIBRARY_DIR;
     rmSync(leak, { recursive: true, force: true });
-    for (const out of [".alone-a", ".alone-b"]) rmSync(resolve(dist, out), { recursive: true, force: true });
+    for (const out of [".alone-a", ".alone-b"]) {
+      rmSync(resolve(dist, out), { recursive: true, force: true });
+    }
   }
 }
 
@@ -847,13 +862,17 @@ await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vit
 const motionFixture = resolve(dist, ".verify-motion/index.html");
 deckName = "verify-deck/motion (fixture: effects, transitions and team CSS by name)";
 await selfContained(browser, motionFixture);
-for (const mode of MODES) await motion(browser, motionFixture, mode);
+for (const mode of MODES) {
+  await motion(browser, motionFixture, mode);
+}
 rmSync(resolve(dist, ".verify-motion"), { recursive: true, force: true });
 await browser.close();
 
 let deck = "";
 for (const r of results) {
-  if (r.deck !== deck) console.log(`\n${(deck = r.deck)}`);
+  if (r.deck !== deck) {
+    console.log(`\n${(deck = r.deck)}`);
+  }
   console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${r.name}${!r.ok && r.detail ? `  (${r.detail})` : ""}`);
 }
 const failed = results.filter((r) => !r.ok).length;

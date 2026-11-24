@@ -21,20 +21,26 @@ const rules: [string, RegExp][] = [
   ["src/decks/showcase", new RegExp(`${IMPORT}(@library|\\.\\.\\/\\.\\.\\/library)`)],
 ];
 const problems: string[] = [];
-for (const [dir, banned] of rules)
+for (const [dir, banned] of rules) {
   for (const e of readdirSync(resolve(root, dir), { recursive: true, withFileTypes: true })) {
-    if (!e.isFile() || !/\.(ts|tsx)$/.test(e.name)) continue;
+    if (!e.isFile() || !/\.(ts|tsx)$/.test(e.name)) {
+      continue;
+    }
     const file = resolve(e.parentPath, e.name);
     readFileSync(file, "utf8")
       .split("\n")
       .forEach((line, i) => {
-        if (banned.test(line)) problems.push(`${relative(root, file)}:${i + 1}: ${line.trim()}`);
+        if (banned.test(line)) {
+          problems.push(`${relative(root, file)}:${i + 1}: ${line.trim()}`);
+        }
       });
   }
+}
 // The Codex copy of the project skill must match the Claude Code one.
 const skill = (dir: string) => resolve(root, dir, "skills/slides/SKILL.md");
-if (readFileSync(skill(".claude"), "utf8") !== readFileSync(skill(".agents"), "utf8"))
+if (readFileSync(skill(".claude"), "utf8") !== readFileSync(skill(".agents"), "utf8")) {
   problems.push(".agents/skills/slides/SKILL.md differs from .claude/skills/slides/SKILL.md: copy it over.");
+}
 // Normal worktrees identify the upstream repo by its remotes. An isolated local merge gate has no
 // remotes and checks a synthetic merge whose first parent is the PR base.
 const git = (...args: string[]) => execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
@@ -58,11 +64,13 @@ if (isUpstream || gramMerge) {
     process.exit(1);
   }
   const touched = git("diff", "--name-only", base, "--", ...teamPaths);
-  if (touched)
+  if (touched) {
     problems.push(
       `Upstream never changes team-owned paths (src/library, src/decks except showcase). See CONTRIBUTING.md. Changed paths:\n  ${touched.split("\n").join("\n  ")}`,
     );
-  else console.log("Team-owned paths are unchanged.");
+  } else {
+    console.log("Team-owned paths are unchanged.");
+  }
 }
 
 if (problems.length) {

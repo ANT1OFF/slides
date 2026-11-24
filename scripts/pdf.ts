@@ -38,7 +38,9 @@ const stale = decks.filter((d) => {
 if (stale.length) {
   console.log(`Building ${stale.join(", ")}…`);
   const built = spawnSync("npm", ["run", "build", "--silent", "--", ...stale], { cwd: root, stdio: "inherit" });
-  if (built.status !== 0) process.exit(built.status ?? 1);
+  if (built.status !== 0) {
+    process.exit(built.status ?? 1);
+  }
 }
 
 let executablePath: string | undefined;
@@ -65,7 +67,9 @@ for (const deck of decks) {
   try {
     const slides = await exportPdf(browser, resolve(root, "dist", `${deck}.html`), out);
     const { pages } = inspectPdf(readFileSync(out));
-    if (pages !== slides) throw new Error(`${slides} slides but ${pages} pages in the PDF`);
+    if (pages !== slides) {
+      throw new Error(`${slides} slides but ${pages} pages in the PDF`);
+    }
     console.log(`dist/${deck}.pdf  (${pages} page${pages === 1 ? "" : "s"})`);
   } catch (e) {
     failed = true;

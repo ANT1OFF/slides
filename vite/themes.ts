@@ -18,17 +18,20 @@ export function listThemes(themesDir: string): string[] {
 /** The team's default theme from the library's settings.json (src/library), or "default". */
 export function teamDefaultTheme(themesDir: string, libraryDir: string): string {
   const file = resolve(libraryDir, "settings.json");
-  if (!existsSync(file)) return "default";
+  if (!existsSync(file)) {
+    return "default";
+  }
   let theme: unknown;
   try {
     theme = JSON.parse(readFileSync(file, "utf8")).defaultTheme ?? "default";
   } catch (e) {
     throw new Error(`src/library/settings.json is not valid JSON: ${(e as Error).message}`);
   }
-  if (typeof theme !== "string" || !existsSync(resolve(themesDir, theme, "theme.css")))
+  if (typeof theme !== "string" || !existsSync(resolve(themesDir, theme, "theme.css"))) {
     throw new Error(
       `src/library/settings.json: defaultTheme "${theme}" is not a folder in src/themes. Themes: ${listThemes(themesDir).join(", ")}`,
     );
+  }
   return theme;
 }
 
@@ -44,13 +47,19 @@ export function deckThemeKey(source: string): number {
   const open = name
     ? new RegExp(`\\b(?:const|let|var)\\s+${name.replace(/\$/g, "\\$")}\\b[^=]*=\\s*\\{`).exec(code)
     : /\bexport\s+default\s+\{/.exec(code);
-  if (!open) return /\btheme\s*:/.exec(code)?.index ?? -1; // not a deck object we can find: the first `theme:` anywhere
+  if (!open) {
+    return /\btheme\s*:/.exec(code)?.index ?? -1;
+  } // not a deck object we can find: the first `theme:` anywhere
   let depth = 0;
   for (let i = open.index + open[0].length - 1; i < code.length; i++) {
     const c = code[i];
-    if (c === "{") depth++;
-    else if (c === "}" && --depth === 0) return -1;
-    else if (depth === 1 && c === "t" && /^theme\s*:/.test(code.slice(i, i + 40)) && !/[\w$.]/.test(code[i - 1])) return i;
+    if (c === "{") {
+      depth++;
+    } else if (c === "}" && --depth === 0) {
+      return -1;
+    } else if (depth === 1 && c === "t" && /^theme\s*:/.test(code.slice(i, i + 40)) && !/[\w$.]/.test(code[i - 1])) {
+      return i;
+    }
   }
   return -1;
 }
@@ -62,13 +71,16 @@ export function deckTheme(deckFile: string, libraryDir: string): string {
     s[0] === '"' ? s : s[0] === "`" ? `\`${" ".repeat(s.length - 2)}\`` : " ".repeat(s.length),
   );
   const at = deckThemeKey(source);
-  if (at < 0) return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
+  if (at < 0) {
+    return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
+  }
   const literal = /^\s*:\s*["']([\w-]+)["']/.exec(source.slice(at + "theme".length));
-  if (!literal)
+  if (!literal) {
     throw new Error(
       `${relative(process.cwd(), deckFile)}: write the theme as a string literal, e.g. theme: "editorial". ` +
         "The build reads it from the file to include only that theme's fonts and logo, so a variable or expression can't be followed.",
     );
+  }
   return literal[1];
 }
 
@@ -80,10 +92,14 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
       serve = config.command === "serve";
     },
     resolveId(id) {
-      if (id === "virtual:themes") return "\0virtual:themes";
+      if (id === "virtual:themes") {
+        return "\0virtual:themes";
+      }
     },
     load(id) {
-      if (id !== "\0virtual:themes") return;
+      if (id !== "\0virtual:themes") {
+        return;
+      }
       const all = listThemes(themesDir);
       let names = all;
       if (!serve) {
@@ -99,9 +115,13 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
       const entries: string[] = [];
       names.forEach((name, i) => {
         const dir = resolve(themesDir, name).replaceAll("\\", "/");
-        if (name !== "default") lines.push(`import ${JSON.stringify(`${dir}/theme.css`)};`);
+        if (name !== "default") {
+          lines.push(`import ${JSON.stringify(`${dir}/theme.css`)};`);
+        }
         const logos = LOGOS.filter((f) => existsSync(resolve(themesDir, name, f)));
-        if (logos.length > 1) this.error(`src/themes/${name} has more than one logo (${logos.join(", ")}). Keep one.`);
+        if (logos.length > 1) {
+          this.error(`src/themes/${name} has more than one logo (${logos.join(", ")}). Keep one.`);
+        }
         const logo = logos[0];
         if (logo?.endsWith(".svg")) {
           lines.push(`import logo${i} from ${JSON.stringify(`${dir}/${logo}?raw`)};`);
@@ -109,7 +129,9 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
         } else if (logo) {
           lines.push(`import logo${i} from ${JSON.stringify(`${dir}/${logo}`)};`);
           entries.push(`${JSON.stringify(name)}: { url: logo${i} }`);
-        } else entries.push(`${JSON.stringify(name)}: {}`);
+        } else {
+          entries.push(`${JSON.stringify(name)}: {}`);
+        }
       });
       return `${lines.join("\n")}\nexport const themes = { ${entries.join(", ")} };\n`;
     },

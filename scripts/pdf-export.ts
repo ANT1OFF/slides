@@ -11,7 +11,9 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
     const blocked: string[] = [];
     await ctx.route("**/*", (route) => {
       const url = route.request().url();
-      if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) return route.continue();
+      if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) {
+        return route.continue();
+      }
       blocked.push(url);
       return route.abort();
     });
@@ -31,7 +33,9 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
     const unready = await page.evaluate(async () => {
       await document.fonts.ready;
       const faces = [...document.fonts].filter((f) => f.status !== "loaded");
-      for (const f of faces) await f.load().catch(() => {});
+      for (const f of faces) {
+        await f.load().catch(() => {});
+      }
       await Promise.all(
         [...document.images].map((i) =>
           i.complete
@@ -44,13 +48,19 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
       );
       return [...document.fonts].filter((f) => f.status !== "loaded").map((f) => f.family);
     });
-    if (unready.length) throw new Error(`fonts did not load: ${[...new Set(unready)].join(", ")}`);
+    if (unready.length) {
+      throw new Error(`fonts did not load: ${[...new Set(unready)].join(", ")}`);
+    }
     await page.waitForTimeout(300);
     const slides = await page.locator(".print-page").count();
     await page.emulateMedia({ media: "print" });
     const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
-    if (blocked.length) throw new Error(`the deck asked for the network: ${blocked.slice(0, 3).join(" ")}`);
-    if (errors.length) throw new Error(`page errors: ${errors.join(" | ")}`);
+    if (blocked.length) {
+      throw new Error(`the deck asked for the network: ${blocked.slice(0, 3).join(" ")}`);
+    }
+    if (errors.length) {
+      throw new Error(`page errors: ${errors.join(" | ")}`);
+    }
     writeFileSync(out, pdf);
     return slides;
   } finally {

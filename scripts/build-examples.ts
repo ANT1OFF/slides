@@ -34,7 +34,9 @@ for (const deck of decks) {
   const fresh = resolve(scratch, deck, "index.html");
   const target = resolve(outDir, `${deck}.html`);
   if (checking) {
-    if (!existsSync(target) || !readFileSync(fresh).equals(readFileSync(target))) stale.push(`examples/html/${deck}.html`);
+    if (!existsSync(target) || !readFileSync(fresh).equals(readFileSync(target))) {
+      stale.push(`examples/html/${deck}.html`);
+    }
   } else {
     writeFileSync(target, readFileSync(fresh));
     console.log(`examples/html/${deck}.html`);
@@ -45,8 +47,9 @@ rmSync(scratch, { recursive: true, force: true });
 // Files left from decks that no longer exist.
 const orphans = readdirSync(outDir).filter((f) => f.endsWith(".html") && !decks.includes(f.slice(0, -5)));
 for (const f of orphans) {
-  if (checking) stale.push(`examples/html/${f} (no such deck)`);
-  else {
+  if (checking) {
+    stale.push(`examples/html/${f} (no such deck)`);
+  } else {
     rmSync(resolve(outDir, f));
     console.log(`removed examples/html/${f} (no such deck)`);
   }

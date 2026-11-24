@@ -46,17 +46,23 @@ export function selfContained({ warnAtMB = 15 } = {}): Plugin {
           continue;
         }
         const text = chunk.type === "asset" ? String(chunk.source) : chunk.code;
-        for (const [re, what] of REMOTE) for (const m of text.matchAll(re)) problems.push(`${what} points at ${m[1].slice(0, 120)}`);
+        for (const [re, what] of REMOTE) {
+          for (const m of text.matchAll(re)) {
+            problems.push(`${what} points at ${m[1].slice(0, 120)}`);
+          }
+        }
         const size = Buffer.byteLength(text);
-        if (size > warnAtMB * MB)
+        if (size > warnAtMB * MB) {
           this.warn(`${file} is ${(size / MB).toFixed(1)} MB. Large media is inlined as base64 (+33%); compress or trim it.`);
+        }
       }
-      if (problems.length)
+      if (problems.length) {
         this.error(
           `The deck would not be self-contained:\n  - ${[...new Set(problems)].join("\n  - ")}\n` +
             `Import files instead of linking them (import clip from "./clip.mp4"), so they are inlined into the HTML.\n` +
             `If it's text, such as a code sample that shows a URL, write it so it doesn't look like one: "https:/" + "/example.com".`,
         );
+      }
     },
   };
 }

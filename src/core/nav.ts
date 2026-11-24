@@ -51,7 +51,9 @@ export function useDeckKey(key: string, does: string, run: () => void): void {
     latest.current = run;
   });
   useEffect(() => {
-    if (still) return;
+    if (still) {
+      return;
+    }
     return add({ key: key.length === 1 ? key.toLowerCase() : key, does, run: () => latest.current() });
   }, [add, still, key, does]);
 }

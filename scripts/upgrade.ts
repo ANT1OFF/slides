@@ -17,18 +17,21 @@ function fail(msg: string): never {
   process.exit(1);
 }
 
-if (run("git status --porcelain", true).trim())
+if (run("git status --porcelain", true).trim()) {
   fail("Commit or stash your changes first: the upgrade happens on a new branch from a clean tree.");
-if (!run("git remote", true).split("\n").includes("upstream"))
+}
+if (!run("git remote", true).split("\n").includes("upstream")) {
   fail("No `upstream` remote. Add it once: git remote add upstream https://github.com/ANT1OFF/slides.git");
+}
 
 // upstream is the public kit: a push there could publish a team's private decks. Fetch-only is safest.
 const pushUrl = run("git remote get-url --push upstream", true).trim();
-if (pushUrl === run("git remote get-url upstream", true).trim() || /:\/\/|^[\w.-]+@[\w.-]+:|^[/.~]/.test(pushUrl) || existsSync(pushUrl))
+if (pushUrl === run("git remote get-url upstream", true).trim() || /:\/\/|^[\w.-]+@[\w.-]+:|^[/.~]/.test(pushUrl) || existsSync(pushUrl)) {
   console.warn(
     `\nWarning: \`upstream\` can be pushed to (${pushUrl}), so a push there could publish your private decks.\n` +
       "Make it fetch-only: git remote set-url --push upstream DISABLED\n",
   );
+}
 
 const from = run("git rev-parse --abbrev-ref HEAD", true).trim();
 run("git fetch upstream --tags");
@@ -71,18 +74,23 @@ const touched = teamChanges();
 if (touched.length) {
   // Git restore needs an explicit removal for an unmerged path that doesn't exist in HEAD.
   for (const file of teamChanges("--diff-filter=U")) {
-    if (!git(["--literal-pathspecs", "ls-tree", "HEAD", "--", file], true)) git(["--literal-pathspecs", "rm", "--force", "--", file]);
+    if (!git(["--literal-pathspecs", "ls-tree", "HEAD", "--", file], true)) {
+      git(["--literal-pathspecs", "rm", "--force", "--", file]);
+    }
   }
   const remaining = teamChanges();
-  if (remaining.length) git(["--literal-pathspecs", "restore", "--source=HEAD", "--staged", "--worktree", "--", ...remaining]);
+  if (remaining.length) {
+    git(["--literal-pathspecs", "restore", "--source=HEAD", "--staged", "--worktree", "--", ...remaining]);
+  }
   console.log(`\nKept your team-owned paths as they were before the upgrade:\n${touched.join("\n")}`);
 }
-if (git(["ls-files", "--unmerged"], true).trim())
+if (git(["ls-files", "--unmerged"], true).trim()) {
   fail(
     `The merge has conflicts on ${branch}. See CHANGELOG.md for upgrade notes. After resolving them, run:\n` +
       `  git commit && npm install && npm run check && npm run verify\n` +
       `To give up: git merge --abort && git switch ${from} && git branch -D ${branch}`,
   );
+}
 git(["commit", "--no-edit"]);
 run("npm install");
 try {

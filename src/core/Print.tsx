@@ -13,7 +13,9 @@ export function Print({ slides, name, onDone }: { slides: DeckSlide[]; name: str
     window.addEventListener("afterprint", done);
     void document.fonts.ready.then(() =>
       setTimeout(() => {
-        if (!cancelled) window.print();
+        if (!cancelled) {
+          window.print();
+        }
       }, 300),
     );
     return () => {

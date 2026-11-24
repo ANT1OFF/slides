@@ -15,8 +15,12 @@ export function onlySources({ stylesheet, sources }: { stylesheet: string; sourc
     name: "slides:sources",
     enforce: "pre",
     transform(code, id) {
-      if (id.split("?")[0].replaceAll("\\", "/") !== stylesheet.replaceAll("\\", "/")) return;
-      if (!code.includes(SCAN_ALL)) this.error(`${stylesheet} must start with ${SCAN_ALL} for an upstream deck to be built on its own.`);
+      if (id.split("?")[0].replaceAll("\\", "/") !== stylesheet.replaceAll("\\", "/")) {
+        return;
+      }
+      if (!code.includes(SCAN_ALL)) {
+        this.error(`${stylesheet} must start with ${SCAN_ALL} for an upstream deck to be built on its own.`);
+      }
       return { code: code.replace(SCAN_ALL, `@import "tailwindcss" source(none);\n${only}`), map: null };
     },
   };

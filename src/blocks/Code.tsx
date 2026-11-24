@@ -33,7 +33,9 @@ export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS)
   while (rest) {
     for (const [re, cls] of RULES) {
       const m = re.exec(rest);
-      if (!m) continue;
+      if (!m) {
+        continue;
+      }
       const text = m[0];
       const kind = cls === "word" ? (keywords.has(text) ? "tok-kw" : /^[A-Z]/.test(text) ? "tok-type" : "") : cls;
       out.push(
@@ -58,10 +60,15 @@ function parseSteps(steps: string, count: number): Set<number>[] {
     const set = new Set<number>();
     for (const range of part.split(",")) {
       const r = range.trim();
-      if (r === "all" || r === "*" || r === "") for (let i = 1; i <= count; i++) set.add(i);
-      else {
+      if (r === "all" || r === "*" || r === "") {
+        for (let i = 1; i <= count; i++) {
+          set.add(i);
+        }
+      } else {
         const [a, b = a] = r.split("-").map(Number);
-        for (let i = a; i <= b; i++) set.add(i);
+        for (let i = a; i <= b; i++) {
+          set.add(i);
+        }
       }
     }
     return set;

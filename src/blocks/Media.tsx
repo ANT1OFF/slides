@@ -44,7 +44,9 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
     const a = ref.current;
-    if (!a) return;
+    if (!a) {
+      return;
+    }
     const stop = () => setPlaying(false);
     a.addEventListener("ended", stop);
     a.addEventListener("pause", stop);
@@ -60,9 +62,14 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
         onClick={(e) => {
           e.stopPropagation(); // don't advance the slide
           const a = ref.current;
-          if (!a) return;
-          if (a.paused) void a.play().then(() => setPlaying(true));
-          else a.pause();
+          if (!a) {
+            return;
+          }
+          if (a.paused) {
+            void a.play().then(() => setPlaying(true));
+          } else {
+            a.pause();
+          }
         }}
         className="rule-top-strong flex cursor-pointer items-center gap-6 rounded-box bg-surface px-(--pad-box) py-6 text-left"
       >

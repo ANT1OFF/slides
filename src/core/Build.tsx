@@ -28,20 +28,24 @@ export function Build({
 }) {
   const { step, register } = useContext(StepContext);
   useEffect(() => {
-    if (enabled) register(at);
+    if (enabled) {
+      register(at);
+    }
   }, [at, register, enabled]);
-  if (!enabled)
+  if (!enabled) {
     return (
       <Tag className={className} style={style}>
         {children}
       </Tag>
     );
-  if (effect)
+  }
+  if (effect) {
     return (
       <Tag className={`${step >= at ? effect : "build-wait"} ${className}`} style={style}>
         {children}
       </Tag>
     );
+  }
   return (
     <Tag className={`build ${step >= at ? "build-on" : ""} ${className}`} style={style}>
       {children}
@@ -57,7 +61,9 @@ export function Build({
 export function useBuildStep(steps: number): number {
   const { step, register } = useContext(StepContext);
   useEffect(() => {
-    if (steps > 0) register(steps);
+    if (steps > 0) {
+      register(steps);
+    }
   }, [steps, register]);
   return step;
 }

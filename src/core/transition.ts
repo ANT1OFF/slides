@@ -16,7 +16,9 @@ export function useSlideTransition() {
     // Without a transition, without browser support or with reduced motion, the slide just changes.
     plain.current =
       !name || name === "none" || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (plain.current) return apply();
+    if (plain.current) {
+      return apply();
+    }
     const root = document.documentElement;
     const stage = document.querySelector("[data-deck-mode=present] [data-stage]");
     root.dataset.transition = name;
@@ -24,13 +26,21 @@ export function useSlideTransition() {
     root.style.setProperty("--transition-in", back ? `${name}-out` : `${name}-in`);
     root.style.setProperty("--transition-out", back ? `${name}-in` : `${name}-out`);
     root.style.setProperty("--transition-direction", back ? "reverse" : "normal");
-    if (stage) for (const t of TRANSITION_TOKENS) root.style.setProperty(t, getComputedStyle(stage).getPropertyValue(t));
+    if (stage) {
+      for (const t of TRANSITION_TOKENS) {
+        root.style.setProperty(t, getComputedStyle(stage).getPropertyValue(t));
+      }
+    }
     const mine = ++run.current;
     const done = () => {
-      if (mine !== run.current) return;
+      if (mine !== run.current) {
+        return;
+      }
       delete root.dataset.transition;
       root.removeAttribute("data-transition-back");
-      for (const p of TRANSITION_STATE) root.style.removeProperty(p);
+      for (const p of TRANSITION_STATE) {
+        root.style.removeProperty(p);
+      }
     };
     const transition = document.startViewTransition(() => flushSync(apply));
     // A newer transition skips this one, which rejects `ready`: expected, not an error.

@@ -7,7 +7,9 @@ import { resolve } from "node:path";
 import type { Plugin } from "vite";
 
 function licenceFiles(dir: string): string[] {
-  if (!existsSync(dir)) return [];
+  if (!existsSync(dir)) {
+    return [];
+  }
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter((e) => e.isFile() && /licen[cs]e|^ofl/i.test(e.name) && /\.(txt|md)$|^LICENSE$/i.test(e.name))
     .map((e) => resolve(e.parentPath, e.name))
@@ -32,7 +34,9 @@ const stem = (licence: string) =>
  * folder's only, or unnamed (LICENSE.txt, OFL.txt), licence. Otherwise every licence in the folder.
  */
 function fontFiles(dir: string, root: string): { font: string; licence?: string }[] {
-  if (!existsSync(dir)) return [];
+  if (!existsSync(dir)) {
+    return [];
+  }
   const licences = licenceFiles(dir);
   const rel = (f: string) => f.slice(root.length + 1);
   return readdirSync(dir, { recursive: true, withFileTypes: true })
@@ -41,7 +45,9 @@ function fontFiles(dir: string, root: string): { font: string; licence?: string 
       const font = resolve(e.parentPath, e.name);
       for (let folder = e.parentPath; folder.startsWith(dir); folder = resolve(folder, "..")) {
         const here = licences.filter((l) => resolve(l, "..") === folder);
-        if (!here.length) continue;
+        if (!here.length) {
+          continue;
+        }
         const named = here.find((l) => stem(l) && key(e.name).startsWith(stem(l)));
         const generic = here.length === 1 ? here[0] : here.find((l) => !stem(l));
         return { font: rel(font), licence: named ? rel(named) : generic ? rel(generic) : `one of ${here.map(rel).join(", ")}` };
@@ -60,21 +66,28 @@ export function notices({ root, folders }: { root: string; folders: () => string
         const parts: { heading: string; text: string }[] = [];
         for (const pkg of ["react", "react-dom", "scheduler"]) {
           const file = resolve(root, "node_modules", pkg, "LICENSE");
-          if (existsSync(file)) parts.push({ heading: pkg, text: readFileSync(file, "utf8").trim() });
+          if (existsSync(file)) {
+            parts.push({ heading: pkg, text: readFileSync(file, "utf8").trim() });
+          }
         }
-        for (const folder of folders())
-          for (const file of licenceFiles(folder))
+        for (const folder of folders()) {
+          for (const file of licenceFiles(folder)) {
             parts.push({ heading: file.slice(root.length + 1), text: readFileSync(file, "utf8").trim() });
+          }
+        }
         // Same text once, with every heading it applies to.
         const byText = new Map<string, string[]>();
-        for (const p of parts) byText.set(p.text, [...(byText.get(p.text) ?? []), p.heading]);
+        for (const p of parts) {
+          byText.set(p.text, [...(byText.get(p.text) ?? []), p.heading]);
+        }
         const body = [...byText].map(([text, heads]) => `== ${heads.join(", ")} ==\n\n${text}`).join("\n\n");
         // Which font files the deck can embed, and the licence that covers each.
         const fonts = folders().flatMap((f) => fontFiles(f, root));
-        for (const f of fonts.filter((f) => !f.licence))
+        for (const f of fonts.filter((f) => !f.licence)) {
           console.warn(
             `\n  Warning: ${f.font} has no licence file next to it. Add the font's licence (e.g. MyFont-LICENSE.txt) to its folder.`,
           );
+        }
         const manifest = fonts.map((f) => `${f.font}: ${f.licence ?? "NO LICENCE FILE"}`).join("\n");
         const text =
           `Third-party notices for this presentation file.\n\nEmbedded font files and their licences:\n${manifest || "(none)"}\n\n${body}`.replaceAll(

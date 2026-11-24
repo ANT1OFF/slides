@@ -39,7 +39,7 @@ export function Stat({
       <CountUp key={`${display}-${to}`} to={to} delay={start + 200} format={formatLike(to)} />
     </>
   );
-  if (size === "sm")
+  if (size === "sm") {
     return (
       <Reveal delay={start} className="rule-top-ink pt-6">
         <div className="type-stat text-[calc(var(--text-stat-sm)*1.3)] text-accent-text">
@@ -49,6 +49,7 @@ export function Stat({
         <div className="type-small mt-3 max-w-[22ch] text-ink-2">{label}</div>
       </Reveal>
     );
+  }
   return (
     <Reveal delay={start} className="flex items-baseline">
       <span className="type-stat text-stat leading-[0.78] text-accent-text">{number}</span>

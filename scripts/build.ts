@@ -17,12 +17,14 @@ if (unknown.length) {
 
 mkdirSync("dist", { recursive: true });
 // Building every deck also removes files left from decks that no longer exist.
-if (!named.length)
-  for (const f of readdirSync("dist"))
+if (!named.length) {
+  for (const f of readdirSync("dist")) {
     if (f.endsWith(".html") && !known.includes(f.slice(0, -5))) {
       rmSync(`dist/${f}`);
       console.log(`removed dist/${f} (no such deck)`);
     }
+  }
+}
 for (const deck of named.length ? named : known) {
   process.env.DECK = deck;
   try {

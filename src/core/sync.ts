@@ -22,17 +22,23 @@ const isPosition = (p: unknown): p is Position =>
 
 /** Checks a message's shape fully; anything else posted to the window is ignored. */
 export function isMessage(data: unknown): data is Message {
-  if (typeof data !== "object" || data === null) return false;
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
   const m = data as Record<string, unknown>;
   switch (m.type) {
-    case "slides:hello":
+    case "slides:hello": {
       return true;
-    case "slides:nav":
+    }
+    case "slides:nav": {
       return m.dir === 1 || m.dir === -1;
-    case "slides:state":
+    }
+    case "slides:state": {
       return isPosition(m.position) && (m.display === "absolute" || m.display === "relative");
-    default:
+    }
+    default: {
       return false;
+    }
   }
 }
 

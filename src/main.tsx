@@ -12,7 +12,9 @@ import settings from "@library/settings.json";
 // A build contains only the one deck `virtual:deck` points at, and only its theme (virtual:themes).
 // The dev server shows a gallery of every deck, theme, block and library slide instead (gallery.tsx).
 async function pick() {
-  if (!import.meta.env.DEV) return { deck: defaultDeck, name: __DECK__ };
+  if (!import.meta.env.DEV) {
+    return { deck: defaultDeck, name: __DECK__ };
+  }
   const { devPick } = await import("./gallery.tsx");
   return devPick(new URLSearchParams(location.search));
 }
@@ -21,7 +23,9 @@ async function pick() {
 function withThemeLogo(input: DeckDefinition): DeckDefinition {
   // A deck without a theme gets the team's default (src/library/settings.json).
   const deck = { ...input, theme: input.theme ?? settings.defaultTheme };
-  if (deck.logo !== undefined) return deck;
+  if (deck.logo !== undefined) {
+    return deck;
+  }
   const file = themes[deck.theme];
   const logo = file?.svg ? (
     <span role="img" aria-label="Logo" className="[&>svg]:h-full [&>svg]:w-auto" dangerouslySetInnerHTML={{ __html: file.svg }} />

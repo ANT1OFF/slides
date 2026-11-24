@@ -39,7 +39,9 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
   useEffect(() => {
     document.title = `Presenter · ${deck.title}`;
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== peer() || !sameOrigin(e) || !isMessage(e.data)) return;
+      if (e.source !== peer() || !sameOrigin(e) || !isMessage(e.data)) {
+        return;
+      }
       if (e.data.type === "slides:state") {
         setPos(e.data.position);
         setDisplay(e.data.display);
@@ -52,14 +54,18 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
       if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
         send({ type: "slides:nav", dir: 1 });
       } else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) {
         e.preventDefault();
         send({ type: "slides:nav", dir: -1 });
-      } else if (e.key.toLowerCase() === "r") setStarted(Date.now());
+      } else if (e.key.toLowerCase() === "r") {
+        setStarted(Date.now());
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -74,7 +80,9 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
 
   const current = slides[pos.index];
   let nextIndex = pos.index + 1;
-  while (nextIndex < slides.length && slides[nextIndex].hidden) nextIndex++;
+  while (nextIndex < slides.length && slides[nextIndex].hidden) {
+    nextIndex++;
+  }
   const next = slides[nextIndex];
 
   const pad = 32;

@@ -47,10 +47,15 @@ function read(file: string): DataFile | string {
   } catch (e) {
     return `not valid JSON (${(e as Error).message})`;
   }
-  if (!["script", "agent", "manual"].includes(d.source as string)) return `"source" must be "script", "agent" or "manual"`;
-  if (typeof d.how !== "string" || !d.how.trim()) return `"how" must say how to get the values`;
-  if (typeof d.updated !== "string" || !/^\d{4}-\d\d-\d\d$/.test(d.updated) || Number.isNaN(Date.parse(d.updated)))
+  if (!["script", "agent", "manual"].includes(d.source as string)) {
+    return `"source" must be "script", "agent" or "manual"`;
+  }
+  if (typeof d.how !== "string" || !d.how.trim()) {
+    return `"how" must say how to get the values`;
+  }
+  if (typeof d.updated !== "string" || !/^\d{4}-\d\d-\d\d$/.test(d.updated) || Number.isNaN(Date.parse(d.updated))) {
     return `"updated" must be a date like 2026-11-24`;
+  }
   return d as DataFile;
 }
 const lastLine = (text: string) => text.trim().split("\n").filter(Boolean).pop() ?? "";
@@ -71,11 +76,17 @@ for (const file of files) {
     try {
       execSync(data.how, { cwd: root, stdio: "pipe" });
       const after = read(file);
-      if (typeof after === "string") throw Object.assign(new Error(`the script left the file broken: ${after}`), { restore: true });
+      if (typeof after === "string") {
+        throw Object.assign(new Error(`the script left the file broken: ${after}`), { restore: true });
+      }
       const today = new Date().toISOString().slice(0, 10);
-      if (after.updated < today) console.log(`  STALE      ${name}: the script ran but "updated" is still ${after.updated}`);
-      else if (after.updated === data.updated && after.updated === today) console.log(`  refreshed  ${name}  (already up to date today)`);
-      else console.log(`  refreshed  ${name}  (updated ${after.updated})`);
+      if (after.updated < today) {
+        console.log(`  STALE      ${name}: the script ran but "updated" is still ${after.updated}`);
+      } else if (after.updated === data.updated && after.updated === today) {
+        console.log(`  refreshed  ${name}  (already up to date today)`);
+      } else {
+        console.log(`  refreshed  ${name}  (updated ${after.updated})`);
+      }
     } catch (e) {
       failed++;
       writeFileSync(file, before); // whatever the script wrote, the old values stay
@@ -93,6 +104,8 @@ for (const file of files) {
   );
 }
 
-if (todo.length) console.log(`\nNeeds an agent or a person (follow "how", update the values and "updated"):\n${todo.join("\n")}`);
+if (todo.length) {
+  console.log(`\nNeeds an agent or a person (follow "how", update the values and "updated"):\n${todo.join("\n")}`);
+}
 console.log(`\nThen: npm run build${deck ? ` ${deck}` : ""} && npm run verify`);
 process.exit(failed ? 1 : 0);

@@ -21,7 +21,9 @@ function librarySlides(): SlideEntry[] {
   for (const [path, mod] of Object.entries(slideFiles)) {
     const file = fileOf(path);
     for (const [name, value] of Object.entries(mod)) {
-      if (typeof value !== "function") continue;
+      if (typeof value !== "function") {
+        continue;
+      }
       if (/^[A-Z]/.test(name)) {
         const LibrarySlide = value as () => ReactNode;
         out.push(

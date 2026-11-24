@@ -33,10 +33,14 @@ export function library({ libraryDir }: { libraryDir: string }): Plugin {
   return {
     name: "slides:library",
     resolveId(id) {
-      if (id === "virtual:library") return ID;
+      if (id === "virtual:library") {
+        return ID;
+      }
     },
     load(id) {
-      if (id !== ID) return;
+      if (id !== ID) {
+        return;
+      }
       const found = files().map((file) => motionNames(readFileSync(file, "utf8")));
       const motion = { effects: found.flatMap((f) => f.effects), transitions: found.flatMap((f) => f.transitions) };
       return `${files()

@@ -30,7 +30,9 @@ export async function devPick(params: URLSearchParams): Promise<{ deck: DeckDefi
   } else {
     name = params.get("deck") ?? "";
     const load = decks[`./decks/${name}/index.tsx`] ?? examples[`../examples/${name}/index.tsx`];
-    if (!load) return null;
+    if (!load) {
+      return null;
+    }
     deck = (await load()).default;
   }
   const theme = params.get("theme") ?? deck.theme;

@@ -73,10 +73,14 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       target.current = { index: i, step };
       const apply = () =>
         setPos((p) => {
-          if (p.index !== target.current.index) steps.current = 0;
+          if (p.index !== target.current.index) {
+            steps.current = 0;
+          }
           return target.current;
         });
-      if (i === from) return apply();
+      if (i === from) {
+        return apply();
+      }
       // Going back plays the transition the slide being left arrived with, reversed.
       const back = i < from;
       const name = (back ? slides[from] : slides[i]).transition ?? deck.transition;
@@ -87,7 +91,11 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
 
   const neighbour = useCallback(
     (from: number, dir: 1 | -1) => {
-      for (let i = from + dir; i >= 0 && i < count; i += dir) if (!slides[i].hidden) return i;
+      for (let i = from + dir; i >= 0 && i < count; i += dir) {
+        if (!slides[i].hidden) {
+          return i;
+        }
+      }
       return from;
     },
     [count, slides],
@@ -96,10 +104,16 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const nav = useCallback(
     (dir: 1 | -1) => {
       const step = Math.min(pos.step, steps.current);
-      if (dir === 1 && step < steps.current) return goto(pos.index, step + 1);
-      if (dir === -1 && step > 0) return goto(pos.index, step - 1);
+      if (dir === 1 && step < steps.current) {
+        return goto(pos.index, step + 1);
+      }
+      if (dir === -1 && step > 0) {
+        return goto(pos.index, step - 1);
+      }
       const next = neighbour(pos.index, dir);
-      if (next !== pos.index) goto(next, dir === -1 ? Number.POSITIVE_INFINITY : 0);
+      if (next !== pos.index) {
+        goto(next, dir === -1 ? Number.POSITIVE_INFINITY : 0);
+      }
     },
     [pos, goto, neighbour],
   );
@@ -114,7 +128,9 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   }, [pos, display]);
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast) {
+      return;
+    }
     const t = setTimeout(() => setToast(null), 1600);
     return () => clearTimeout(t);
   }, [toast]);
@@ -128,11 +144,15 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       // Only the presenter window this deck opened (N), from the same origin, may drive it.
-      if (!presenter.current || e.source !== presenter.current || !sameOrigin(e) || !isMessage(e.data)) return;
+      if (!presenter.current || e.source !== presenter.current || !sameOrigin(e) || !isMessage(e.data)) {
+        return;
+      }
       const m = e.data;
-      if (m.type === "slides:hello")
+      if (m.type === "slides:hello") {
         presenter.current.postMessage({ type: "slides:state", position: pos, display } satisfies Message, postTarget());
-      else if (m.type === "slides:nav") nav(m.dir);
+      } else if (m.type === "slides:nav") {
+        nav(m.dir);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -141,8 +161,12 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   // While a transition runs the browser sends every click to <html>, not to the deck under it.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (e.target !== document.documentElement || !document.documentElement.dataset.transition) return;
-      if (mode === "present" && !help && !blank) nav(e.clientX > window.innerWidth / 3 ? 1 : -1);
+      if (e.target !== document.documentElement || !document.documentElement.dataset.transition) {
+        return;
+      }
+      if (mode === "present" && !help && !blank) {
+        nav(e.clientX > window.innerWidth / 3 ? 1 : -1);
+      }
     };
     window.addEventListener("click", onClick);
     return () => window.removeEventListener("click", onClick);
@@ -150,15 +174,21 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
       // Letter keys work with Shift or Caps Lock too.
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       if (mode === "overview") {
-        if (key === "Escape" || key === "g") setMode("present");
+        if (key === "Escape" || key === "g") {
+          setMode("present");
+        }
         return;
       }
       if (help) {
-        if (e.key === "Escape" || e.key === "?") setHelp(false);
+        if (e.key === "Escape" || e.key === "?") {
+          setHelp(false);
+        }
         return;
       }
       if (blank) {
@@ -182,53 +212,68 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         case "ArrowRight":
         case "ArrowDown":
         case "PageDown":
-        case " ":
+        case " ": {
           e.preventDefault();
           nav(1);
           break;
+        }
         case "ArrowLeft":
         case "ArrowUp":
-        case "PageUp":
+        case "PageUp": {
           e.preventDefault();
           nav(-1);
           break;
-        case "Home":
+        }
+        case "Home": {
           goto(neighbour(-1, 1));
           break;
-        case "End":
+        }
+        case "End": {
           goto(neighbour(count, -1), Number.POSITIVE_INFINITY);
           break;
-        case "f":
-          if (document.fullscreenElement) void document.exitFullscreen();
-          else void document.documentElement.requestFullscreen();
+        }
+        case "f": {
+          if (document.fullscreenElement) {
+            void document.exitFullscreen();
+          } else {
+            void document.documentElement.requestFullscreen();
+          }
           break;
-        case "n":
+        }
+        case "n": {
           presenter.current = window.open(presenterUrl(), "slides-presenter", "width=1280,height=800");
           break;
-        case "g":
+        }
+        case "g": {
           setMode("overview");
           break;
-        case "p":
+        }
+        case "p": {
           setMode("print");
           break;
+        }
         case "b":
-        case ".":
+        case ".": {
           setBlank((b) => !b);
           break;
-        case "?":
+        }
+        case "?": {
           setHelp(true);
           break;
-        case "Escape":
+        }
+        case "Escape": {
           setBlank(false);
           break;
+        }
         case "m": {
           const next = display === "absolute" ? "relative" : "absolute";
           setDisplay(next);
           setToast(next === "relative" ? "Growth and shares" : "Raw numbers");
           break;
         }
-        default:
+        default: {
           extraKeys.find((k) => k.key === key)?.run();
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -238,9 +283,13 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const slideInfo = useMemo(() => slides.map(({ id, hidden }) => ({ id, hidden: !!hidden })), [slides]);
   const jump = useCallback<DeckNav["goto"]>(
     (slide) => {
-      if (typeof slide === "number") return goto(slide);
+      if (typeof slide === "number") {
+        return goto(slide);
+      }
       const index = slideInfo.findIndex(({ id }) => id === slide);
-      if (index !== -1) goto(index);
+      if (index !== -1) {
+        goto(index);
+      }
     },
     [goto, slideInfo],
   );

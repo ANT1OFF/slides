@@ -12,7 +12,9 @@ const CHROMES = [
 export function chromePath(): string | undefined {
   const own = process.env.CHROME_PATH;
   if (own) {
-    if (!existsSync(own)) throw new Error(`CHROME_PATH is set to ${own}, but nothing is there.`);
+    if (!existsSync(own)) {
+      throw new Error(`CHROME_PATH is set to ${own}, but nothing is there.`);
+    }
     return own;
   }
   return CHROMES.find((p) => existsSync(p));

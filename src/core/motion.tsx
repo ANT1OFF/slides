@@ -86,13 +86,17 @@ export function CountUp({
   const [value, setValue] = useState(reduced ? to : 0);
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced) {
+      return;
+    }
     let frame = 0;
     const start = performance.now() + startDelay;
     const tick = (now: number) => {
       const t = Math.min(Math.max((now - start) / duration, 0), 1);
       setValue(to * (1 - Math.pow(1 - t, 4)));
-      if (t < 1) frame = requestAnimationFrame(tick);
+      if (t < 1) {
+        frame = requestAnimationFrame(tick);
+      }
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);

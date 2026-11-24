@@ -14,32 +14,50 @@ export async function libraryData(entry: string, root: string, library: string):
   };
 
   async function visit(file: string) {
-    if (visited.has(file)) return;
+    if (visited.has(file)) {
+      return;
+    }
     visited.add(file);
-    if (file.endsWith(".data.json") && inside(library, file)) found.push(file);
-    if (!/\.(?:[cm]?[jt]s|[jt]sx)$/.test(file)) return;
+    if (file.endsWith(".data.json") && inside(library, file)) {
+      found.push(file);
+    }
+    if (!/\.(?:[cm]?[jt]s|[jt]sx)$/.test(file)) {
+      return;
+    }
 
     const { module, program, errors } = parseSync(file, readFileSync(file, "utf8"));
-    if (errors.length) throw new Error(`Can't trace imports in ${relative(root, file)}: ${errors[0].message}`);
+    if (errors.length) {
+      throw new Error(`Can't trace imports in ${relative(root, file)}: ${errors[0].message}`);
+    }
     const imports = new Set<string>();
     for (const item of module.staticImports) {
-      if (!item.entries.length || item.entries.some((entry) => !entry.isType)) imports.add(item.moduleRequest.value);
+      if (!item.entries.length || item.entries.some((entry) => !entry.isType)) {
+        imports.add(item.moduleRequest.value);
+      }
     }
     for (const item of module.staticExports) {
       for (const entry of item.entries) {
-        if (!entry.isType && entry.moduleRequest) imports.add(entry.moduleRequest.value);
+        if (!entry.isType && entry.moduleRequest) {
+          imports.add(entry.moduleRequest.value);
+        }
       }
     }
     new Visitor({
       ImportExpression(node) {
-        if (node.source.type === "Literal" && typeof node.source.value === "string") imports.add(node.source.value);
+        if (node.source.type === "Literal" && typeof node.source.value === "string") {
+          imports.add(node.source.value);
+        }
       },
     }).visit(program);
     for (const id of imports) {
-      if (!/^(?:\.{1,2}\/|\/|@library(?:\/|$))/.test(id)) continue;
+      if (!/^(?:\.{1,2}\/|\/|@library(?:\/|$))/.test(id)) {
+        continue;
+      }
       const resolved = await resolveImport(id, file);
       const path = resolved?.split(/[?#]/, 1)[0];
-      if (path && inside(root, path)) await visit(path);
+      if (path && inside(root, path)) {
+        await visit(path);
+      }
     }
   }
   await visit(resolve(entry));
