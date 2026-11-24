@@ -12,6 +12,15 @@ export interface Bar {
  * the key value as a headline number in the chart's emptier top corner. Up to 12 bars get a value
  * each; longer series label only the key bar.
  */
+/** Value labels shrink as bars get narrower (`step` is the space per bar). */
+function valueSizeFor(step: number): string {
+  if (step > 120) {
+    return "text-[40px]";
+  }
+
+  return step > 70 ? "text-[30px]" : "text-label";
+}
+
 export function BarSeries({
   data,
   max,
@@ -24,7 +33,7 @@ export function BarSeries({
   stagger = 45,
   relativeTo,
 }: {
-  data: Bar[];
+  data: Array<Bar>;
   /** The value at the top of the chart; defaults to the largest bar. */
   max?: number;
   /** How a value is written on a bar and in the headline. */
@@ -47,15 +56,16 @@ export function BarSeries({
    */
   relativeTo?: { base: "first" | number; label: string; format?: "multiple" | "growth"; always?: boolean };
   /** Kept for older decks; values are written on the bars instead of a value axis. */
-  ticks?: number[];
+  ticks?: Array<number>;
   tickLabel?: (t: number) => string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const display = useDisplay();
-  const scaledMode = !!relativeTo && (display === "relative" || !!relativeTo.always);
+  const scaledMode = relativeTo !== undefined && (display === "relative" || relativeTo.always === true);
   const asGrowth = scaledMode && relativeTo?.format === "growth";
   let shownUnit = unit;
   let write = format;
+
   if (scaledMode && relativeTo) {
     const base = relativeTo.base === "first" ? data[0].value : relativeTo.base;
     data = data.map((d) => ({
@@ -66,6 +76,7 @@ export function BarSeries({
     write = asGrowth ? (v) => (v ? `+${v.toLocaleString("en-US")}%` : "0") : (v) => `${v}×`;
     shownUnit = asGrowth ? `since ${relativeTo.label}` : `vs ${relativeTo.label}`;
   }
+
   const top = Math.max(max ?? 0, ...data.map((d) => d.value)) || 1;
   const n = data.length;
   const labelAll = n <= 12;
@@ -79,7 +90,8 @@ export function BarSeries({
   const last = n - 1;
   const key = hover ?? last;
   const each = Math.min(stagger, 1200 / n);
-  const valueSize = step > 120 ? "text-[40px]" : step > 70 ? "text-[30px]" : "text-label";
+  const valueSize = valueSizeFor(step);
+
   // The headline goes in whichever top corner the bars leave emptier.
   const third = Math.max(1, Math.floor(n / 3));
   const leftTall = Math.max(...data.slice(0, third).map((d) => d.value));
@@ -92,6 +104,7 @@ export function BarSeries({
         {data.map((d, i) => {
           const x = i * step + gap / 2;
           const h = y(d.value);
+
           return (
             <g key={d.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
               <rect x={i * step} y={pad.top} width={step} height={innerH} fill="transparent" />

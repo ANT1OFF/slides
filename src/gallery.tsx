@@ -6,6 +6,7 @@
 import type { ReactNode } from "react";
 import type { DeckDefinition, SlideEntry } from "@core";
 import libraryDeck, { library } from "./library-view.tsx";
+// oxlint-disable-next-line import/no-namespace -- the gallery counts every export of @blocks
 import * as blocks from "@blocks";
 import { themes } from "virtual:themes";
 import { Stage } from "./core/Stage.tsx";
@@ -18,23 +19,33 @@ const examples = import.meta.glob<{ default: DeckDefinition }>("../examples/*/in
 const deckNames = Object.keys(decks)
   .map((path) => path.split("/")[2])
   .filter((n) => n !== "showcase");
+
 // The showcase lives in src/decks (it's the visual test) but is upstream's, so it's listed with the examples.
 const exampleNames = ["showcase", ...Object.keys(examples).map((path) => path.split("/")[2])];
+
+const parseScheme = (scheme: string | null) => (scheme === "light" || scheme === "dark" ? scheme : undefined);
 
 export async function devPick(params: URLSearchParams): Promise<{ deck: DeckDefinition; name: string } | null> {
   let deck: DeckDefinition;
   let name: string;
+
   if (params.has("library")) {
     name = "library";
     deck = libraryDeck;
   } else {
     name = params.get("deck") ?? "";
     const load = decks[`./decks/${name}/index.tsx`] ?? examples[`../examples/${name}/index.tsx`];
-    if (!load) return null;
-    deck = (await load()).default;
+
+    if (!load) {
+      return null;
+    }
+
+    ({ default: deck } = await load());
   }
+
   const theme = params.get("theme") ?? deck.theme;
-  const scheme = (params.get("scheme") as DeckDefinition["scheme"]) ?? deck.scheme;
+  const scheme = parseScheme(params.get("scheme")) ?? deck.scheme;
+
   return { deck: { ...deck, theme, scheme }, name };
 }
 
@@ -52,7 +63,7 @@ const pill = "rounded-xl bg-surface px-5 py-3 text-lg ring-1 ring-rule hover:rin
 const name = "rounded-lg px-3 py-2 font-mono text-sm text-ink-2";
 
 /** Library slides drawn small, in their final state; each opens that slide in the library view. */
-function Previews({ entries, from }: { entries: SlideEntry[]; from: number }) {
+function Previews({ entries, from }: { entries: Array<SlideEntry>; from: number }) {
   return (
     <DeckContext.Provider value={{ title: "Library", theme: settings.defaultTheme, scheme: "light", footer: "src/library" }}>
       {entries.map((entry, i) => (
@@ -70,7 +81,8 @@ function Previews({ entries, from }: { entries: SlideEntry[]; from: number }) {
 }
 
 export function Gallery() {
-  const builtIn = Object.keys(blocks).filter((k) => /^[A-Z]/.test(k));
+  const builtIn = Object.keys(blocks).filter((k) => /^[A-Z]/u.test(k));
+
   return (
     <main className="min-h-screen bg-canvas px-16 py-16 font-sans text-ink">
       <h1 className="text-5xl font-semibold tracking-tight">Slides</h1>
@@ -95,7 +107,7 @@ export function Gallery() {
         title="Examples"
         hint={
           <>
-            The showcase and upstream's example decks (<code className="font-mono">examples/</code>): read them, don't edit them
+            The showcase and upstream&apos;s example decks (<code className="font-mono">examples/</code>): read them, don&apos;t edit them
           </>
         }
       >
@@ -109,7 +121,8 @@ export function Gallery() {
         title={`Library slides (${library.slides.length})`}
         hint={
           <>
-            Your team's reusable slides and slide sets, <code className="font-mono">src/library/slides/</code>, with their default props
+            Your team&apos;s reusable slides and slide sets, <code className="font-mono">src/library/slides/</code>, with their default
+            props
           </>
         }
       >
@@ -124,7 +137,7 @@ export function Gallery() {
         title={`Library blocks (${library.blocks.length + library.blocksWithoutExample.length})`}
         hint={
           <>
-            Your own blocks and layouts, <code className="font-mono">src/library/blocks/</code>: each file's{" "}
+            Your own blocks and layouts, <code className="font-mono">src/library/blocks/</code>: each file&apos;s{" "}
             <code className="font-mono">example</code> export
           </>
         }

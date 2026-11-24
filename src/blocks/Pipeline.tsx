@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Build, Pulse, Reveal, Traveller, delay } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 export interface Step {
   title: ReactNode;
@@ -14,7 +15,7 @@ export interface Step {
  * and a card under each node. Fits the 1680px content width.
  */
 /** `build` reveals one step's card per press of →. */
-export function Pipeline({ steps, build, start = 300 }: { steps: Step[]; build?: BuildProp; start?: number }) {
+export function Pipeline({ steps, build, start = 300 }: { steps: Array<Step>; build?: BuildProp; start?: number }) {
   const width = 1680;
   const n = steps.length;
   const col = width / n;
@@ -22,6 +23,7 @@ export function Pipeline({ steps, build, start = 300 }: { steps: Step[]; build?:
   const y = 40;
   const track = `M ${cx(0)} ${y} L ${cx(n - 1)} ${y}`;
   const ink = "stroke-rule";
+
   // Steady state begins once the last card has risen; the dot then crosses the track every `period`.
   const loopStart = start + 320 + n * 140 + 900;
   const period = Math.max(n * 0.9, 4);
@@ -37,7 +39,7 @@ export function Pipeline({ steps, build, start = 300 }: { steps: Step[]; build?:
               x={(cx(i) + cx(i + 1)) / 2}
               y={y - 22}
               textAnchor="middle"
-              className={"fade font-label text-label fill-accent-text"}
+              className="fade font-label text-label fill-accent-text"
               style={delay(start + 600 + i * 140)}
             >
               {s.edge}
@@ -67,10 +69,10 @@ export function Pipeline({ steps, build, start = 300 }: { steps: Step[]; build?:
       </svg>
       <div className="mt-6 grid" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
         {steps.map((s, i) => (
-          <Build key={i} at={stepOf(build, i)} enabled={!!build}>
+          <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)}>
             <Reveal delay={build ? 0 : start + 320 + i * 140} className="px-4 text-center">
               <div className="type-small weight-strong leading-tight">{s.title}</div>
-              {s.detail && <div className={`mt-3 text-[28px] leading-snug text-ink-2`}>{s.detail}</div>}
+              {s.detail && <div className="mt-3 text-[28px] leading-snug text-ink-2">{s.detail}</div>}
             </Reveal>
           </Build>
         ))}

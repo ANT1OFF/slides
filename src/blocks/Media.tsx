@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Reveal, useStatic } from "@core";
 
 /**
@@ -20,6 +21,7 @@ export function Video({
   start?: number;
 }) {
   const still = useStatic();
+
   return (
     <Reveal as="figure" delay={start} className="flex flex-col gap-5">
       <div className="overflow-hidden rounded-box bg-surface" style={{ height }}>
@@ -44,25 +46,39 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
     const a = ref.current;
-    if (!a) return;
+
+    if (!a) {
+      return;
+    }
+
     const stop = () => setPlaying(false);
     a.addEventListener("ended", stop);
     a.addEventListener("pause", stop);
+
     return () => {
       a.removeEventListener("ended", stop);
       a.removeEventListener("pause", stop);
     };
   }, []);
+
   return (
     <Reveal delay={start} className="inline-flex">
       <button
         type="button"
         onClick={(e) => {
-          e.stopPropagation(); // don't advance the slide
+          // Don't advance the slide.
+          e.stopPropagation();
           const a = ref.current;
-          if (!a) return;
-          if (a.paused) void a.play().then(() => setPlaying(true));
-          else a.pause();
+
+          if (!a) {
+            return;
+          }
+
+          if (a.paused) {
+            void a.play().then(() => setPlaying(true));
+          } else {
+            a.pause();
+          }
         }}
         className="rule-top-strong flex cursor-pointer items-center gap-6 rounded-box bg-surface px-(--pad-box) py-6 text-left"
       >
@@ -80,6 +96,7 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
         </span>
         <span className="type-body">{label}</span>
       </button>
+      {/* oxlint-disable-next-line jsx-a11y/media-has-caption -- browsers show no captions for <audio>; the button's label names the sound */}
       <audio ref={ref} src={src} preload="auto" />
     </Reveal>
   );

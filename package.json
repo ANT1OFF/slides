@@ -20,7 +20,7 @@
     "new": "node scripts/new-deck.ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "lint": "oxlint",
+    "lint": "oxlint --type-aware",
     "check": "prettier --check . && npm run lint && node scripts/boundaries.ts && npm run build && node scripts/build-examples.ts --check",
     "verify": "node scripts/verify.ts",
     "pdf": "node scripts/pdf.ts",
@@ -32,6 +32,8 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@cloudflare/oxlint-config": "0.2.0",
+    "@oxlint/plugins": "1.95.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
@@ -42,6 +44,7 @@
     "playwright-core": "^1.65.1",
     "prettier": "^3.10.1",
     "tailwindcss": "^4.3.3",
+    "tsrs": "7.1.0-beta.tsrs5",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vite-plugin-singlefile": "^2.3.4"

@@ -119,7 +119,7 @@ URL) and says what to import. Inlined files grow by a third, so compress them: p
 
 ```bash
 npm run format   # fixes formatting (npm run check fails on it)
-npm run check    # formatting, lint, layer boundaries, types, every deck builds, examples/html is up to date
+npm run check    # formatting, lint (type-aware oxlint), layer boundaries, types, every deck builds, examples/html is up to date
 npm run verify   # opens every built deck offline in Chrome and checks fonts, media and every key
 npm run pdf x    # dist/x.pdf: one page per visible slide in its final state (no name: every deck)
 npm run refresh  # refreshes the data behind the slides (docs/working-with-decks.md, "Data")

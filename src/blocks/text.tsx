@@ -1,11 +1,13 @@
 // Text blocks for inside a Frame.
 import type { ReactNode } from "react";
 import { Build, Reveal } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 type Item = ReactNode | { title: ReactNode; detail?: ReactNode };
+
 const isRich = (item: Item): item is { title: ReactNode; detail?: ReactNode } =>
-  typeof item === "object" && item !== null && "title" in (item as object);
+  typeof item === "object" && item !== null && "title" in item;
 
 /**
  * A list as rows between hairlines, numbered 01, 02 … (or `marker="square"` for an unnumbered list).
@@ -17,7 +19,7 @@ export function Bullets({
   marker = "number",
   start = 200,
 }: {
-  items: Item[];
+  items: Array<Item>;
   build?: BuildProp;
   marker?: "number" | "square";
   start?: number;
@@ -25,7 +27,7 @@ export function Bullets({
   return (
     <ul className="rule-bottom flex max-h-[620px] flex-1 flex-col">
       {items.map((item, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} as="li" className="rule-top flex flex-1 flex-col justify-center">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} as="li" className="rule-top flex flex-1 flex-col justify-center">
           <Reveal delay={build ? 0 : start} order={build ? 0 : i} className="grid grid-cols-[140px_1fr] items-baseline py-6">
             {marker === "number" ? (
               <span className="type-label text-[30px] tracking-[0.06em] text-accent-text">{String(i + 1).padStart(2, "0")}</span>
@@ -44,11 +46,12 @@ export function Bullets({
 }
 
 /** The same rows as Bullets, for an agenda; `active` (0-based) keeps full ink and the rest drop to ink-2. */
-export function Agenda({ items, active, start = 200 }: { items: ReactNode[]; active?: number; start?: number }) {
+export function Agenda({ items, active, start = 200 }: { items: Array<ReactNode>; active?: number; start?: number }) {
   return (
     <ol className="rule-bottom flex max-h-[620px] flex-1 flex-col">
       {items.map((item, i) => {
         const dim = active !== undefined && active !== i;
+
         return (
           <Reveal key={i} as="li" delay={start} order={i} className="rule-top grid flex-1 grid-cols-[140px_1fr] items-center">
             <span className={`type-label text-[30px] tracking-[0.06em] ${dim ? "text-ink-2" : "text-accent-text"}`}>
@@ -75,6 +78,7 @@ export function Callout({
   start?: number;
 }) {
   const bar = { accent: "bg-accent", "accent-2": "bg-accent-2", "accent-3": "bg-accent-3" }[tone];
+
   return (
     <Reveal delay={start} className="relative rounded-box bg-surface py-10 pr-12 pl-16">
       <span className={`absolute inset-y-0 left-0 w-(--rule-strong) ${bar}`} />

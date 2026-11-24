@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Traveller, delay } from "@core";
 
 export interface FlowNode {
@@ -18,7 +18,7 @@ export function Flow({
   height = 400,
   start = 300,
 }: {
-  nodes: FlowNode[];
+  nodes: Array<FlowNode>;
   width?: number;
   height?: number;
   start?: number;
@@ -28,6 +28,7 @@ export function Flow({
   const w = (width - gap * (n - 1)) / n;
   const y = height / 2;
   const x = (i: number) => i * (w + gap) + w / 2;
+
   return (
     <svg width={width} height={height} className="my-auto overflow-visible">
       {nodes.slice(1).map((_, i) => (
@@ -84,7 +85,7 @@ export function Node({
         width={w}
         height={h}
         className={strong ? "fill-ink" : "fill-surface"}
-        style={{ rx: "var(--radius-box)" } as CSSProperties}
+        style={{ rx: "var(--radius-box)" }}
       />
       <text
         x={x}
@@ -123,6 +124,7 @@ export function Arrow({
   const a = Math.atan2(y2 - y1, x2 - x1);
   const head = (s: number) => `${x2 - 18 * Math.cos(a - s)} ${y2 - 18 * Math.sin(a - s)}`;
   const d = `M ${x1} ${y1} L ${x2} ${y2}`;
+
   return (
     <g>
       <path d={d} pathLength={1} className={`draw fill-none ${className}`} strokeWidth={3} style={delay(start)} />

@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { Build, CountUp, Reveal, useDisplay } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 function formatLike(target: number) {
   const digits = Number.isInteger(target) ? 0 : (String(target).split(".")[1]?.length ?? 0);
+
   return (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
@@ -18,6 +20,7 @@ export interface StatValue {
 
 function useValue(absolute: StatValue, relative?: StatValue) {
   const display = useDisplay();
+
   return { display, ...(display === "relative" && relative ? relative : absolute) };
 }
 
@@ -33,13 +36,15 @@ export function Stat({
   ...absolute
 }: StatValue & { start?: number; size?: "hero" | "sm"; relative?: StatValue }) {
   const { display, to, label, prefix = "", suffix = "" } = useValue(absolute, relative);
+
   const number = (
     <>
       {prefix}
       <CountUp key={`${display}-${to}`} to={to} delay={start + 200} format={formatLike(to)} />
     </>
   );
-  if (size === "sm")
+
+  if (size === "sm") {
     return (
       <Reveal delay={start} className="rule-top-ink pt-6">
         <div className="type-stat text-[calc(var(--text-stat-sm)*1.3)] text-accent-text">
@@ -49,6 +54,8 @@ export function Stat({
         <div className="type-small mt-3 max-w-[22ch] text-ink-2">{label}</div>
       </Reveal>
     );
+  }
+
   return (
     <Reveal delay={start} className="flex items-baseline">
       <span className="type-stat text-stat leading-[0.78] text-accent-text">{number}</span>
@@ -64,17 +71,19 @@ export function StatRow({
   build,
   start = 200,
 }: {
-  stats: (StatValue & { relative?: StatValue })[];
+  stats: Array<StatValue & { relative?: StatValue }>;
   build?: BuildProp;
   start?: number;
 }) {
   const display = useDisplay();
+
   return (
     <div className="grid gap-(--gap-column)" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}>
       {stats.map((s, i) => {
         const v = display === "relative" && s.relative ? s.relative : s;
+
         return (
-          <Build key={i} at={stepOf(build, i)} enabled={!!build}>
+          <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)}>
             <Reveal delay={build ? 0 : start + i * 150} className="rule-top-ink pt-6">
               <div className={`type-stat ${stats.length <= 3 ? "text-[calc(var(--text-stat-sm)*1.5)]" : "text-stat-sm"}`}>
                 {v.prefix}

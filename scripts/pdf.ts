@@ -3,24 +3,27 @@
 // if dist/<deck>.html is missing or older than the source; runs offline. Uses your Chrome (or
 // CHROME_PATH), else Playwright's Chromium (`npx playwright-core install chromium`).
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
 import { listDecks } from "../vite.config.ts";
 import { chromePath } from "./chrome.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
+import { errorMessage } from "./error-message.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const known = listDecks();
 const named = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const unknown = named.filter((d) => !known.includes(d));
-if (!known.length || unknown.length) {
+
+if (known.length === 0 || unknown.length > 0) {
   console.error(
-    unknown.length ? `No such deck: ${unknown.join(", ")}. Decks: ${known.join(", ")}` : "No decks yet. Start one: npm run new my-talk",
+    unknown.length > 0 ? `No such deck: ${unknown.join(", ")}. Decks: ${known.join(", ")}` : "No decks yet. Start one: npm run new my-talk",
   );
   process.exit(1);
 }
-const decks = named.length ? named : known;
+
+const decks = named.length > 0 ? named : known;
 
 // Build what is missing or stale (older than anything under src/), so the PDF is never of old slides.
 const newest = (dir: string) =>
@@ -30,25 +33,35 @@ const newest = (dir: string) =>
       .filter((f) => f.isFile())
       .map((f) => statSync(resolve(f.parentPath, f.name)).mtimeMs),
   );
+
 const sourceTime = Math.max(newest(resolve(root, "src")), statSync(resolve(root, "index.html")).mtimeMs);
+
 const stale = decks.filter((d) => {
   const html = resolve(root, "dist", `${d}.html`);
+
   return !existsSync(html) || statSync(html).mtimeMs < sourceTime;
 });
-if (stale.length) {
+
+if (stale.length > 0) {
   console.log(`Building ${stale.join(", ")}…`);
   const built = spawnSync("npm", ["run", "build", "--silent", "--", ...stale], { cwd: root, stdio: "inherit" });
-  if (built.status !== 0) process.exit(built.status ?? 1);
+
+  if (built.status !== 0) {
+    process.exit(built.status ?? 1);
+  }
 }
 
 let executablePath: string | undefined;
+
 try {
   executablePath = chromePath();
-} catch (e) {
-  console.error((e as Error).message);
+} catch (error) {
+  console.error(errorMessage(error));
   process.exit(1);
 }
+
 let browser;
+
 try {
   browser = await chromium.launch(executablePath ? { executablePath } : {});
 } catch {
@@ -60,17 +73,25 @@ try {
 }
 
 let failed = false;
+
 for (const deck of decks) {
   const out = resolve(root, "dist", `${deck}.pdf`);
+
   try {
     const slides = await exportPdf(browser, resolve(root, "dist", `${deck}.html`), out);
     const { pages } = inspectPdf(readFileSync(out));
-    if (pages !== slides) throw new Error(`${slides} slides but ${pages} pages in the PDF`);
+
+    if (pages !== slides) {
+      throw new Error(`${slides} slides but ${pages} pages in the PDF`);
+    }
+
     console.log(`dist/${deck}.pdf  (${pages} page${pages === 1 ? "" : "s"})`);
-  } catch (e) {
+  } catch (error) {
     failed = true;
-    console.error(`${deck}: ${(e as Error).message}`);
+    console.error(`${deck}: ${errorMessage(error)}`);
   }
 }
+
 await browser.close();
+
 process.exit(failed ? 1 : 0);

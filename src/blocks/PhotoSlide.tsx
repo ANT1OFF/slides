@@ -25,6 +25,7 @@ export function PhotoSlide({
 }) {
   const gradient =
     side === "left" ? "bg-gradient-to-r from-black/85 via-black/60 to-black/0" : "bg-gradient-to-t from-black/85 via-black/50 to-black/0";
+
   return (
     <section className="relative h-full overflow-hidden bg-black text-white">
       <div className="fade absolute inset-0" style={delay(0)}>
@@ -32,7 +33,7 @@ export function PhotoSlide({
           src={src}
           alt={alt}
           className={`${drift ? "kenburns " : ""}h-full w-full object-cover`}
-          style={{ objectPosition: position, ...(drift ? loop(1200, 26) : {}) }}
+          style={drift ? { objectPosition: position, ...loop(1200, 26) } : { objectPosition: position }}
         />
       </div>
       <div className={`absolute inset-0 ${gradient}`} />
@@ -104,7 +105,7 @@ export function PhotoSplit({
           src={src}
           alt={alt}
           className={`${drift ? "kenburns " : ""}h-full w-full object-cover`}
-          style={{ objectPosition: position, ...(drift ? loop(1500, 26) : {}) }}
+          style={drift ? { objectPosition: position, ...loop(1500, 26) } : { objectPosition: position }}
         />
       </div>
     </section>

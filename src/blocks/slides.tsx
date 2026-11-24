@@ -30,7 +30,7 @@ export function SlideHeader({ kicker, aside }: { kicker?: ReactNode; aside?: Rea
   return (
     <header className="flex min-h-[30px] items-center justify-between">
       {kicker ? <Kicker>{kicker}</Kicker> : <span />}
-      {aside !== undefined ? <div className="type-label text-ink-2">{aside}</div> : <Logo className="h-10" />}
+      {aside === undefined ? <Logo className="h-10" /> : <div className="type-label text-ink-2">{aside}</div>}
     </header>
   );
 }
@@ -40,6 +40,7 @@ export function Footer({ note }: { note?: ReactNode }) {
   const { footer, title } = useDeck();
   const number = useSlideNumber();
   const left = note ?? (footer === false ? null : (footer ?? title));
+
   return (
     <footer className="type-label flex min-h-[30px] items-center justify-between text-ink-2">
       <span>{left}</span>
@@ -177,13 +178,8 @@ export function SectionSlide({
   children?: ReactNode;
   inverted?: boolean;
 }) {
-  const label =
-    typeof number === "number"
-      ? [number, of]
-          .filter(Boolean)
-          .map((n) => String(n).padStart(2, "0"))
-          .join(" / ")
-      : number;
+  const label = typeof number === "number" ? [number, of].flatMap((n) => (n ? [String(n).padStart(2, "0")] : [])).join(" / ") : number;
+
   return (
     <Slide inverted={inverted} className="relative justify-end overflow-hidden pb-24">
       {label && (
@@ -268,7 +264,7 @@ export function EndSlide({
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
-  links?: ReactNode[];
+  links?: Array<ReactNode>;
   inverted?: boolean;
 }) {
   return (

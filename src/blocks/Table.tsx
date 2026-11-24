@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Build, Reveal } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 /**
  * A clean data table. Numeric columns are right-aligned; `highlight` emphasises a row (0-based);
@@ -15,24 +16,31 @@ export function Table({
   build,
   start = 200,
 }: {
-  columns: ReactNode[];
-  rows: ReactNode[][];
+  columns: Array<ReactNode>;
+  rows: Array<Array<ReactNode>>;
   highlight?: number;
   /** The column to read (0-based): set in the strong weight, the others in ink-2. */
   strong?: number;
   /** Indexes of columns to right-align with tabular figures; defaults to those whose cells are all numbers. */
-  numeric?: number[];
+  numeric?: Array<number>;
   build?: BuildProp;
   start?: number;
 }) {
   const isNum = (c: number) =>
     numeric
       ? numeric.includes(c)
-      : rows.every(
-          (r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/.test(r[c] as string)),
-        );
+      : rows.every((r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/u.test(r[c])));
+
   const align = columns.map((_, c) => (isNum(c) ? "text-right tabular-nums" : "text-left"));
-  const cellTone = (c: number) => (strong === undefined || c === 0 ? "" : c === strong ? "weight-strong" : "text-ink-2");
+
+  const cellTone = (c: number) => {
+    if (strong === undefined || c === 0) {
+      return "";
+    }
+
+    return c === strong ? "weight-strong" : "text-ink-2";
+  };
+
   return (
     <Reveal delay={start} className="rule-top-strong w-full rounded-box bg-surface px-(--pad-box) pt-3 pb-5">
       <table className="type-small w-full border-collapse">
@@ -47,7 +55,13 @@ export function Table({
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <Build key={i} as="tr" at={stepOf(build, i)} enabled={!!build} className={`rule-top ${highlight === i ? "bg-highlight" : ""}`}>
+            <Build
+              key={i}
+              as="tr"
+              at={stepOf(build, i)}
+              enabled={Boolean(build)}
+              className={`rule-top ${highlight === i ? "bg-highlight" : ""}`}
+            >
               {r.map((cell, c) => (
                 <td
                   key={c}

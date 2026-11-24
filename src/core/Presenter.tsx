@@ -1,25 +1,43 @@
 import { useEffect, useMemo, useState } from "react";
-import { DisplayContext, StepContext, type Display } from "./context.ts";
+import { DisplayContext, StepContext } from "./context.ts";
+import type { Display } from "./context.ts";
 import { Stage, fitScale, useWindowSize } from "./Stage.tsx";
-import { isMessage, postTarget, sameOrigin, type Message, type Position } from "./sync.ts";
+import { isMessage, postTarget, sameOrigin } from "./sync.ts";
+import type { Message, Position } from "./sync.ts";
 import { DeckContext, deckLook } from "./theme.ts";
-import { entries, slideLabel, slideNumber, slideTags, type DeckDefinition } from "./types.ts";
+import { entries, slideLabel, slideNumber, slideTags } from "./types.ts";
+import type { DeckDefinition } from "./types.ts";
+
+// The DOM types window.opener as any.
+const isWindow = (w: unknown): w is Window => typeof w === "object" && w !== null && "postMessage" in w;
 
 // The deck window that opened us; a parent page also works, e.g. when embedded for testing.
-const peer = (): Window | null => window.opener ?? (window.parent !== window ? window.parent : null);
+function peer(): Window | null {
+  const opener: unknown = window.opener;
+
+  if (isWindow(opener)) {
+    return opener;
+  }
+
+  return window.parent === window ? null : window.parent;
+}
+
 const send = (m: Message) => peer()?.postMessage(m, postTarget());
 
 function useClock() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
+
     return () => clearInterval(t);
   }, []);
+
   return now;
 }
 
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.floor(ms / 1000));
+
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 };
 
@@ -38,43 +56,61 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
 
   useEffect(() => {
     document.title = `Presenter · ${deck.title}`;
+
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== peer() || !sameOrigin(e) || !isMessage(e.data)) return;
+      if (e.source !== peer() || !sameOrigin(e) || !isMessage(e.data)) {
+        return;
+      }
+
       if (e.data.type === "slides:state") {
         setPos(e.data.position);
         setDisplay(e.data.display);
       }
     };
+
     window.addEventListener("message", onMessage);
     send({ type: "slides:hello" });
+
     return () => window.removeEventListener("message", onMessage);
   }, [deck.title]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
+
       if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
         send({ type: "slides:nav", dir: 1 });
       } else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) {
         e.preventDefault();
         send({ type: "slides:nav", dir: -1 });
-      } else if (e.key.toLowerCase() === "r") setStarted(Date.now());
+      } else if (e.key.toLowerCase() === "r") {
+        setStarted(Date.now());
+      }
     };
+
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   if (!peer()) {
     return <div className="grid h-screen place-items-center bg-ink text-2xl text-canvas">Open this from the deck with N.</div>;
   }
+
   if (!pos) {
     return <div className="grid h-screen place-items-center bg-ink text-2xl text-canvas">Connecting to the deck…</div>;
   }
 
   const current = slides[pos.index];
   let nextIndex = pos.index + 1;
-  while (nextIndex < slides.length && slides[nextIndex].hidden) nextIndex++;
+
+  while (nextIndex < slides.length && slides[nextIndex].hidden) {
+    nextIndex++;
+  }
+
   const next = slides[nextIndex];
 
   const pad = 32;

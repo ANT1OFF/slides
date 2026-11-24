@@ -10,32 +10,47 @@ const KEYWORDS = new Set(
     "package func go defer select chan map range"
   ).split(" "),
 );
-const RULES: [RegExp, string][] = [
-  [/^(\/\/.*|#(?!\[).*|\/\*[\s\S]*?\*\/)/, "tok-comment"],
-  [/^(`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/, "tok-string"],
+
+const RULES: Array<[RegExp, string]> = [
+  [/^(?:\/\/.*|#(?!\[).*|\/\*[\s\S]*?\*\/)/u, "tok-comment"],
+  [/^(?:`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/u, "tok-string"],
   // A number with whatever letters follow it (120px, 0x1f, 1e9): every rule must leave nothing
   // unmatched, or tokenize never ends.
-  [/^\d(?:[eE][+-]\d|[\w.])*/, "tok-number"],
-  [/^[A-Za-z_$][\w$]*(?=\s*\()/, "tok-fn"],
-  [/^[A-Za-z_$][\w$]*/, "word"],
-  [/^\s+/, ""],
-  [/^[^\w\s]/, "tok-punct"],
+  [/^\d(?:[eE][+-]\d|[\w.])*/u, "tok-number"],
+  [/^[A-Za-z_$][\w$]*(?=\s*\()/u, "tok-fn"],
+  [/^[A-Za-z_$][\w$]*/u, "word"],
+  [/^\s+/u, ""],
+  [/^[^\w\s]/u, "tok-punct"],
 ];
+
+/** A keyword, a type (capitalised) or a plain word. */
+function wordKind(word: string, keywords: ReadonlySet<string>): string {
+  if (keywords.has(word)) {
+    return "tok-kw";
+  }
+
+  return /^[A-Z]/u.test(word) ? "tok-type" : "";
+}
 
 /**
  * The built-in tokenizer: one line of source as coloured spans. The classes are the contract, and
  * the theme colours them: `tok-kw`, `tok-string`, `tok-number`, `tok-type`, `tok-fn`, `tok-comment`,
  * `tok-punct`. Pass your own `keywords` to reuse it for another language.
  */
-export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS): ReactNode[] {
-  const out: ReactNode[] = [];
+export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS): Array<ReactNode> {
+  const out: Array<ReactNode> = [];
   let rest = line;
+
   while (rest) {
     for (const [re, cls] of RULES) {
       const m = re.exec(rest);
-      if (!m) continue;
-      const text = m[0];
-      const kind = cls === "word" ? (keywords.has(text) ? "tok-kw" : /^[A-Z]/.test(text) ? "tok-type" : "") : cls;
+
+      if (!m) {
+        continue;
+      }
+
+      const [text] = m;
+      const kind = cls === "word" ? wordKind(text, keywords) : cls;
       out.push(
         kind ? (
           <span key={out.length} className={kind}>
@@ -49,21 +64,31 @@ export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS)
       break;
     }
   }
+
   return out;
 }
 
 /** "1|2-3|5,7|all" → one set of 1-based line numbers per step; "all" or "*" means every line. */
-function parseSteps(steps: string, count: number): Set<number>[] {
+function parseSteps(steps: string, count: number): Array<Set<number>> {
   return steps.split("|").map((part) => {
     const set = new Set<number>();
+
     for (const range of part.split(",")) {
       const r = range.trim();
-      if (r === "all" || r === "*" || r === "") for (let i = 1; i <= count; i++) set.add(i);
-      else {
+
+      if (r === "all" || r === "*" || r === "") {
+        for (let i = 1; i <= count; i++) {
+          set.add(i);
+        }
+      } else {
         const [a, b = a] = r.split("-").map(Number);
-        for (let i = a; i <= b; i++) set.add(i);
+
+        for (let i = a; i <= b; i++) {
+          set.add(i);
+        }
       }
     }
+
     return set;
   });
 }
@@ -93,10 +118,10 @@ export function Code({
   numbers?: boolean;
   start?: number;
   /** Your own highlighter: one line in, its nodes out (spans with the `tok-*` classes). Defaults to the built-in one. */
-  tokenize?: (line: string) => ReactNode[];
+  tokenize?: (line: string) => Array<ReactNode>;
 }) {
-  const lines = children.replace(/^\s*\n|\n\s*$/g, "").split("\n");
-  const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => l.match(/^ */)![0].length));
+  const lines = children.replaceAll(/^\s*\n|\n\s*$/gu, "").split("\n");
+  const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => l.search(/[^ ]/u)));
   const code = lines.map((l) => l.slice(indent));
   const stepsSets = highlight ? parseSteps(highlight, code.length) : null;
   const step = useBuildStep(stepsSets ? stepsSets.length - 1 : 0);

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Build, Reveal, delay } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 export interface Milestone {
   /** Date or label above the line, e.g. "Q3" or "2027". */
@@ -12,8 +13,18 @@ export interface Milestone {
 }
 
 /** A roadmap: an ink line with a node per milestone, its date above and its title below. `build` reveals them in turn. */
-export function Timeline({ items, build, start = 300 }: { items: Milestone[]; build?: BuildProp; start?: number }) {
+/** The current milestone's dot is the accent colour, done ones are filled, the rest are rings. */
+function dotTone(isCurrent: boolean, done: boolean | undefined): string {
+  if (isCurrent) {
+    return "bg-accent";
+  }
+
+  return done ? "bg-ink" : "border-(length:--rule) border-ink bg-canvas";
+}
+
+export function Timeline({ items, build, start = 300 }: { items: Array<Milestone>; build?: BuildProp; start?: number }) {
   const current = items.findIndex((m) => !m.done);
+
   return (
     <div className="relative">
       {/* The line runs from the first node to the last one, through their centres. */}
@@ -23,14 +34,9 @@ export function Timeline({ items, build, start = 300 }: { items: Milestone[]; bu
       />
       <div className="relative grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((m, i) => (
-          <Build key={i} at={stepOf(build, i)} enabled={!!build} className="pr-10">
+          <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="pr-10">
             <div className="type-label text-ink-2">{m.when}</div>
-            <span
-              className={`pop mt-8 block size-7 rounded-full ${
-                i === current ? "bg-accent" : m.done ? "bg-ink" : "border-(length:--rule) border-ink bg-canvas"
-              }`}
-              style={delay(start + 300 + i * 120)}
-            />
+            <span className={`pop mt-8 block size-7 rounded-full ${dotTone(i === current, m.done)}`} style={delay(start + 300 + i * 120)} />
             <Reveal delay={build ? 0 : start + 400 + i * 120} className="mt-8">
               <div className="type-body weight-strong leading-tight">{m.title}</div>
               {m.detail && <div className="type-small mt-2 text-ink-2">{m.detail}</div>}

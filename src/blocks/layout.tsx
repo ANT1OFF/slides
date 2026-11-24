@@ -1,7 +1,9 @@
 // Layout blocks for inside a Frame: columns, card grids and side-by-side comparisons.
-import { Children, type ReactNode } from "react";
+import { Children } from "react";
+import type { ReactNode } from "react";
 import { Build, Reveal } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 /**
  * Two or more columns side by side, centred against each other. `ratio` sets their widths, e.g.
@@ -15,17 +17,18 @@ export function Columns({
   start = 200,
 }: {
   children: ReactNode;
-  ratio?: number[];
+  ratio?: Array<number>;
   align?: "start" | "center" | "end" | "stretch";
   build?: BuildProp;
   start?: number;
 }) {
   const cols = Children.toArray(children);
   const template = (ratio ?? cols.map(() => 1)).map((r) => `minmax(0, ${r}fr)`).join(" ");
+
   return (
     <div className="grid gap-(--gap-column)" style={{ gridTemplateColumns: template, alignItems: align }}>
       {cols.map((col, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} className="min-w-0">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="min-w-0">
           <Reveal delay={build ? 0 : start + i * 140}>{col}</Reveal>
         </Build>
       ))}
@@ -53,12 +56,23 @@ export interface CardItem {
 }
 
 /** Panels side by side: features, people, options. `columns` defaults to the number of cards (max 4). */
-export function Cards({ items, columns, build, start = 200 }: { items: CardItem[]; columns?: number; build?: BuildProp; start?: number }) {
+export function Cards({
+  items,
+  columns,
+  build,
+  start = 200,
+}: {
+  items: Array<CardItem>;
+  columns?: number;
+  build?: BuildProp;
+  start?: number;
+}) {
   const n = columns ?? Math.min(items.length, 4);
+
   return (
     <div className="grid gap-(--gap-item)" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
       {items.map((c, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} className="h-full">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="h-full">
           <Reveal delay={build ? 0 : start + i * 110} className="rule-top-strong flex h-full flex-col rounded-box bg-surface p-(--pad-box)">
             {c.icon && <div className="type-label mb-8 text-[30px] text-accent-text">{c.icon}</div>}
             <div className="type-strong">{c.title}</div>
@@ -73,17 +87,17 @@ export function Cards({ items, columns, build, start = 200 }: { items: CardItem[
 
 export interface CompareSide {
   title: ReactNode;
-  items: ReactNode[];
+  items: Array<ReactNode>;
   /** The recommended side: drawn on the inverted scheme. */
   highlight?: boolean;
 }
 
 /** Two (or more) options side by side: before/after, us/them. The recommended side is inverted. */
-export function Compare({ sides, build, start = 200 }: { sides: CompareSide[]; build?: BuildProp; start?: number }) {
+export function Compare({ sides, build, start = 200 }: { sides: Array<CompareSide>; build?: BuildProp; start?: number }) {
   return (
     <div className="grid gap-(--gap-item)" style={{ gridTemplateColumns: `repeat(${sides.length}, minmax(0, 1fr))` }}>
       {sides.map((s, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} className="h-full">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="h-full">
           <Reveal
             delay={build ? 0 : start + i * 160}
             className={`rule-top-strong flex h-full flex-col rounded-box p-(--pad-box) ${s.highlight ? "inverted" : "bg-surface"}`}

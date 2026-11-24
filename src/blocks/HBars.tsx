@@ -9,7 +9,7 @@ export function HBars({
   highlight = 0,
   width = 1680,
 }: {
-  rows: { label: string; value: number }[];
+  rows: Array<{ label: string; value: number }>;
   max?: number;
   start?: number;
   barClass?: string;
@@ -19,16 +19,19 @@ export function HBars({
   width?: number;
 }) {
   const top = max ?? Math.max(...rows.map((r) => r.value));
+
   // The label column is as wide as the longest label (about 0.55em a character at 30px), so the bars start close to it.
   const longest = Math.max(...rows.map((r) => r.label.length));
   const labelW = Math.min(Math.round(width * 0.32), Math.round(longest * 17) + 48);
   const barMax = width - labelW - 140;
   const rowH = 80;
+
   return (
     <svg width={width} height={rows.length * rowH} className="overflow-visible">
       {rows.map((r, i) => {
         const w = Math.max((r.value / top) * barMax, 6);
         const yy = i * rowH;
+
         return (
           <g key={r.label}>
             <text

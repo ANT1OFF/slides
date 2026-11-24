@@ -2,7 +2,8 @@
 // Each slide's `id` is the block it shows, so you can find it in the overview (G).
 // In `npm run dev`, add &theme=editorial (or signal, acme) and &scheme=dark to the URL to see
 // every block in another theme.
-import { Build, Reveal, slide, type DeckDefinition } from "@core";
+import { Build, Reveal, slide } from "@core";
+import type { DeckDefinition } from "@core";
 import {
   Agenda,
   Arrow,
@@ -93,7 +94,7 @@ const deck: DeckDefinition = {
     ),
     slide(
       <QuoteSlide kicker="QuoteSlide" author="A. Speaker" role="who prefers fewer words">
-        If you can say it in a sentence, don't use a slide of bullets.
+        If you can say it in a sentence, don&apos;t use a slide of bullets.
       </QuoteSlide>,
       { id: "QuoteSlide" },
     ),
@@ -516,8 +517,8 @@ const deck: DeckDefinition = {
           A build step can play one too: <code className="font-mono text-accent-text">{`<Build effect="pop">`}</code>
         </Build>
         <p className="type-small mt-(--gap-item) text-ink-2">
-          This slide arrived with <code className="font-mono">transition: "zoom"</code>. The deck's is "fade", and its section slides
-          "push". Your own effects and transitions are CSS files in src/library/motion.
+          This slide arrived with <code className="font-mono">transition: &quot;zoom&quot;</code>. The deck&apos;s is &quot;fade&quot;, and
+          its section slides &quot;push&quot;. Your own effects and transitions are CSS files in src/library/motion.
         </p>
       </Frame>,
       { id: "Motion", transition: "zoom", notes: "Press ← and the zoom plays the other way round." },
@@ -530,7 +531,11 @@ const deck: DeckDefinition = {
             rows={[
               ["A block", <code className="font-mono">blocks/Funnel.tsx</code>, <code className="font-mono">{"<Funnel />"}</code>],
               ["A layout", <code className="font-mono">blocks/SplitFrame.tsx</code>, <code className="font-mono">{"<SplitFrame />"}</code>],
-              ["An effect", <code className="font-mono">motion/swoop.css</code>, <code className="font-mono">{'effect="swoop"'}</code>],
+              [
+                "An effect",
+                <code className="font-mono">motion/swoop.css</code>,
+                <code className="font-mono">effect=&quot;swoop&quot;</code>,
+              ],
             ]}
             strong={0}
           />

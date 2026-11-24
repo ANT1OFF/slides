@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Stage, STAGE_WIDTH, useWindowSize } from "./Stage.tsx";
-import { slideLabel, slideNumber, slideTags, type DeckSlide } from "./types.ts";
+import { STAGE_WIDTH, Stage, useWindowSize } from "./Stage.tsx";
+import { slideLabel, slideNumber, slideTags } from "./types.ts";
+import type { DeckSlide } from "./types.ts";
 
 const COLUMNS = 5;
+
+// Arrow keys move the focus by one slide, or by a row.
+const MOVES = new Map([
+  ["ArrowLeft", -1],
+  ["ArrowRight", 1],
+  ["ArrowUp", -COLUMNS],
+  ["ArrowDown", COLUMNS],
+]);
+
 const GAP = 24;
 const PAD = 48;
 
@@ -14,7 +24,7 @@ export function Overview({
   onPick,
   onClose,
 }: {
-  slides: DeckSlide[];
+  slides: Array<DeckSlide>;
   name: string;
   current: number;
   onPick: (index: number) => void;
@@ -22,7 +32,8 @@ export function Overview({
 }) {
   const { width } = useWindowSize();
   const scale = (width - PAD * 2 - GAP * (COLUMNS - 1)) / COLUMNS / STAGE_WIDTH;
-  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  const buttons = useRef<Array<HTMLButtonElement | null>>([]);
+
   // The slide the arrow keys have moved to; Enter jumps there. It starts on the current slide.
   const [focus, setFocus] = useState(current);
 
@@ -32,8 +43,12 @@ export function Overview({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const move = ({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -COLUMNS, ArrowDown: COLUMNS } as Record<string, number>)[e.key];
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
+
+      const move = MOVES.get(e.key);
+
       if (move) {
         e.preventDefault();
         const next = Math.min(slides.length - 1, Math.max(0, focus + move));
@@ -44,7 +59,9 @@ export function Overview({
         onPick(focus);
       }
     };
+
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, [focus, slides.length, onPick]);
 

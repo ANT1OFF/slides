@@ -15,30 +15,42 @@ export type Message =
 const isPosition = (p: unknown): p is Position =>
   typeof p === "object" &&
   p !== null &&
-  Number.isInteger((p as Position).index) &&
-  (p as Position).index >= 0 &&
-  typeof (p as Position).step === "number" &&
-  (p as Position).step >= 0;
+  "index" in p &&
+  "step" in p &&
+  typeof p.index === "number" &&
+  Number.isInteger(p.index) &&
+  p.index >= 0 &&
+  typeof p.step === "number" &&
+  p.step >= 0;
 
 /** Checks a message's shape fully; anything else posted to the window is ignored. */
 export function isMessage(data: unknown): data is Message {
-  if (typeof data !== "object" || data === null) return false;
-  const m = data as Record<string, unknown>;
-  switch (m.type) {
-    case "slides:hello":
+  if (typeof data !== "object" || data === null || !("type" in data)) {
+    return false;
+  }
+
+  switch (data.type) {
+    case "slides:hello": {
       return true;
-    case "slides:nav":
-      return m.dir === 1 || m.dir === -1;
-    case "slides:state":
-      return isPosition(m.position) && (m.display === "absolute" || m.display === "relative");
-    default:
+    }
+    case "slides:nav": {
+      return "dir" in data && (data.dir === 1 || data.dir === -1);
+    }
+    case "slides:state": {
+      return (
+        "position" in data && "display" in data && isPosition(data.position) && (data.display === "absolute" || data.display === "relative")
+      );
+    }
+    default: {
       return false;
+    }
   }
 }
 
 export function presenterUrl(): string {
   const url = new URL(location.href);
   url.searchParams.set("presenter", "1");
+
   return url.toString();
 }
 

@@ -68,7 +68,7 @@ team-wide CSS in `src/library/styles.css`, never into `src/styles.css`; animatio
 5. **Theme it:** `theme: "<name>"` (a string literal) on the deck. A new look is a copy of
    `src/themes/acme/` with new values. Per deck: `scheme`, `logo`, `footer`, `vars`.
 6. **Record where numbers come from** (see "Data" below) whenever a slide shows real-world figures.
-7. **Check before committing:** `npm run format`, then `npm run check` (format, lint, types, every deck builds; the build fails on
+7. **Check before committing:** `npm run format`, then `npm run check` (format, lint of upstream's code, types, every deck builds; the build fails on
    remote or un-inlined assets, so fix the import rather than the check), then `npm run verify` (every
    deck offline in Chrome: fonts, media, licence notices, overflow, every key). Both must pass. Then
    look at the slides: `npm run dev`, open the deck, press G. To hand someone a PDF: `npm run pdf <deck>`

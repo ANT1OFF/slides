@@ -1,7 +1,8 @@
 // The deck `npm run verify` presses keys on. It is not a deck of its own (it lives outside src/decks)
 // so the showcase and the examples can change freely. Each slide has an id the checks look up.
 import { useState } from "react";
-import { slide, useDeckKey, useDeckNav, type DeckDefinition } from "@core";
+import { slide, useDeckKey, useDeckNav } from "@core";
+import type { DeckDefinition } from "@core";
 import { Bullets, Code, EndSlide, Flow, Frame, Spectrum, Stat, TitleSlide, tokenize } from "@blocks";
 
 /** A presenter extra as a team would write one: it reads the deck's position and adds two keys. */
@@ -12,11 +13,15 @@ function Extras() {
   useDeckKey("j", "Fixture: one step on", () => nav(1));
   useDeckKey("k", "Fixture: jump to the first backup", () => {
     const backup = slides.find((s) => s.hidden);
-    if (backup) goto(backup.id);
+
+    if (backup) {
+      goto(backup.id);
+    }
   });
   useDeckKey("u", "Fixture: jump to an unknown id", () => goto("missing-slide"));
   // B is a built-in key (blank the screen), which must win.
   useDeckKey("b", "Fixture: never runs", () => setTaken((n) => n + 1));
+
   return (
     <div id="extras" data-taken={taken} className="absolute top-2 left-2 font-mono text-xs">
       {`slide ${index + 1} of ${count}, step ${step}`}
@@ -52,10 +57,10 @@ const deck: DeckDefinition = {
     slide(
       <Frame title="Code with a tokenizer of one's own">
         <div id="own-tokens">
-          <Code tokenize={(line) => [<span className="tok-kw">{line.toUpperCase()}</span>]}>{`shout`}</Code>
+          <Code tokenize={(line) => [<span className="tok-kw">{line.toUpperCase()}</span>]}>shout</Code>
         </div>
         <div id="own-keywords">
-          <Code tokenize={(line) => tokenize(line, SHOUT)}>{`select const`}</Code>
+          <Code tokenize={(line) => tokenize(line, SHOUT)}>select const</Code>
         </div>
       </Frame>,
       { id: "Tokenize" },

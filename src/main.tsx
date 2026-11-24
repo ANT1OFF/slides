@@ -6,14 +6,19 @@ import "virtual:library";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import defaultDeck from "virtual:deck";
-import { Deck, Presenter, isPresenter, type DeckDefinition } from "@core";
+import { Deck, Presenter, isPresenter } from "@core";
+import type { DeckDefinition } from "@core";
 import settings from "@library/settings.json";
 
 // A build contains only the one deck `virtual:deck` points at, and only its theme (virtual:themes).
 // The dev server shows a gallery of every deck, theme, block and library slide instead (gallery.tsx).
 async function pick() {
-  if (!import.meta.env.DEV) return { deck: defaultDeck, name: __DECK__ };
+  if (!import.meta.env.DEV) {
+    return { deck: defaultDeck, name: __DECK__ };
+  }
+
   const { devPick } = await import("./gallery.tsx");
+
   return devPick(new URLSearchParams(location.search));
 }
 
@@ -21,28 +26,47 @@ async function pick() {
 function withThemeLogo(input: DeckDefinition): DeckDefinition {
   // A deck without a theme gets the team's default (src/library/settings.json).
   const deck = { ...input, theme: input.theme ?? settings.defaultTheme };
-  if (deck.logo !== undefined) return deck;
-  const file = themes[deck.theme];
-  const logo = file?.svg ? (
-    <span role="img" aria-label="Logo" className="[&>svg]:h-full [&>svg]:w-auto" dangerouslySetInnerHTML={{ __html: file.svg }} />
-  ) : file?.url ? (
-    <img src={file.url} alt="Logo" />
-  ) : null;
-  return { ...deck, logo };
+
+  if (deck.logo !== undefined) {
+    return deck;
+  }
+
+  return { ...deck, logo: themeLogo(themes[deck.theme]) };
+}
+
+function themeLogo(file: { svg?: string; url?: string } | undefined) {
+  if (file?.svg) {
+    return (
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- an <img> can't hold inline SVG markup that follows currentColor
+      <span role="img" aria-label="Logo" className="[&>svg]:h-full [&>svg]:w-auto" dangerouslySetInnerHTML={{ __html: file.svg }} />
+    );
+  }
+
+  return file?.url ? <img src={file.url} alt="Logo" /> : null;
+}
+
+async function loadGallery() {
+  const { Gallery } = await import("./gallery.tsx");
+
+  return Gallery;
 }
 
 const chosen = await pick();
 const picked = chosen && { ...chosen, deck: withThemeLogo(chosen.deck) };
-const Gallery = import.meta.env.DEV && !picked ? (await import("./gallery.tsx")).Gallery : null;
+const Gallery = import.meta.env.DEV && !picked ? await loadGallery() : null;
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    {!picked ? (
-      Gallery && <Gallery />
-    ) : isPresenter() ? (
-      <Presenter deck={picked.deck} name={picked.name} />
-    ) : (
-      <Deck deck={picked.deck} name={picked.name} />
-    )}
-  </StrictMode>,
-);
+function view() {
+  if (!picked) {
+    return Gallery && <Gallery />;
+  }
+
+  return isPresenter() ? <Presenter deck={picked.deck} name={picked.name} /> : <Deck deck={picked.deck} name={picked.name} />;
+}
+
+const root = document.querySelector("#root");
+
+if (!root) {
+  throw new Error("index.html has no #root element.");
+}
+
+createRoot(root).render(<StrictMode>{view()}</StrictMode>);
