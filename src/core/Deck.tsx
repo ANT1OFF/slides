@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { flushSync } from "react-dom";
 import { DisplayContext, StepContext, type Display } from "./context.ts";
 import { Overview } from "./Overview.tsx";
 import { Print } from "./Print.tsx";
@@ -8,11 +7,8 @@ import { isMessage, postTarget, presenterUrl, sameOrigin, type Message, type Pos
 import { Help } from "./Help.tsx";
 import { KeysContext, NavContext, type DeckKey, type DeckNav } from "./nav.ts";
 import { DeckContext, deckLook } from "./theme.ts";
+import { useSlideTransition } from "./transition.ts";
 import { entries, slideLabel, slideNumber, slideTags, type DeckDefinition } from "./types.ts";
-
-/** The motion tokens a slide transition reads. It runs on <html>, above the stage where a theme sets them. */
-const TRANSITION_TOKENS = ["--duration-base", "--ease-in-out"];
-const TRANSITION_STATE = ["--transition-in", "--transition-out", "--transition-direction", ...TRANSITION_TOKENS];
 
 function indexFromHash(count: number): number {
   const n = Number.parseInt(window.location.hash.slice(1), 10);
@@ -68,10 +64,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   // The latest move asked for. A transition applies its move a frame later, and another key may
   // land in between, so every apply, immediate or delayed, applies this one.
   const target = useRef(pos);
-  // The newest transition, so an older one finishing doesn't clear its state.
-  const run = useRef(0);
-  // True when the current slide arrived without a transition: it then plays the plain entrance.
-  const plain = useRef(true);
+  const { plain, changeSlide } = useSlideTransition();
 
   const goto = useCallback(
     (index: number, step = 0) => {
@@ -87,31 +80,9 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       // Going back plays the transition the slide being left arrived with, reversed.
       const back = i < from;
       const name = (back ? slides[from] : slides[i]).transition ?? deck.transition;
-      // Without a transition, without browser support or with reduced motion, the slide just changes.
-      plain.current =
-        !name || name === "none" || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (plain.current) return apply();
-      const root = document.documentElement;
-      const stage = document.querySelector("[data-deck-mode=present] [data-stage]");
-      root.dataset.transition = name;
-      root.toggleAttribute("data-transition-back", back);
-      root.style.setProperty("--transition-in", back ? `${name}-out` : `${name}-in`);
-      root.style.setProperty("--transition-out", back ? `${name}-in` : `${name}-out`);
-      root.style.setProperty("--transition-direction", back ? "reverse" : "normal");
-      if (stage) for (const t of TRANSITION_TOKENS) root.style.setProperty(t, getComputedStyle(stage).getPropertyValue(t));
-      const mine = ++run.current;
-      const done = () => {
-        if (mine !== run.current) return;
-        delete root.dataset.transition;
-        root.removeAttribute("data-transition-back");
-        for (const p of TRANSITION_STATE) root.style.removeProperty(p);
-      };
-      const transition = document.startViewTransition(() => flushSync(apply));
-      // A newer transition skips this one, which rejects `ready`: expected, not an error.
-      transition.ready.catch(() => {});
-      transition.finished.then(done, done);
+      changeSlide(name, back, apply);
     },
-    [count, slides, deck.transition],
+    [count, slides, deck.transition, changeSlide],
   );
 
   const neighbour = useCallback(
