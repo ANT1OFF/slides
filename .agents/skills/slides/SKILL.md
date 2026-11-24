@@ -57,7 +57,7 @@ Each is a file in a team folder, used by name or import; never edit `src/core/`,
 
 ## New team theme
 
-1. Follow README "Make your own theme" (copy `src/themes/acme/`).
+1. Follow docs/themes.md, "Make your own theme" (copy `src/themes/acme/`).
 2. Make it the team default in `src/library/settings.json` if asked.
 3. Preview: `npm run dev`, `?deck=showcase&theme=<name>` and `&scheme=dark`.
 
@@ -82,6 +82,6 @@ sources, ask the user for manual ones, update `updated`, rebuild.
 
 ## Set up a team's private copy
 
-Follow README "Your own copy (for teams)". The `upstream` remote must be fetch-only, so private decks
+Follow docs/working-with-decks.md, "1. Make your private copy". The `upstream` remote must be fetch-only, so private decks
 can never be pushed to the public kit: `git remote set-url --push upstream DISABLED` (`npm run upgrade`
 warns if it isn't). Never push to `upstream`.

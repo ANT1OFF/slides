@@ -11,7 +11,7 @@ Thanks for helping. The bar is simple: keep it easy to understand, and keep ever
    team library, so only upstream's files and the dependencies decide their bytes.)
 4. In the pull request, say what changed and include a screenshot of any slide that looks different.
 
-Keep pull requests small, and keep the README's key table and block table in sync with the code.
+Keep pull requests small, and keep the README's key table in sync with the code.
 
 **Never change team-owned paths:** `src/library/` and `src/decks/` (except `showcase/`). Teams edit
 and delete the starters there, so any upstream change to them is an upgrade conflict in every team

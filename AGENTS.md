@@ -134,7 +134,7 @@ Give every image and video a meaningful `alt` or caption.
 - `npm run check` and `npm run verify` pass.
 - Every new reusable slide is in `src/library/slides/` with defaults for every prop, and every new
   library block exports an `example` (so both show in the library view and `npm run verify` renders
-  them); every new built-in block has a showcase slide and a row in the README's table.
+  them); every new built-in block has a showcase slide.
 - No upstream file changed for a team's own need: check `git status` against "Who owns what".
 - Every real-world number has a `*.data.json` with its `source`, `how` and `updated`.
 - If a PDF was asked for, `npm run pdf <deck>` ran and you looked at a page or two of `dist/<deck>.pdf`.

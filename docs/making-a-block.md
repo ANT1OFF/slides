@@ -202,7 +202,6 @@ A block in `src/blocks/` (upstream) also needs:
 1. Export it from `src/blocks/index.ts` under the right heading.
 2. Add a slide to `src/decks/showcase/index.tsx` with realistic, invented data and
    `{ id: "Funnel" }`, so it is easy to find in the overview.
-3. Add it to the blocks table in the README.
-4. Check it: `npm run dev`, open the showcase, and look at it in every theme and scheme
+3. Check it: `npm run dev`, open the showcase, and look at it in every theme and scheme
    (`&theme=editorial`, `&theme=signal`, `&scheme=dark`) and on an inverted Frame. Press G and P
    for the final state. Then `npm run check`, `npm run build` and `npm run verify`.

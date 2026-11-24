@@ -43,7 +43,7 @@ try {
 } catch {
   fail(
     `Your copy shares no history with ${ref}, so it can't be merged. That happens with GitHub's\n` +
-      `"Use this template". Make the private copy by cloning instead (README: "Your own copy (for teams)").`,
+      `"Use this template". Make the private copy by cloning instead (docs/working-with-decks.md).`,
   );
 }
 if (git(["rev-list", "--count", `HEAD..${commit}`], true).trim() === "0") {
