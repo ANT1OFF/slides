@@ -502,7 +502,9 @@ const deck: DeckDefinition = {
       </Frame>,
       { id: "hidden", hidden: true },
     ),
-    slide(<EndSlide subtitle="Start your own: npm run new my-talk" links={["github.com/you/slides", "@you"]} />, { id: "EndSlide" }),
+    slide(<EndSlide subtitle="Start your own: npm run new my-talk" links={["github.com/ANT1OFF/slides", "@ANT1OFF"]} />, {
+      id: "EndSlide",
+    }),
   ],
 };
 

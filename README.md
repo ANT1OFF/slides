@@ -19,7 +19,7 @@ This is a template repo, not a package: clone it (for a team, as a private copy;
 copy") and your decks live in `src/decks/`. Needs Node.js 22.18 or newer.
 
 ```bash
-git clone <this repo> my-slides && cd my-slides
+git clone https://github.com/ANT1OFF/slides.git my-slides && cd my-slides
 npm install
 npm run new my-talk      # creates src/decks/my-talk/index.tsx
 npm run dev              # opens a list of decks; pick my-talk
@@ -219,7 +219,7 @@ npm run upgrade  # merges upstream updates on a branch, then check and verify
 Keep a **private copy** of this repo as your team's slide library:
 
 ```bash
-git clone <slides repo URL> our-slides && cd our-slides
+git clone https://github.com/ANT1OFF/slides.git our-slides && cd our-slides
 git remote rename origin upstream          # this repo becomes "upstream"
 git remote add origin <your team's empty private repo URL>
 git push -u origin main
@@ -227,7 +227,7 @@ git push -u origin main
 
 Not GitHub's "Use this template" (no shared history, so updates can't merge) and not a public fork
 (it can't be private). Teammates clone your team's repo; whoever runs upgrades adds the upstream
-remote once (`git remote add upstream <slides repo URL>`).
+remote once (`git remote add upstream https://github.com/ANT1OFF/slides.git`).
 
 - **Your folders:** `src/decks/`, `src/library/` and your theme folders. Upstream never changes
   them, so `npm run upgrade` (merge upstream on a branch, then check and verify) stays clean. The
