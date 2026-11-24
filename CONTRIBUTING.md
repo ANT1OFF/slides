@@ -5,8 +5,10 @@ Thanks for helping. The bar is simple: keep it easy to understand, and keep ever
 1. `npm install`, then `npm run dev` and open the **showcase** deck.
 2. Make your change. New blocks follow [docs/making-a-block.md](docs/making-a-block.md) and get a
    slide in the showcase.
-3. `npm run check` checks formatting, lint (oxlint, `npm run lint`), layer boundaries and types and builds every deck; `npm run verify`
-   opens every built deck offline in Chrome (CI runs both) (`npm run format` fixes formatting). `check` also fails if the built examples in `examples/html/` are
+3. `npm run check` checks formatting, lint (`npm run lint`), layer boundaries and types and builds every deck; `npm run verify`
+   opens every built deck offline in Chrome (CI runs both) (`npm run format` fixes formatting). Lint is type-aware oxlint
+   ([oxlint.config.ts](oxlint.config.ts)) and checks style as well as bugs: `npx oxlint --type-aware --fix` fixes blank lines,
+   braces and the like. Fix a finding rather than disable it; a cast needs a `// SAFETY:` comment saying why it holds. `check` also fails if the built examples in `examples/html/` are
    stale: run `npm run build:examples` and commit them. (The examples and the showcase are built without the
    team library, so only upstream's files and the dependencies decide their bytes.)
 4. In the pull request, say what changed and include a screenshot of any slide that looks different.

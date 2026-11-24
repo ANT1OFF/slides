@@ -32,7 +32,8 @@ First public version.
   upstream on a branch, then both).
 - The showcase gives DotGrid more room and uses taller Node cards.
 - Verify checks that the build refuses a remote image and a missing font file.
-- `npm run lint` runs oxlint (bug-catching rules only; formatting stays with Prettier) on upstream's code, and `npm run check` runs it. It skips `src/library/` and your decks, so it never fails on team code.
+- `npm run lint` runs oxlint on upstream's code, and `npm run check` runs it. It skips `src/library/` and your decks, so it never fails on team code.
+- `npm run lint` is stricter: type-aware rules (floating promises, unsafe `any`, needless casts) through the beta `tsrs` backend, the `@cloudflare/oxlint-config` preset, oxlint's suspicious, pedantic and style categories, and two local rules (blank lines between groups of statements; a `// SAFETY:` comment on each cast). Upstream's code is rewritten to pass, with no change in behaviour; formatting stays with Prettier.
 - Spectrum accepts a build offset. With `build={0}`, the first tier starts visible.
 - View Transition sequencing lives in its own module, with the same slide navigation.
 - The README is shorter and keeps the sharing warning in one place.

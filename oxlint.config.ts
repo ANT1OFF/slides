@@ -51,7 +51,6 @@ export default defineConfig({
     "unicorn/no-nested-ternary": "off",
     // Blocks are named exports and decks are default exports: the engine's contract needs both.
     "import/no-named-export": "off",
-    "import/no-default-export": "off",
     "import/prefer-default-export": "off",
     // An export sits next to what it exports.
     "import/group-exports": "off",
@@ -75,7 +74,6 @@ export default defineConfig({
     "max-lines-per-function": "off",
     "max-lines": "off",
     "max-params": "off",
-    "max-depth": "off",
     "import/max-dependencies": "off",
     // A `let` assigned in each branch of an if or try is clearer than a dummy initial value.
     "init-declarations": "off",
@@ -100,9 +98,9 @@ export default defineConfig({
   },
   overrides: [
     {
-      // The browser checks and their fixture decks are this repo's tests: the same relaxations
-      // @cloudflare/oxlint-config gives *.test.ts files. They read the DOM of pages they built, and a
-      // wrong guess fails the check it's in. A cast still needs its SAFETY comment.
+      // The browser checks and their fixture decks are this repo's tests: the relaxations
+      // @cloudflare/oxlint-config gives *.test.ts files, plus narrowing casts. They read the DOM of
+      // pages they built, and a wrong guess fails the check it's in. A cast still needs its SAFETY comment.
       files: ["scripts/verify.ts", "scripts/verify-deck/**"],
       rules: {
         "typescript/no-non-null-assertion": "off",
