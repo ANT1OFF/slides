@@ -720,6 +720,37 @@ async function upstreamDecksAlone() {
   }
 }
 
+/** Each invalid deck must reach the self-contained check and fail on its own asset. */
+async function rejectsExternalAssets() {
+  const cases = [
+    ["remote-image", "src/poster/srcset points at https://example.invalid/verify.png"],
+    ["missing-font", "CSS url() to a file that wasn't found points at ./verify-missing.woff2"],
+  ] as const;
+  process.env.LIBRARY_DIR = resolve(import.meta.dirname, "../examples/_library");
+  try {
+    for (const [fixture, reason] of cases) {
+      const deck = `verify-${fixture}`;
+      process.env.DECK = deck;
+      process.env.DECK_FILE = resolve(import.meta.dirname, `verify-deck/${fixture}.tsx`);
+      let message = "build succeeded";
+      try {
+        await build({ logLevel: "silent", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+      } catch (error) {
+        message = String(error);
+      } finally {
+        rmSync(resolve(dist, `.${deck}`), { recursive: true, force: true });
+      }
+      check(
+        `self-contained build rejects ${fixture}`,
+        message.includes("The deck would not be self-contained:") && message.includes(reason),
+        message,
+      );
+    }
+  } finally {
+    delete process.env.LIBRARY_DIR;
+  }
+}
+
 /** npm run pdf's export: one page per visible slide, at the deck's 1920×1080 aspect (1440×810 pt). */
 async function pdf(browser: Browser, file: string) {
   const dir = mkdtempSync(resolve(tmpdir(), "slides-pdf-"));
@@ -739,6 +770,7 @@ async function pdf(browser: Browser, file: string) {
 deckName = "build (no browser)";
 themeDetection();
 await upstreamDecksAlone();
+await rejectsExternalAssets();
 
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 for (const file of files) {

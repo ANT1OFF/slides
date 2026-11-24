@@ -31,6 +31,7 @@ First public version.
   date), `npm run verify` (every deck offline in Chrome, every key), and `npm run upgrade` (merge
   upstream on a branch, then both).
 - The showcase gives DotGrid more room and uses taller Node cards.
+- Verify checks that the build refuses a remote image and a missing font file.
 - Built example decks in `examples/html/`, and a project skill for Claude Code and Codex.
 
 **Upgrade notes** (only for copies made before v0.1.0)
