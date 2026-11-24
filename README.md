@@ -306,7 +306,6 @@ theme, reusing and promoting library pieces, refreshing data, upgrading.
   steps, and making your own layout.
 - [Design](docs/design.md): the token set, the type scale and the layout rules.
 - [Inspiration](docs/inspiration.md): which ideas came from which frameworks.
-- [Page-review tags](docs/page-review.md): the data attributes tools use to comment on a slide.
 
 ## Before you send a deck
 

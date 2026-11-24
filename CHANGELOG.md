@@ -16,6 +16,9 @@ Charts, diagrams and examples:
   milestone titles are a step larger.
 - Example decks: the pie slide in `example-update` pairs the chart with its takeaway, the talk's
   callout uses the deck's accent, and dates agree within each deck.
+- Fewer files: the disabled `upstream-sync` workflow is gone (`npm run upgrade` does the same
+  merge locally, and needs no third-party action with write access), and the page-review tags
+  moved from their own page into [docs/extending.md](docs/extending.md#page-review-tags).
 
 From dogfooding a team copy:
 
