@@ -30,6 +30,7 @@ First public version.
 - **Checks:** `npm run check` (format, layer boundaries, types, every deck builds, examples up to
   date), `npm run verify` (every deck offline in Chrome, every key), and `npm run upgrade` (merge
   upstream on a branch, then both).
+- The showcase gives DotGrid more room and uses taller Node cards.
 - Built example decks in `examples/html/`, and a project skill for Claude Code and Codex.
 
 **Upgrade notes** (only for copies made before v0.1.0)

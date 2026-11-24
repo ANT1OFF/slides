@@ -276,10 +276,10 @@ const deck: DeckDefinition = {
           <Arrow from={[420, 260]} to={[700, 400]} start={500} travel={{ begin: 2.6, dur: 2.6 }} />
           <Arrow from={[1060, 120]} to={[1300, 260]} start={700} />
           <Arrow from={[1060, 400]} to={[1300, 260]} start={800} />
-          <Node x={240} y={260} w={340} title="Request" sub="from a browser" strong />
-          <Node x={880} y={120} w={340} title="Cache" sub="hit: 92%" start={200} />
-          <Node x={880} y={400} w={340} title="Origin" sub="miss: 8%" start={300} />
-          <Node x={1480} y={260} w={340} title="Response" sub="p95 under 80 ms" strong start={400} />
+          <Node x={240} y={260} w={340} h={160} title="Request" sub="from a browser" strong />
+          <Node x={880} y={120} w={340} h={160} title="Cache" sub="hit: 92%" start={200} />
+          <Node x={880} y={400} w={340} h={160} title="Origin" sub="miss: 8%" start={300} />
+          <Node x={1480} y={260} w={340} h={160} title="Response" sub="p95 under 80 ms" strong start={400} />
         </svg>
       </Frame>,
       { id: "Node" },
@@ -449,7 +449,7 @@ const deck: DeckDefinition = {
     slide(
       <Frame section="DotGrid" title="Two in a hundred visitors start a trial">
         <Columns ratio={[1, 1]}>
-          <DotGrid rows={10} cols={20} highlight={4} />
+          <DotGrid rows={10} cols={20} highlight={4} dot={28} gap={11} />
           <Lead detail="A dot grid makes a small share of a large whole visible at a glance.">4 of 200 visitors.</Lead>
         </Columns>
       </Frame>,
