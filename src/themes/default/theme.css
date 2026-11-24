@@ -1,0 +1,29 @@
+/*
+ * The default theme, "Plain", in light and dark, and the base every other theme builds on.
+ * Every colour, font, size and spacing a block uses is a token in tokens.css; another theme only
+ * changes values (see ../editorial/theme.css). The design behind these values: docs/design.md.
+ */
+
+/* Fonts the default theme embeds, SIL OFL 1.1 (licences in fonts/). */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("./fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: block;
+  src: url("./fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@import "./tokens.css";
+
+/* Older names, kept as aliases. */
+:root {
+  --font-sans: var(--font-body);
+  --ease-out-expo: var(--ease-out);
+}

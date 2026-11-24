@@ -1,0 +1,7 @@
+{
+  "source": "manual",
+  "how": "Ask the support lead for the customer satisfaction score (CSAT, %) from the quarterly survey, and last quarter's for comparison.",
+  "updated": "2026-10-01",
+  "staleAfter": 90,
+  "values": { "csat": 94, "previous": 89 }
+}

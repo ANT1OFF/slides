@@ -1,0 +1,101 @@
+/*
+ * Theme "Signal": a poster. Condensed uppercase headlines, heavy rules, black and one loud fill.
+ * The yellow is only ever a fill: as text it would vanish on a light canvas, so
+ * --color-accent-text is ink in light and yellow in dark, and emphasis is a marker highlight.
+ * Token overrides only.
+ */
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: block;
+  src: url("./fonts/archivo-latin-wdth-normal.woff2") format("woff2-variations");
+}
+
+[data-theme="signal"],
+[data-theme="signal"][data-scheme="dark"] .inverted {
+  --color-canvas: #f1f1ec;
+  --color-surface: #ffffff;
+  --color-ink: #0c0c0d;
+  --color-accent: #ffd60a;
+  --color-accent-text: #0c0c0d;
+  --color-on-accent: #0c0c0d;
+  --color-accent-2: #0a62a8;
+  --color-accent-3: #b3261e;
+
+  --color-chart-key: #0c0c0d; /* yellow has no contrast on a light canvas, so the highlighted mark is ink */
+  --color-chart-1: #2a78d6;
+  --color-chart-2: #eb6834;
+  --color-chart-3: #1baf7a;
+  --color-chart-4: #eda100;
+  --color-chart-5: #6250d6;
+}
+
+[data-theme="signal"][data-scheme="dark"],
+[data-theme="signal"] .inverted {
+  --color-canvas: #0c0c0d;
+  --color-surface: #1b1b1d;
+  --color-ink: #f4f4ee;
+  --color-accent: #ffd60a;
+  --color-accent-text: #ffd60a;
+  --color-on-accent: #0c0c0d;
+  --color-accent-2: #8fd6ff;
+  --color-accent-3: #ff8f80;
+
+  --color-chart-key: #ffd60a;
+  --color-chart-1: #3987e5;
+  --color-chart-2: #d95926;
+  --color-chart-3: #199e70;
+  --color-chart-4: #c98500;
+  --color-chart-5: #9085e9;
+}
+
+[data-theme="signal"] {
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
+
+  /* Condensed capitals take less width, so they can be much larger. */
+  --text-display: 250px;
+  --text-section: 200px;
+  --text-statement: 168px;
+  --text-quote: 92px;
+  --text-title: 112px;
+  --text-stat: 460px;
+  --text-stat-sm: 128px;
+
+  --display-weight: 800;
+  --display-tracking: -0.012em;
+  --display-leading: 0.88;
+  --display-transform: uppercase;
+  --display-stretch: 68%;
+  --title-weight: 800;
+  --title-tracking: -0.012em;
+  --title-leading: 0.9;
+  --body-weight: 500;
+  --strong-weight: 750;
+  --stat-weight: 800;
+  --quote-weight: 750;
+
+  --label-weight: 600;
+  --label-tracking: 0.1em;
+
+  --em-color: var(--color-on-accent);
+  --em-background: var(--color-accent);
+  --em-pad: 0.12em;
+
+  --slide-pad-x: 96px;
+  --measure: 34ch; /* ch is narrow in a condensed face */
+  --rule: 3px;
+  --rule-strong: 8px;
+  --radius-mark: 0px;
+}
+/* The marker highlight keeps its colours in every scope. */
+[data-theme="signal"][data-scheme],
+[data-theme="signal"] .inverted {
+  --em-color: var(--color-on-accent);
+}
+[data-theme="signal"]:not([data-scheme="dark"]) {
+  --color-chart-key: #0c0c0d;
+}

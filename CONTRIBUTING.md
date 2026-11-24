@@ -1,0 +1,26 @@
+# Contributing
+
+Thanks for helping. The bar is simple: keep it easy to understand, and keep every deck building.
+
+1. `npm install`, then `npm run dev` and open the **showcase** deck.
+2. Make your change. New blocks follow [docs/making-a-block.md](docs/making-a-block.md) and get a
+   slide in the showcase.
+3. `npm run check` checks formatting, layer boundaries and types and builds every deck; `npm run verify`
+   opens every built deck offline in Chrome (CI runs both) (`npm run format` fixes formatting).
+4. In the pull request, say what changed and include a screenshot of any slide that looks different.
+
+Keep pull requests small, and keep the README's key table and block table in sync with the code.
+
+## Releases
+
+Upstream releases are git tags `v0.x.y` on `main`, each with a CHANGELOG.md entry; teams can
+`npm run upgrade v0.x.y` to move to a release rather than `main`. To cut one: move "Unreleased" to
+the version and date in CHANGELOG.md, set `version` in package.json, commit, `git tag v0.x.y`, push
+the tag. Anything that needs teams to change their decks, library or themes goes under
+"Upgrade notes".
+
+## Package name
+
+The project is `slides`, and package.json stays `private: true`: it's a template repo, not a package.
+The unscoped npm name `slides` is taken, so a future engine package would be scoped
+(`@<scope>/slides`).

@@ -1,0 +1,73 @@
+/*
+ * Example of a custom theme: "Acme", a made-up company. Copy this folder to src/themes/<your-name>/,
+ * rename "acme" below, change the values, and put `theme: "<your-name>"` on a deck.
+ *
+ *   theme.css   this file: token values (required)
+ *   logo.svg    the logo in slide headers (optional; .png, .jpg or .webp work too)
+ *   fonts/      font files this file loads (optional; keep their licences next to them)
+ *
+ * Only list what differs from the default theme (src/themes/default/tokens.css has every token).
+ * Fonts and the logo are inlined into each deck that uses this theme, and only into those.
+ */
+
+/* 1. Fonts. Relative URLs, so the build inlines them. Never link a font from the web. */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: block;
+  src: url("./fonts/archivo-latin-wdth-normal.woff2") format("woff2-variations");
+}
+
+/* 2. Light colours. The second selector is an inverted slide inside a dark deck. */
+[data-theme="acme"],
+[data-theme="acme"][data-scheme="dark"] .inverted {
+  --color-canvas: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-ink: #121a33;
+  --color-accent: #2f5bff; /* fills: kicker bar, rules, the key bar in a chart */
+  --color-accent-text: #2449d8; /* the accent as text: needs 4.5:1 on the canvas */
+  --color-on-accent: #ffffff;
+  --color-accent-2: #0f8a7e;
+  --color-accent-3: #b7600b;
+
+  --color-chart-1: #2f5bff;
+  --color-chart-2: #0f8a7e;
+  --color-chart-3: #e2862b;
+  --color-chart-4: #8a4fd8;
+  --color-chart-5: #c7a400;
+}
+
+/* 3. Dark colours: `scheme: "dark"` on a deck, and inverted slides (section dividers) in a light one. */
+[data-theme="acme"][data-scheme="dark"],
+[data-theme="acme"] .inverted {
+  --color-canvas: #0d1430;
+  --color-surface: #18214a;
+  --color-ink: #eef1fb;
+  --color-accent: #6f8cff;
+  --color-accent-text: #8ea4ff;
+  --color-on-accent: #0d1430;
+  --color-accent-2: #3fd1c2;
+  --color-accent-3: #f3a654;
+
+  --color-chart-1: #6f8cff;
+  --color-chart-2: #3fd1c2;
+  --color-chart-3: #f3a654;
+  --color-chart-4: #b48af0;
+  --color-chart-5: #e6cc4a;
+}
+
+/* 4. Type and shape: anything else from tokens.css. */
+[data-theme="acme"] {
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --display-stretch: 112%;
+  --title-weight: 700;
+  --display-weight: 760;
+  --label-weight: 650;
+  --label-tracking: 0.08em;
+  --radius-box: 14px;
+  --radius-mark: 6px;
+}

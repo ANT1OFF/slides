@@ -1,0 +1,40 @@
+{
+  "name": "slides",
+  "version": "0.1.0",
+  "description": "Presentations as React code, built into one self-contained HTML file per deck.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "vite --open",
+    "build": "tsc --noEmit && node scripts/build.ts",
+    "new": "node scripts/new-deck.ts",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "check": "prettier --check . && node scripts/boundaries.ts && npm run build",
+    "verify": "node scripts/verify.ts",
+    "refresh": "node scripts/refresh.ts",
+    "upgrade": "node scripts/upgrade.ts"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "magic-string": "^0.30.21",
+    "playwright-core": "^1.65.1",
+    "prettier": "^3.10.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-singlefile": "^2.3.4"
+  }
+}

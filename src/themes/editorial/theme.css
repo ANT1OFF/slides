@@ -1,0 +1,93 @@
+/*
+ * Theme "Editorial": a printed page. Serif display and text, paper canvas, fine rules,
+ * italic for emphasis. Token overrides only.
+ */
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: block;
+  src: url("./fonts/newsreader-latin-opsz-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: block;
+  src: url("./fonts/newsreader-latin-opsz-italic.woff2") format("woff2-variations");
+}
+
+[data-theme="editorial"],
+[data-theme="editorial"][data-scheme="dark"] .inverted {
+  --color-canvas: #f3eee3;
+  --color-surface: #fbf8f0;
+  --color-ink: #1c1a16;
+  --color-accent: #1f5d46;
+  --color-accent-text: #1f5d46;
+  --color-on-accent: #f3eee3;
+  --color-accent-2: #9a4a1c;
+  --color-accent-3: #2c4f8f;
+
+  --color-chart-1: #128a5c;
+  --color-chart-2: #2a78d6;
+  --color-chart-3: #eb6834;
+  --color-chart-4: #6250d6;
+  --color-chart-5: #eda100;
+}
+
+[data-theme="editorial"][data-scheme="dark"],
+[data-theme="editorial"] .inverted {
+  --color-canvas: #161613;
+  --color-surface: #20201c;
+  --color-ink: #ece6d8;
+  --color-accent: #8fd1ae;
+  --color-accent-text: #8fd1ae;
+  --color-on-accent: #161613;
+  --color-accent-2: #e8a877;
+  --color-accent-3: #9db8ee;
+
+  --color-chart-1: #2fa87b;
+  --color-chart-2: #3987e5;
+  --color-chart-3: #d95926;
+  --color-chart-4: #9085e9;
+  --color-chart-5: #c98500;
+}
+
+[data-theme="editorial"] {
+  --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-body: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-label: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Newsreader runs smaller and lighter than Inter, so the scale steps up. */
+  --text-display: 212px;
+  --text-section: 156px;
+  --text-statement: 136px;
+  --text-quote: 96px;
+  --text-title: 90px;
+  --text-lead: 58px;
+  --text-body: 46px;
+  --text-small: 41px;
+  --text-stat: 440px;
+  --text-stat-sm: 104px;
+
+  --display-weight: 400;
+  --display-tracking: -0.03em;
+  --display-leading: 0.92;
+  --title-weight: 430;
+  --title-tracking: -0.02em;
+  --title-leading: 1.02;
+  --strong-weight: 560;
+  --stat-weight: 320;
+  --quote-weight: 400;
+  --quote-style: italic;
+
+  --label-weight: 600;
+  --label-tracking: 0.16em;
+
+  --em-style: italic;
+
+  --rule: 1.5px;
+  --rule-strong: 3px;
+  --radius-mark: 0px;
+}

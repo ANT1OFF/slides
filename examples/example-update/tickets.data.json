@@ -1,0 +1,30 @@
+{
+  "source": "script",
+  "how": "node examples/example-update/count-tickets.ts",
+  "updated": "2026-11-24",
+  "values": {
+    "total": 18400,
+    "byArea": [
+      {
+        "label": "Billing",
+        "value": 5210
+      },
+      {
+        "label": "Sign-in",
+        "value": 4120
+      },
+      {
+        "label": "Integrations",
+        "value": 3380
+      },
+      {
+        "label": "Data export",
+        "value": 2650
+      },
+      {
+        "label": "Other",
+        "value": 3040
+      }
+    ]
+  }
+}

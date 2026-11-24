@@ -1,0 +1,250 @@
+# Slides
+
+Presentations as React code. Each deck is one `.tsx` file and builds into **one self-contained HTML
+file**: fonts, images, video and code inlined, nothing fetched when it opens. Email it, put it on a
+USB stick, open it offline in any browser.
+
+- **Building blocks** for titles, sections, lists, code, columns, cards, comparisons, tables, numbers,
+  timelines, diagrams, charts, photos, video and sound.
+- **Themes** as folders you drop in: colours, fonts and a logo, picked with one line per deck.
+- **Presenting**: build steps, presenter window with notes and timer, overview grid, print to PDF.
+- **A library that grows**: fork it as your team's slide library. Each deck borrows the team's
+  slides, blocks and themes, and gives its reusable parts back.
+- **Data that can be refreshed**: numbers carry where they came from, so `npm run refresh` (or your
+  agent) can update them a year later.
+
+## Quick start
+
+This is a template repo, not a package: clone it (for a team, as a private copy; see "Your own
+copy") and your decks live in `src/decks/`. Needs Node.js 22.18 or newer.
+
+```bash
+git clone <this repo> my-slides && cd my-slides
+npm install
+npm run new my-talk      # creates src/decks/my-talk/index.tsx
+npm run dev              # opens a list of decks; pick my-talk
+npm run build my-talk    # writes dist/my-talk.html
+```
+
+`npm run build` with no name builds every deck. Open the HTML file and press **F** for fullscreen.
+
+## A deck
+
+```tsx
+// src/decks/my-talk/index.tsx
+import { slide, type DeckDefinition } from "@core";
+import { Bullets, EndSlide, Frame, TitleSlide } from "@blocks";
+
+const deck: DeckDefinition = {
+  title: "My talk",
+  theme: "editorial", // optional: a folder in src/themes
+  slides: [
+    <TitleSlide title="My talk" subtitle="One line on why it matters." byline="Your name" date="June 2026" />,
+    slide(
+      <Frame section="Part one" title="Three things we learned">
+        <Bullets build items={["First", "Second", "Third"]} />
+      </Frame>,
+      { notes: "Shown in the presenter window (N)." },
+    ),
+    <EndSlide />,
+  ],
+};
+
+export default deck;
+```
+
+That is the whole model: **a deck is a title, an optional theme, and a list of slides. A slide is JSX.**
+Wrap a slide in `slide(…, { notes, hidden, id })` to give it speaker notes, make it a hidden backup
+slide, or give it a stable id. Imports: `@blocks` (the built-in blocks), `@core` (`slide`, `Build`,
+`asOf`, types), and `@library/…` for your team's own slides and blocks.
+
+## Building blocks
+
+Open the **showcase** deck (`npm run dev`, then `showcase`) to see every block. It is also the visual
+test: if a block changes, look there.
+
+| Kind         | Blocks                                                                                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Whole slides | `TitleSlide`, `Frame` (the standard slide), `SectionSlide`, `StatementSlide`, `QuoteSlide`, `EndSlide`, `PhotoSlide` + `PhotoCaption`, `PhotoSplit`; inside them `Footer` and `Logo` |
+| Text         | `Bullets`, `Agenda`, `Lead`, `Callout`, `Quote`, `Code`, `Kicker`                                                                                                                    |
+| Layout       | `Columns`, `Cards`, `Compare`, `Table`, `Figure`                                                                                                                                     |
+| Media        | `Video`, `Audio`                                                                                                                                                                     |
+| Numbers      | `Stat`, `StatRow`                                                                                                                                                                    |
+| Diagrams     | `Flow`, `Node` + `Arrow` (for your own SVG), `Pipeline`, `Cycle`, `Timeline`, `Spectrum`                                                                                             |
+| Charts       | `BarSeries`, `HBars`, `LineChart`, `StackedArea`, `StackedBar`, `Pie`, `DotGrid`                                                                                                     |
+
+The same props mean the same thing everywhere: `start` delays a block's entrance (ms); `build`
+reveals a list-like block one item per press of → (`true` starts at step 1, a number starts there;
+on `Bullets`, `Cards`, `Columns`, `Compare`, `Table`, `StatRow`, `Timeline`, `Pipeline`, `Spectrum`);
+`inverted` puts a slide on the theme's other scheme (a dark slide in a light deck). Write a slide's
+title as its point ("Lead time fell by four fifths"), not its topic. Anything else is plain JSX with
+Tailwind classes; wrap any element in `<Build at={1}>` to reveal it on a press of →.
+
+## Themes
+
+A theme is a folder in `src/themes/`. Four come with the repo:
+
+| Theme       | Look                                                                                               |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| `default`   | Plain: Inter, off-white and near-black, one vermilion accent. Used when a deck names no theme.     |
+| `editorial` | A printed page: Newsreader serif, paper colours, italic emphasis.                                  |
+| `signal`    | A poster: condensed capitals (Archivo), black, white and signal yellow.                            |
+| `acme`      | An example custom theme for a made-up company, with its own font and logo. Copy it to start yours. |
+
+Pick one, and change the look of one deck, in the deck definition:
+
+```tsx
+theme: "editorial",                       // a folder in src/themes
+scheme: "dark",                           // the theme's dark colours
+logo: <img src={partnerLogo} alt="" />,   // replace the theme's logo (null hides it)
+footer: "Acme · Board meeting",           // bottom left of every slide (false hides it)
+vars: { "--color-accent": "#0a7d5a" },    // any token, for this deck only
+```
+
+In `npm run dev`, add `&theme=signal&scheme=dark` to a deck's URL to preview it in another theme.
+
+### Make your own theme
+
+1. **Copy the example:** `cp -r src/themes/acme src/themes/mine`.
+2. **Rename it:** in `src/themes/mine/theme.css`, replace every `acme` in the selectors with `mine`.
+3. **Set your colours:** the light block and the dark block each have eight colours (canvas,
+   surface, ink, accent, accent-text, on-accent, accent-2, accent-3) and five chart colours. Keep
+   `accent-text` at 4.5:1 or more against the canvas; it is the accent used as text.
+4. **Your font, or none:** delete the copied `fonts/` folder and its `@font-face` rule if you don't
+   want Archivo. To embed your own, put the font files and their licence file in `fonts/`, add one
+   `@font-face` per file with a relative URL, and set `--font-display`, `--font-body` and
+   `--font-label`. For an ordinary (not variable) font, one rule per weight:
+   ```css
+   @font-face {
+     font-family: "Brand Sans";
+     font-weight: 400;
+     src: url("./fonts/BrandSans-Regular.woff2") format("woff2");
+   }
+   @font-face {
+     font-family: "Brand Sans";
+     font-weight: 700;
+     src: url("./fonts/BrandSans-Bold.woff2") format("woff2");
+   }
+   ```
+   Set `--title-weight`, `--display-weight`, `--strong-weight` and `--stat-weight` to weights your
+   font has (or the browser fakes bold), and `--display-tracking`, `--title-tracking` and
+   `--stat-tracking` to 0 if letters look tight. Only embed fonts whose licence allows it. The build lists every font file with its licence in
+   the deck, and `npm run verify` fails if a font file has no licence file next to it.
+5. **Your logo, or none:** replace `logo.svg` with yours (one file: `logo.svg`, `.png`, `.jpg` or
+   `.webp`), or delete it for no logo. An SVG drawn in `currentColor` follows dark and inverted
+   slides. The example's wordmark uses the Archivo font, so replace it rather than keep it.
+6. **Use it:** `theme: "mine"` in a deck, written as a string literal (the build reads it from the
+   file to bundle only that theme). Then `npm run dev` and check the showcase with
+   `?deck=showcase&theme=mine`, light and `&scheme=dark`.
+
+Every token and what it does is in `src/themes/default/tokens.css`; a theme only lists what it
+changes. The design behind the default theme and the token set is in [docs/design.md](docs/design.md).
+To make your theme the default for every deck that doesn't name one, set it in
+`src/library/settings.json` (`{ "defaultTheme": "mine" }`); a deck's own `theme` still wins. Don't
+edit `src/themes/default/`: it's upstream's.
+
+## Images, video and sound
+
+Import files in the deck and pass them to a block:
+
+```tsx
+import hero from "./hero.jpg";
+import demo from "./demo.mp4";
+
+<PhotoSlide src={hero} alt="…"><PhotoCaption title="…" /></PhotoSlide>
+<Video src={demo} caption="The new flow" />
+```
+
+The build inlines everything it imports into the HTML file, so **a deck never fetches anything when
+it opens**. The build fails if a deck links a file instead (`src="https://…"`, `src="/photo.jpg"`,
+a web font URL in CSS) and tells you what to import instead.
+
+Inlined files grow by a third (base64), so compress them: photos at about 200 KB, video short and
+small (a few MB; the build warns above 15 MB). A presentation that needs a long video is better
+served by a link to it.
+
+## Presenting
+
+Every key works in the built file, offline.
+
+| Key                         | Does                                                                                                                       |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| → Space ↓ PgDn, click right | Next build step, then next slide                                                                                           |
+| ← ↑ PgUp, click left        | Previous build step, then previous slide                                                                                   |
+| Home / End                  | First / last slide                                                                                                         |
+| a number, then Enter        | Jump to that slide                                                                                                         |
+| F                           | Fullscreen                                                                                                                 |
+| N                           | Presenter window: current and next slide, notes, elapsed time and clock. Its arrow keys drive the deck; R resets the timer |
+| G                           | Overview grid: click a slide to jump, Esc or G closes. Hidden slides are greyed                                            |
+| P                           | Print every visible slide to its own page in its final state; choose "Save as PDF"                                         |
+| B or .                      | Blank the screen; any key brings it back                                                                                   |
+| ?                           | List these keys                                                                                                            |
+
+- The URL hash is the slide number (`deck.html#12`), so a link can open a given slide.
+- Hidden slides (`slide(x, { hidden: true })`) are skipped when presenting and printing; reach them
+  from the overview.
+- **Growth mode (optional):** M switches numbers between raw counts and growth for blocks given a
+  `relative` value (`Stat`, `StatRow`, `BarSeries`, `StackedArea`). `?display=relative` opens in it;
+  `display: "relative"` on a deck makes it the default.
+- Animations switch off when the viewer prefers reduced motion.
+
+## Checking a deck
+
+```bash
+npm run format   # fixes formatting (npm run check fails on it)
+npm run check    # formatting, layer boundaries, types, and every deck builds
+npm run verify   # opens every built deck offline in Chrome and checks fonts, media and every key
+npm run refresh  # refreshes the data behind the slides (see "Data that can be refreshed")
+npm run upgrade  # merges upstream updates on a branch, then check and verify
+```
+
+`npm run verify` uses your installed Chrome (or `CHROME_PATH`), else Playwright's Chromium
+(`npx playwright-core install chromium`).
+
+## For teams
+
+Keep a **private copy** of this repo as your team's slide library:
+
+```bash
+git clone <slides repo URL> our-slides && cd our-slides
+git remote rename origin upstream          # this repo becomes "upstream"
+git remote add origin <your team's empty private repo URL>
+git push -u origin main
+```
+
+Not GitHub's "Use this template" (no shared history, so updates can't merge) and not a public fork
+(it can't be private). Teammates clone your team's repo; whoever runs upgrades adds the upstream
+remote once (`git remote add upstream <slides repo URL>`).
+
+- **Your folders:** `src/decks/`, `src/library/` and your theme folders. Upstream never changes
+  them, so `npm run upgrade` (merge upstream on a branch, then check and verify) stays clean. The
+  full ownership table is in [AGENTS.md](AGENTS.md).
+- **Your library:** reusable slides, slide sets, blocks, data and assets in `src/library/`, imported
+  with `@library/…`. `npm run dev` lists them. Team default theme: `src/library/settings.json`.
+  House rules for agents: `src/library/AGENTS.md`.
+- **Refreshable data:** a slide's numbers live in a `*.data.json` with where they come from (a
+  script, an agent's instructions, or who to ask); `npm run refresh [deck]` runs the scripts and
+  lists the rest; `asOf(data)` adds an "As of" footer. Values are baked in at build time.
+
+[docs/working-with-decks.md](docs/working-with-decks.md) walks through it all: private copy, team
+theme, reusing and promoting library pieces, refreshing data, upgrading.
+
+## Guides
+
+- [AGENTS.md](AGENTS.md): the short workflow and media rules for AI coding agents (and people) working here.
+- [Working with decks as a team](docs/working-with-decks.md): yours vs upstream, the fork → reuse →
+  contribute-back cycle, refreshable data, keeping decks working.
+- [Making a building block](docs/making-a-block.md): conventions, tokens, type roles, motion and build steps.
+- [Design](docs/design.md): the token set, the type scale and the layout rules.
+- [Inspiration](docs/inspiration.md): which ideas came from which frameworks.
+- [Page-review tags](docs/page-review.md): the data attributes tools use to comment on a slide.
+
+## Before you send a deck
+
+The HTML file contains everything in the deck, including hidden slides, speaker notes and the data
+behind every chart. Check it before you send it outside your team.
+
+## Licence
+
+MIT, see [LICENSE](LICENSE). The fonts in `src/themes/*/fonts/` are under the SIL Open Font License,
+with their licence files next to them. Each built deck carries the notices for what it embeds.

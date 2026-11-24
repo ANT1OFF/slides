@@ -1,0 +1,217 @@
+@import "tailwindcss";
+@import "./themes/default/theme.css";
+@import "./core/motion.css";
+
+/*
+ * Register the tokens with Tailwind so it generates utilities (bg-canvas, text-ink-2, font-display,
+ * text-title, rounded-box …). `reference` emits no CSS: the values above, which change per scheme
+ * and theme, are the ones used.
+ */
+@theme reference {
+  --color-canvas: #000;
+  --color-surface: #000;
+  --color-ink: #000;
+  --color-ink-2: #000;
+  --color-ink-3: #000;
+  --color-rule: #000;
+  --color-muted: #000;
+  --color-highlight: #000;
+  --color-accent: #000;
+  --color-accent-text: #000;
+  --color-on-accent: #000;
+  --color-accent-2: #000;
+  --color-accent-3: #000;
+  --color-chart-1: #000;
+  --color-chart-2: #000;
+  --color-chart-3: #000;
+  --color-chart-4: #000;
+  --color-chart-5: #000;
+  --color-chart-6: #000;
+  --color-chart-key: #000;
+
+  --font-display: sans-serif;
+  --font-body: sans-serif;
+  --font-label: monospace;
+  --font-mono: monospace;
+  --font-sans: sans-serif;
+
+  --text-display: 1px;
+  --text-section: 1px;
+  --text-statement: 1px;
+  --text-quote: 1px;
+  --text-title: 1px;
+  --text-lead: 1px;
+  --text-body: 1px;
+  --text-small: 1px;
+  --text-label: 1px;
+  --text-code: 1px;
+  --text-stat: 1px;
+  --text-stat-sm: 1px;
+
+  --radius-box: 0;
+  --radius-mark: 0;
+
+  --ease-out: ease;
+  --ease-in-out: ease;
+  --ease-out-expo: ease;
+}
+
+html,
+body {
+  @apply bg-black antialiased;
+  font-family: var(--font-body);
+}
+
+/*
+ * The stage: every slide is drawn on it at 1920×1080. Body type comes from the theme's tokens.
+ */
+[data-stage] {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--body-weight);
+  line-height: var(--body-leading);
+  font-optical-sizing: auto;
+}
+
+/* <em> inside titles, statements and quotes: the theme decides (colour, italic or a marker). */
+[data-stage] em {
+  font-style: var(--em-style);
+  color: var(--em-color);
+  background: var(--em-background);
+  padding: 0 var(--em-pad);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/*
+ * Type styles. Each sets size, weight, tracking and leading from the theme, so a block only says
+ * which role a piece of text has. Use them in your own blocks too.
+ */
+@utility type-display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: var(--display-leading);
+  text-transform: var(--display-transform);
+  font-stretch: var(--display-stretch);
+  text-wrap: balance;
+}
+@utility type-section {
+  font-family: var(--font-display);
+  font-size: var(--text-section);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: var(--display-leading);
+  text-transform: var(--display-transform);
+  font-stretch: var(--display-stretch);
+  text-wrap: balance;
+}
+@utility type-statement {
+  font-family: var(--font-display);
+  font-size: var(--text-statement);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: var(--display-leading);
+  text-transform: var(--display-transform);
+  font-stretch: var(--display-stretch);
+  text-wrap: balance;
+}
+@utility type-title {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: var(--title-weight);
+  letter-spacing: var(--title-tracking);
+  line-height: var(--title-leading);
+  text-transform: var(--display-transform);
+  font-stretch: var(--display-stretch);
+  text-wrap: balance;
+}
+@utility type-quote {
+  font-family: var(--font-display);
+  font-size: var(--text-quote);
+  font-weight: var(--quote-weight);
+  font-style: var(--quote-style);
+  letter-spacing: -0.028em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+@utility type-stat {
+  font-family: var(--font-display);
+  font-weight: var(--stat-weight);
+  letter-spacing: var(--stat-tracking);
+  font-stretch: var(--display-stretch);
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+}
+@utility type-lead {
+  font-size: var(--text-lead);
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+@utility type-strong {
+  font-size: var(--text-lead);
+  font-weight: var(--strong-weight);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+@utility type-body {
+  font-size: var(--text-body);
+  line-height: var(--body-leading);
+}
+@utility type-small {
+  font-size: var(--text-small);
+  line-height: 1.3;
+}
+@utility type-label {
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
+  line-height: 1.2;
+}
+
+/* Code colours follow the theme: four voices from the tokens. */
+.code-block .tok-kw {
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+.code-block .tok-string {
+  color: var(--color-accent-2);
+}
+.code-block .tok-number {
+  color: var(--color-accent-3);
+}
+.code-block .tok-type {
+  color: var(--color-accent-2);
+}
+.code-block .tok-fn {
+  font-weight: 700;
+}
+.code-block .tok-comment {
+  color: var(--color-ink-2);
+  font-style: italic;
+}
+@utility weight-strong {
+  font-weight: var(--strong-weight);
+}
+
+/* Rules: hairlines between rows, and the strong ink rule on top of panels, tables and code. */
+@utility rule-top {
+  border-top: var(--rule) solid var(--color-rule);
+}
+@utility rule-bottom {
+  border-bottom: var(--rule) solid var(--color-rule);
+}
+@utility rule-top-strong {
+  border-top: var(--rule-strong) solid var(--color-ink);
+}
+@utility rule-top-ink {
+  border-top: var(--rule) solid var(--color-ink);
+}
+
+/* Slide padding from the theme. */
+@utility slide-pad {
+  padding: var(--slide-pad-top) var(--slide-pad-x) var(--slide-pad-bottom);
+}

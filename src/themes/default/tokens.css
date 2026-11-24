@@ -1,0 +1,174 @@
+/*
+ * Slides design tokens: the default theme ("Plain"), light and dark.
+ *
+ * A theme is this list with different values and nothing else: no theme changes a class name or a
+ * layout rule. Put data-theme and data-scheme on the same element (the stage, or <html>).
+ *
+ *   <div data-stage data-theme="editorial" data-scheme="dark">
+ *
+ * Sizes are px on the 1920 x 1080 stage. Names follow Tailwind v4 namespaces (--color-*, --font-*,
+ * --text-*, --radius-*, --ease-*), so the list can be pasted into an @theme block as it is.
+ */
+
+/* ---------- 1. Colour: the eight values a theme picks, per scheme ---------- */
+
+/* Light. Also what `.inverted` shows inside a dark deck. */
+:root,
+[data-scheme="dark"] .inverted {
+  --color-canvas: #f4f4f0; /* slide background */
+  --color-surface: #ffffff; /* panels, tables, code */
+  --color-ink: #131417; /* text */
+  --color-accent: #e2411b; /* fills: rules, bars, marks, highlights */
+  --color-accent-text: #c9360f; /* the accent as a text colour; 4.5:1 on canvas */
+  --color-on-accent: #ffffff; /* text on an accent fill */
+  --color-accent-2: #1f6f8b; /* second voice: strings in code, a second callout */
+  --color-accent-3: #8a6a00; /* third voice, rarely needed */
+
+  /* Chart series, in order; validated for colour-blind separation. Text on charts stays ink. */
+  --color-chart-1: #e2411b;
+  --color-chart-2: #2a78d6;
+  --color-chart-3: #1baf7a;
+  --color-chart-4: #eda100;
+  --color-chart-5: #6250d6;
+}
+
+/* Dark. Also what `.inverted` shows inside a light deck. */
+[data-scheme="dark"],
+.inverted {
+  --color-canvas: #101114;
+  --color-surface: #1a1c21;
+  --color-ink: #f1f0ea;
+  --color-accent: #ff5d3a;
+  --color-accent-text: #ff6a48;
+  --color-on-accent: #101114;
+  --color-accent-2: #5cc0de;
+  --color-accent-3: #e0b84a;
+
+  --color-chart-1: #f2542f;
+  --color-chart-2: #3987e5;
+  --color-chart-3: #199e70;
+  --color-chart-4: #c98500;
+  --color-chart-5: #9085e9;
+}
+
+/* ---------- 2. Colour: derived. Themes never set these. ---------- */
+/* They are mixed from canvas and ink, so they have to be declared again wherever those change. */
+:root,
+[data-theme],
+[data-scheme],
+.inverted,
+.accented {
+  --color-ink-2: color-mix(in oklab, var(--color-ink) 68%, var(--color-canvas)); /* secondary text, 4.5:1 */
+  --color-ink-3: color-mix(in oklab, var(--color-ink) 48%, var(--color-canvas)); /* line numbers, struck values */
+  --color-rule: color-mix(in oklab, var(--color-ink) 16%, var(--color-canvas)); /* hairlines */
+  --color-muted: color-mix(in oklab, var(--color-ink) 38%, var(--color-canvas)); /* unhighlighted marks, "Other" */
+  --color-chart-6: var(--color-muted);
+  --color-chart-key: var(--color-accent); /* the one highlighted mark in a single-series chart */
+  --color-highlight: color-mix(in oklab, var(--color-accent) 16%, var(--color-surface)); /* highlighted code line, table row */
+  --em-color: var(--color-accent-text);
+  --accent-fill: var(--color-accent); /* read by .accented below */
+}
+
+/* A slide or box filled with the accent. */
+.accented {
+  --color-canvas: var(--accent-fill);
+  --color-surface: color-mix(in oklab, var(--color-on-accent) 10%, var(--accent-fill));
+  --color-ink: var(--color-on-accent);
+  --color-accent: var(--color-on-accent);
+  --color-accent-text: var(--color-on-accent);
+  --accent-fill: inherit; /* keep the parent's accent, not the one just redefined */
+}
+.inverted,
+.accented {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/* ---------- 3. Type ---------- */
+:root {
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; /* titles, numbers, quotes */
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; /* kickers, axes, folios */
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; /* code */
+
+  /* Scale. One body size for the whole deck; nothing on a slide is smaller than --text-label. */
+  --text-display: 184px; /* title slide */
+  --text-section: 148px; /* section divider, closing slide */
+  --text-statement: 120px; /* one-sentence slide */
+  --text-quote: 84px;
+  --text-title: 76px; /* slide title */
+  --text-lead: 54px; /* list item titles, lead paragraph */
+  --text-body: 44px;
+  --text-small: 38px; /* detail lines, captions, table cells */
+  --text-label: 26px; /* the floor */
+  --text-code: 30px;
+  --text-stat: 400px; /* hero number */
+  --text-stat-sm: 96px; /* supporting numbers */
+
+  /* How display type is set. */
+  --display-weight: 680;
+  --display-tracking: -0.04em;
+  --display-leading: 0.95;
+  --display-transform: none;
+  --display-stretch: 100%;
+  --title-weight: 650;
+  --title-tracking: -0.028em;
+  --title-leading: 1.04;
+  --body-weight: 400;
+  --body-leading: 1.3;
+  --strong-weight: 620;
+  --stat-weight: 700;
+  --stat-tracking: -0.035em; /* numbers; set to 0 for a font whose digits touch */
+  --quote-weight: 560;
+  --quote-style: normal;
+
+  /* Labels: kickers, table heads, axis ticks. */
+  --label-weight: 500;
+  --label-tracking: 0.14em;
+  --label-transform: uppercase;
+
+  /* <em> inside a title, quote or statement. */
+  --em-style: normal;
+  --em-color: var(--color-accent-text); /* declared again in section 2 so it follows the scope */
+  --em-background: transparent;
+  --em-pad: 0;
+}
+
+/* ---------- 4. Space, shape, lines ---------- */
+:root {
+  --slide-pad-x: 120px; /* 6.25% of the width */
+  --slide-pad-top: 80px;
+  --slide-pad-bottom: 64px;
+  --gap-title: 56px; /* title to body */
+  --gap-column: 80px; /* between columns */
+  --gap-item: 32px; /* between list items, cards, stats */
+  --gap-tight: 12px; /* a title to its own detail line */
+  --pad-box: 48px; /* inside panels, cards, code */
+  --measure: 24ch; /* longest title line */
+
+  --radius-box: 0px; /* panels, cards, code, images */
+  --radius-mark: 2px; /* bars and other data marks */
+
+  --rule: 2px; /* hairlines */
+  --rule-strong: 6px; /* the kicker bar, panel tops, the title-slide rule */
+}
+
+/* ---------- 5. Motion ---------- */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* everything entering */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* slide to slide */
+  --duration-fast: 300ms; /* a build step: opacity */
+  --duration-base: 600ms; /* a block rising into place, a slide change */
+  --duration-slow: 900ms; /* bars growing, lines drawing, numbers counting */
+  --stagger: 90ms; /* between siblings */
+  --rise: 24px; /* how far a block travels as it enters */
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --stagger: 0ms;
+    --rise: 0px;
+  }
+}

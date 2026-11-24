@@ -1,0 +1,352 @@
+/* Entrance: elements fade up when a slide mounts; --d staggers them. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+.rise {
+  animation: rise 900ms var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+.fade {
+  animation: fade 700ms ease-out both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+}
+.pop {
+  animation: pop 700ms var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* SVG strokes drawn on; the path needs pathLength="1". */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 1200ms var(--ease-out-expo) forwards;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Bars grow up from their baseline. */
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+.grow {
+  transform-origin: bottom;
+  transform-box: fill-box;
+  animation: grow 900ms var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+.grow-x {
+  transform-origin: left;
+  transform-box: fill-box;
+  animation: grow-x 900ms var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+  }
+}
+.slide-enter {
+  animation: slide-in 600ms var(--ease-out-expo) both;
+}
+
+/*
+ * Steady state. These loop after the entrance has finished and only ever add
+ * motion on top of content that is already visible; they never hide it.
+ * Start them with a --d past the slide's last entrance; --dur sets the period.
+ */
+@keyframes pulse-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  35%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+.pulse-ring {
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: pulse-ring var(--dur, 2.4s) ease-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* A gentle ring for large shapes: grows only a little, so it stays inside the slide. */
+@keyframes halo {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+.halo {
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: halo var(--dur, 4s) ease-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in oklab, var(--color-accent) 22%, transparent);
+  }
+}
+.glow {
+  animation: glow var(--dur, 3.2s) ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  transform-origin: 0 0;
+  animation: spin var(--dur, 60s) linear infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.breathe {
+  animation: breathe var(--dur, 3s) ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* A photo's slow drift after it has appeared. */
+@keyframes kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
+}
+.kenburns {
+  animation: kenburns var(--dur, 24s) ease-in-out infinite alternate;
+  animation-delay: var(--d, 0ms);
+}
+
+/* One item of a list lit at a time; each item's delay offsets it by period / n. */
+@keyframes spotlight {
+  0% {
+    opacity: 0.18;
+  }
+  3%,
+  11% {
+    opacity: 1;
+    color: var(--color-accent-2);
+    transform: translateX(24px);
+  }
+  14%,
+  100% {
+    opacity: 0.18;
+  }
+}
+.spotlight {
+  opacity: 0.18;
+  animation: spotlight var(--dur, 10s) ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* An SVG dot moving down a short arrow. */
+@keyframes drift-y {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(64px);
+    opacity: 0;
+  }
+}
+.drift-y {
+  opacity: 0;
+  animation: drift-y var(--dur, 2.4s) ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes drift {
+  from {
+    left: 0%;
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+.drift {
+  opacity: 0;
+  animation: drift var(--dur, 6s) linear infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* An SVG dot moving 50px right along a short arrow. */
+@keyframes drift-x {
+  from {
+    transform: translateX(6px);
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(54px);
+    opacity: 0;
+  }
+}
+.drift-x {
+  opacity: 0;
+  animation: drift-x var(--dur, 2.4s) ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Builds: hidden until their step, then ease in. */
+.build {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 500ms ease-out,
+    transform 700ms var(--ease-out-expo);
+}
+.build-on {
+  opacity: 1;
+  transform: none;
+}
+
+/* Thumbnails and print: the final state, no motion. */
+.static-motion *,
+.static-motion *::before,
+.static-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.static-motion .draw {
+  stroke-dashoffset: 0;
+}
+.static-motion .spotlight {
+  opacity: 1;
+}
+.static-motion .halo,
+.static-motion .pulse-ring,
+.static-motion .drift-y,
+.static-motion .drift,
+.static-motion .drift-x,
+.static-motion circle:has(> animateMotion),
+.static-motion g:has(> animateMotion) {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .pulse-ring,
+  .drift,
+  .drift-x,
+  .glow,
+  .halo,
+  .breathe,
+  .kenburns,
+  .drift-y,
+  .spin {
+    animation: none !important;
+  }
+  .build {
+    transition: none;
+  }
+  /* SVG travellers (animateMotion) ignore CSS animation settings, so hide them. */
+  circle:has(> animateMotion),
+  g:has(> animateMotion) {
+    display: none;
+  }
+}
+
+@page {
+  size: 1920px 1080px;
+  margin: 0;
+}
+.print-page {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+}
+@media print {
+  html,
+  body {
+    background: none;
+  }
+  .print-page {
+    break-after: page;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

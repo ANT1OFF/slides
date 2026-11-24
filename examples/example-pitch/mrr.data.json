@@ -1,0 +1,12 @@
+{
+  "source": "agent",
+  "how": "In the billing dashboard (Revenue → MRR by plan), read monthly recurring revenue for Starter, Team and Business for each month from January to the last full month, in thousands of dollars. Update months and the three series.",
+  "updated": "2026-10-02",
+  "staleAfter": 45,
+  "values": {
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
+    "starter": [4, 6, 9, 12, 15, 19, 22, 26, 30],
+    "team": [0, 2, 4, 7, 11, 16, 22, 29, 37],
+    "business": [0, 0, 0, 2, 4, 7, 11, 16, 22]
+  }
+}

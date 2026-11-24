@@ -1,0 +1,14 @@
+{
+  "source": "manual",
+  "how": "Ask the team lead for the current team list (name, role, one line on what they do). Keep it in sync with the team page.",
+  "updated": "2026-11-24",
+  "staleAfter": 120,
+  "values": {
+    "team": "Example team",
+    "people": [
+      { "name": "Ada Example", "role": "Engineering lead", "line": "Owns the platform roadmap." },
+      { "name": "Sam Sample", "role": "Product", "line": "Talks to customers every week." },
+      { "name": "Kim Placeholder", "role": "Design", "line": "Keeps the product simple." }
+    ]
+  }
+}
