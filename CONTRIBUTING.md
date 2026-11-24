@@ -19,11 +19,11 @@ copy. They are frozen as they were first shipped. A new example of a library blo
 goes in the docs (to copy in by hand) or in `examples/`; a fix to a starter goes in the CHANGELOG
 as an upgrade note that teams can apply themselves.
 
-`npm run check` compares these paths with the branch's merge base with `origin/main`. Gram's local
-gate runs in an isolated Git worktree with no remotes, so the check compares its synthetic merge
-with the first parent (the pull request's base). Teams using Gram for their own copy can set
-`SLIDES_TEAM_COPY=1` for `npm run check` in their gate command. Teams' regular clones can edit these
-paths freely.
+`npm run check` compares these paths with the branch's merge base with `origin/main`. A local
+merge gate that checks a synthetic merge in a worktree with no remotes (commit subject
+`Gram local check of <head> on <base>`) is compared with its first parent, the pull request's base.
+A team copy that uses such a gate sets `SLIDES_TEAM_COPY=1` for `npm run check`. Teams' regular
+clones can edit these paths freely.
 
 ## Releases
 
