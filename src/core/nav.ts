@@ -49,7 +49,7 @@ export function useDeckKey(key: string, does: string, run: () => void): void {
   const latest = useRef(run);
   useEffect(() => {
     latest.current = run;
-  });
+  }, [run]);
   useEffect(() => {
     if (still) {
       return;

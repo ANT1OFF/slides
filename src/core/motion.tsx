@@ -2,11 +2,19 @@ import { useEffect, useState } from "react";
 import type { CSSProperties, ElementType, ReactNode } from "react";
 import { useStatic } from "./context.ts";
 
+// Style objects can set CSS custom properties (`style={{ "--d": "200ms" }}`) without a cast.
+declare module "react" {
+  interface CSSProperties {
+    // oxlint-disable-next-line typescript/consistent-indexed-object-style -- merging into React's type needs an interface
+    [property: `--${string}`]: string | number | undefined;
+  }
+}
+
 /**
  * An entrance effect by name: a built-in one, or the class of one of your own, from a file in
  * src/library/motion or any CSS the deck imports.
  */
-export type Effect = "rise" | "fade" | "pop" | (string & {});
+export type Effect = "rise" | "fade" | "pop" | (string & Record<never, never>);
 
 /**
  * Plays an entrance effect when the slide mounts, after `delay` ms. In a list, give each item its
@@ -14,7 +22,7 @@ export type Effect = "rise" | "fade" | "pop" | (string & {});
  */
 export function Reveal({
   children,
-  delay = 0,
+  delay: start = 0,
   order = 0,
   effect = "rise",
   as: Tag = "div",
@@ -30,7 +38,7 @@ export function Reveal({
   style?: CSSProperties;
 }) {
   return (
-    <Tag className={`${effect} ${className}`} style={{ ...style, ...stagger(order, delay) }}>
+    <Tag className={`${effect} ${className}`} style={{ ...style, ...stagger(order, start) }}>
       {children}
     </Tag>
   );
@@ -38,17 +46,17 @@ export function Reveal({
 
 /** Style helper for staggering SVG elements and other animated classes. */
 export function delay(ms: number): CSSProperties {
-  return { "--d": `${ms}ms` } as CSSProperties;
+  return { "--d": `${ms}ms` };
 }
 
 /** Like `delay`, for item `i` of a list: `start` ms, then one `--stagger` (a theme token) per item. */
 export function stagger(i: number, start = 0): CSSProperties {
-  return { "--d": i ? `calc(${start}ms + ${i} * var(--stagger))` : `${start}ms` } as CSSProperties;
+  return { "--d": i ? `calc(${start}ms + ${i} * var(--stagger))` : `${start}ms` };
 }
 
 /** Style for a steady-state loop class: starts after `ms`, repeats every `period` seconds. */
 export function loop(ms: number, period: number): CSSProperties {
-  return { "--d": `${ms}ms`, "--dur": `${period}s` } as CSSProperties;
+  return { "--d": `${ms}ms`, "--dur": `${period}s` };
 }
 
 /** An SVG ring that pulses out from (cx, cy) on a loop, e.g. when a traveller reaches a node. */

@@ -4,6 +4,13 @@ import { slideLabel, slideNumber, slideTags } from "./types.ts";
 import type { DeckSlide } from "./types.ts";
 
 const COLUMNS = 5;
+// Arrow keys move the focus by one slide, or by a row.
+const MOVES = new Map([
+  ["ArrowLeft", -1],
+  ["ArrowRight", 1],
+  ["ArrowUp", -COLUMNS],
+  ["ArrowDown", COLUMNS],
+]);
 const GAP = 24;
 const PAD = 48;
 
@@ -36,7 +43,7 @@ export function Overview({
       if (e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
-      const move = ({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -COLUMNS, ArrowDown: COLUMNS } as Record<string, number>)[e.key];
+      const move = MOVES.get(e.key);
       if (move) {
         e.preventDefault();
         const next = Math.min(slides.length - 1, Math.max(0, focus + move));

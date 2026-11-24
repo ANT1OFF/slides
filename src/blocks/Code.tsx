@@ -22,6 +22,14 @@ const RULES: Array<[RegExp, string]> = [
   [/^[^\w\s]/u, "tok-punct"],
 ];
 
+/** A keyword, a type (capitalised) or a plain word. */
+function wordKind(word: string, keywords: ReadonlySet<string>): string {
+  if (keywords.has(word)) {
+    return "tok-kw";
+  }
+  return /^[A-Z]/u.test(word) ? "tok-type" : "";
+}
+
 /**
  * The built-in tokenizer: one line of source as coloured spans. The classes are the contract, and
  * the theme colours them: `tok-kw`, `tok-string`, `tok-number`, `tok-type`, `tok-fn`, `tok-comment`,
@@ -36,8 +44,8 @@ export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS)
       if (!m) {
         continue;
       }
-      const text = m[0];
-      const kind = cls === "word" ? (keywords.has(text) ? "tok-kw" : /^[A-Z]/u.test(text) ? "tok-type" : "") : cls;
+      const [text] = m;
+      const kind = cls === "word" ? wordKind(text, keywords) : cls;
       out.push(
         kind ? (
           <span key={out.length} className={kind}>
@@ -103,7 +111,7 @@ export function Code({
   tokenize?: (line: string) => Array<ReactNode>;
 }) {
   const lines = children.replaceAll(/^\s*\n|\n\s*$/gu, "").split("\n");
-  const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => /^ */u.exec(l)![0].length));
+  const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => l.search(/[^ ]/u)));
   const code = lines.map((l) => l.slice(indent));
   const stepsSets = highlight ? parseSteps(highlight, code.length) : null;
   const step = useBuildStep(stepsSets ? stepsSets.length - 1 : 0);

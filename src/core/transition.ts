@@ -17,7 +17,8 @@ export function useSlideTransition() {
     plain.current =
       !name || name === "none" || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (plain.current) {
-      return apply();
+      apply();
+      return;
     }
     const root = document.documentElement;
     const stage = document.querySelector("[data-deck-mode=present] [data-stage]");
@@ -32,7 +33,7 @@ export function useSlideTransition() {
       }
     }
     const mine = ++run.current;
-    const done = () => {
+    const reset = () => {
       if (mine !== run.current) {
         return;
       }
@@ -43,9 +44,10 @@ export function useSlideTransition() {
       }
     };
     const transition = document.startViewTransition(() => flushSync(apply));
-    // A newer transition skips this one, which rejects `ready`: expected, not an error.
+    // A newer transition skips this one, which rejects `ready` and `finished`: expected, not an
+    // error. The state is reset either way.
     transition.ready.catch(() => {});
-    transition.finished.then(done, done);
+    void transition.finished.catch(() => {}).then(reset);
   }, []);
 
   return { plain, changeSlide };

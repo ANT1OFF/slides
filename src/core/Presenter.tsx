@@ -8,8 +8,17 @@ import { DeckContext, deckLook } from "./theme.ts";
 import { entries, slideLabel, slideNumber, slideTags } from "./types.ts";
 import type { DeckDefinition } from "./types.ts";
 
+// The DOM types window.opener as any.
+const isWindow = (w: unknown): w is Window => typeof w === "object" && w !== null && "postMessage" in w;
+
 // The deck window that opened us; a parent page also works, e.g. when embedded for testing.
-const peer = (): Window | null => window.opener ?? (window.parent === window ? null : window.parent);
+function peer(): Window | null {
+  const opener: unknown = window.opener;
+  if (isWindow(opener)) {
+    return opener;
+  }
+  return window.parent === window ? null : window.parent;
+}
 const send = (m: Message) => peer()?.postMessage(m, postTarget());
 
 function useClock() {

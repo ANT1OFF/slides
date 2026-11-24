@@ -19,7 +19,7 @@ export function LineChart({
   series,
   max,
   ticks,
-  tickLabel = (t) => String(t),
+  tickLabel = String,
   labelEvery = 1,
   reference,
   markers = [],

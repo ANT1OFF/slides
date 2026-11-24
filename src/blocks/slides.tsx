@@ -177,13 +177,7 @@ export function SectionSlide({
   children?: ReactNode;
   inverted?: boolean;
 }) {
-  const label =
-    typeof number === "number"
-      ? [number, of]
-          .filter(Boolean)
-          .map((n) => String(n).padStart(2, "0"))
-          .join(" / ")
-      : number;
+  const label = typeof number === "number" ? [number, of].flatMap((n) => (n ? [String(n).padStart(2, "0")] : [])).join(" / ") : number;
   return (
     <Slide inverted={inverted} className="relative justify-end overflow-hidden pb-24">
       {label && (

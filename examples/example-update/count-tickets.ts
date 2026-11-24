@@ -20,7 +20,11 @@ const rows = readFileSync(csv, "utf8")
   });
 
 const file = resolve(dir, "tickets.data.json");
-const data = JSON.parse(readFileSync(file, "utf8"));
-data.values = { total: rows.reduce((s, r) => s + r.value, 0), byArea: rows };
-data.updated = new Date().toISOString().slice(0, 10);
-writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`);
+const data: unknown = JSON.parse(readFileSync(file, "utf8"));
+if (typeof data !== "object" || data === null) {
+  console.error("tickets.data.json is not a data file.");
+  process.exit(1);
+}
+const values = { total: rows.reduce((s, r) => s + r.value, 0), byArea: rows };
+const updated = new Date().toISOString().slice(0, 10);
+writeFileSync(file, `${JSON.stringify({ ...data, values, updated }, null, 2)}\n`);

@@ -21,7 +21,12 @@ export default defineConfig({
     "typescript/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
     "func-style": ["error", "declaration", { allowArrowFunctions: true }],
     "sort-imports": ["error", { ignoreDeclarationSort: true }],
-    "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],
+    // `import("…")` types are how an ambient module declaration (virtual-deck.d.ts) names a type: the
+    // type-aware backend doesn't resolve an `import type` inside `declare module`.
+    "typescript/consistent-type-imports": ["error", { disallowTypeAnnotations: false }],
+    "import/no-unassigned-import": ["error", { allow: ["**/*.css", "virtual:library"] }],
+    // `__DECK__` is a build-time constant (vite.config.ts `define`), named like Vite's own.
+    "no-underscore-dangle": ["error", { allow: ["__DECK__"] }],
     // Type-only imports go on their own line (import/consistent-type-specifier-style).
     "no-duplicate-imports": ["error", { allowSeparateTypeImports: true }],
 
@@ -79,15 +84,20 @@ export default defineConfig({
     // Clicks on a slide or backdrop are mouse shortcuts; the deck handles every key globally.
     "jsx-a11y/no-static-element-interactions": "off",
     "jsx-a11y/click-events-have-key-events": "off",
+    // Effects and event handlers aren't async: `.then` there reads better than an async wrapper.
+    "promise/prefer-await-to-then": "off",
     // Number.parseInt reads the number at the start of text like a URL hash; Number("3x") is NaN.
     "unicorn/prefer-number-coercion": "off",
+    // React effects return a cleanup only when they set something up, and a Vite hook returns nothing
+    // for "not mine": both APIs are built on sometimes returning a value.
+    "typescript/consistent-return": "off",
     // There are no tests; it flags top-level statements in scripts.
     "vitest/require-hook": "off",
   },
   overrides: [
     {
       // Command-line tools and build plugins: they run on Node and print to the terminal.
-      files: ["scripts/**", "vite/**", "vite.config.ts", "oxlint.config.ts", "tools/**"],
+      files: ["scripts/**", "vite/**", "vite.config.ts", "oxlint.config.ts", "tools/**", "examples/*/*.ts"],
       rules: { "no-console": "off", "import/no-nodejs-modules": "off" },
     },
   ],

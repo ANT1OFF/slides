@@ -45,11 +45,12 @@ export function fitScale(width: number, height: number): number {
   return Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT);
 }
 
+const readWindowSize = () => ({ width: window.innerWidth, height: window.innerHeight });
+
 export function useWindowSize(): { width: number; height: number } {
-  const read = () => ({ width: window.innerWidth, height: window.innerHeight });
-  const [size, setSize] = useState(read);
+  const [size, setSize] = useState(readWindowSize);
   useEffect(() => {
-    const onResize = () => setSize(read());
+    const onResize = () => setSize(readWindowSize());
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);

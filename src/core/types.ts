@@ -55,26 +55,36 @@ export interface DeckDefinition {
   overlay?: ReactNode;
 }
 
+/** A slide with options (`slide(<A />, { notes })`), as opposed to a bare element. */
+export function isEntry(s: SlideInput): s is SlideEntry {
+  return s !== null && typeof s === "object" && !isValidElement(s) && "content" in s;
+}
+
 export function slide(content: ReactNode, options: SlideOptions = {}): SlideEntry {
   return { content, ...options };
 }
 
 // displayName, not name, which a release build minifies; vite/page-review.ts sets it for a deck's tags.
-const nameOf = (content: ReactNode): string | undefined =>
-  isValidElement(content) && typeof content.type !== "string" ? (content.type as { displayName?: string }).displayName : undefined;
+function nameOf(content: ReactNode): string | undefined {
+  if (!isValidElement(content) || typeof content.type === "string") {
+    return undefined;
+  }
+  const { type } = content;
+  return "displayName" in type && typeof type.displayName === "string" ? type.displayName : undefined;
+}
 
 /** What page review reads off a slide's wrapper: its 1-based number, id and whether it has notes. */
-export const slideTags = (slide: DeckSlide, index: number) => ({
+export const slideTags = (entry: DeckSlide, index: number) => ({
   "data-slide": index + 1,
-  "data-slide-id": slide.id,
-  ...(slide.notes ? { "data-notes": "true" } : {}),
+  "data-slide-id": entry.id,
+  "data-notes": entry.notes ? "true" : undefined,
 });
 
 /** The deck's slides with their options, each with an id unique in the deck. */
 export function entries(deck: DeckDefinition): Array<DeckSlide> {
   const taken = new Map<string, number>();
   return deck.slides.map((s, i) => {
-    const entry: SlideEntry = s !== null && typeof s === "object" && !isValidElement(s) && "content" in s ? s : { content: s as ReactNode };
+    const entry = isEntry(s) ? s : { content: s };
     const base = entry.id ?? nameOf(entry.content) ?? `slide-${i + 1}`;
     const seen = (taken.get(base) ?? 0) + 1;
     taken.set(base, seen);
@@ -82,8 +92,14 @@ export function entries(deck: DeckDefinition): Array<DeckSlide> {
   });
 }
 
+/** The counter's text for a slide, and how far through the deck it is (0 to 1). */
+export interface SlideLabel {
+  label: string;
+  progress: number;
+}
+
 /** What the counter shows for slide `index`: its place among the visible slides, or among the backups if it is hidden. */
-export function slideLabel(slides: Array<DeckSlide>, index: number): { label: string; progress: number } {
+export function slideLabel(slides: Array<DeckSlide>, index: number): SlideLabel {
   const visible = slides.filter((s) => !s.hidden).length;
   const before = slides.slice(0, index + 1);
   if (slides[index]?.hidden) {

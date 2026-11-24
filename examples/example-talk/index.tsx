@@ -20,9 +20,11 @@ import {
 
 const deck: DeckDefinition = {
   title: "Small PRs, fast teams",
-  theme: "signal", // examples pin their theme, so a team default doesn't change them
+  // Examples pin their theme, so a team default doesn't change them.
+  theme: "signal",
   scheme: "dark",
-  transition: "fade", // between slides; the three section dividers push in instead
+  // Between slides; the three section dividers push in instead.
+  transition: "fade",
   slides: [
     slide(
       <TitleSlide

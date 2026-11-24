@@ -84,12 +84,13 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           return target.current;
         });
       if (i === from) {
-        return apply();
+        apply();
+        return;
       }
       // Going back plays the transition the slide being left arrived with, reversed.
       const back = i < from;
-      const name = (back ? slides[from] : slides[i]).transition ?? deck.transition;
-      changeSlide(name, back, apply);
+      const transition = (back ? slides[from] : slides[i]).transition ?? deck.transition;
+      changeSlide(transition, back, apply);
     },
     [count, slides, deck.transition, changeSlide],
   );
@@ -110,10 +111,12 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     (dir: 1 | -1) => {
       const step = Math.min(pos.step, steps.current);
       if (dir === 1 && step < steps.current) {
-        return goto(pos.index, step + 1);
+        goto(pos.index, step + 1);
+        return;
       }
       if (dir === -1 && step > 0) {
-        return goto(pos.index, step - 1);
+        goto(pos.index, step - 1);
+        return;
       }
       const next = neighbour(pos.index, dir);
       if (next !== pos.index) {
@@ -289,7 +292,8 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const jump = useCallback<DeckNav["goto"]>(
     (slide) => {
       if (typeof slide === "number") {
-        return goto(slide);
+        goto(slide);
+        return;
       }
       const index = slideInfo.findIndex(({ id }) => id === slide);
       if (index !== -1) {
@@ -354,7 +358,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           </div>
         </Stage>
       </div>
-      {deck.overlay != null && (
+      {deck.overlay !== null && deck.overlay !== undefined && (
         // Over the window, themed like the stage. Clicks pass through unless the overlay asks for them.
         <div
           data-deck-overlay=""

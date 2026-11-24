@@ -61,7 +61,8 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
       <button
         type="button"
         onClick={(e) => {
-          e.stopPropagation(); // don't advance the slide
+          // Don't advance the slide.
+          e.stopPropagation();
           const a = ref.current;
           if (!a) {
             return;
@@ -88,6 +89,7 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
         </span>
         <span className="type-body">{label}</span>
       </button>
+      {/* oxlint-disable-next-line jsx-a11y/media-has-caption -- browsers show no captions for <audio>; the button's label names the sound */}
       <audio ref={ref} src={src} preload="auto" />
     </Reveal>
   );

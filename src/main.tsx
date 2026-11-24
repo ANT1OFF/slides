@@ -27,29 +27,37 @@ function withThemeLogo(input: DeckDefinition): DeckDefinition {
   if (deck.logo !== undefined) {
     return deck;
   }
-  const file = themes[deck.theme];
-  const logo = file?.svg ? (
-    <span role="img" aria-label="Logo" className="[&>svg]:h-full [&>svg]:w-auto" dangerouslySetInnerHTML={{ __html: file.svg }} />
-  ) : file?.url ? (
-    <img src={file.url} alt="Logo" />
-  ) : null;
-  return { ...deck, logo };
+  return { ...deck, logo: themeLogo(themes[deck.theme]) };
+}
+
+function themeLogo(file: { svg?: string; url?: string } | undefined) {
+  if (file?.svg) {
+    return (
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- an <img> can't hold inline SVG markup that follows currentColor
+      <span role="img" aria-label="Logo" className="[&>svg]:h-full [&>svg]:w-auto" dangerouslySetInnerHTML={{ __html: file.svg }} />
+    );
+  }
+  return file?.url ? <img src={file.url} alt="Logo" /> : null;
+}
+
+async function loadGallery() {
+  const { Gallery } = await import("./gallery.tsx");
+  return Gallery;
 }
 
 const chosen = await pick();
 const picked = chosen && { ...chosen, deck: withThemeLogo(chosen.deck) };
-const Gallery = import.meta.env.DEV && !picked ? (await import("./gallery.tsx")).Gallery : null;
+const Gallery = import.meta.env.DEV && !picked ? await loadGallery() : null;
 
-createRoot(document.querySelector("#root")!).render(
-  <StrictMode>
-    {picked ? (
-      isPresenter() ? (
-        <Presenter deck={picked.deck} name={picked.name} />
-      ) : (
-        <Deck deck={picked.deck} name={picked.name} />
-      )
-    ) : (
-      Gallery && <Gallery />
-    )}
-  </StrictMode>,
-);
+function view() {
+  if (!picked) {
+    return Gallery && <Gallery />;
+  }
+  return isPresenter() ? <Presenter deck={picked.deck} name={picked.name} /> : <Deck deck={picked.deck} name={picked.name} />;
+}
+
+const root = document.querySelector("#root");
+if (!root) {
+  throw new Error("index.html has no #root element.");
+}
+createRoot(root).render(<StrictMode>{view()}</StrictMode>);

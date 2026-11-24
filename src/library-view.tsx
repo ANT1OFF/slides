@@ -12,22 +12,24 @@ import type { DeckDefinition, SlideEntry, SlideInput } from "@core";
 import { Frame, Lead } from "@blocks";
 import { motion } from "virtual:library";
 
+// oxlint-disable-next-line quality/no-unsafe-dictionary-type -- a slide file exports whatever the team wrote; each export is checked below
 const slideFiles = import.meta.glob<Record<string, unknown>>("@library/slides/*.tsx", { eager: true });
-const blockFiles = import.meta.glob<Record<string, unknown>>("@library/blocks/*.tsx", { eager: true });
+const blockFiles = import.meta.glob<{ example?: SlideInput }>("@library/blocks/*.tsx", { eager: true });
 
-const fileOf = (path: string) => path.split("/").pop()!;
-const isEntry = (s: unknown): s is SlideEntry => typeof s === "object" && s !== null && !isValidElement(s) && "content" in s;
+const fileOf = (path: string) => path.slice(path.lastIndexOf("/") + 1);
+const isEntry = (s: SlideInput): s is SlideEntry => typeof s === "object" && s !== null && !isValidElement(s) && "content" in s;
+// By the library's convention, a capitalised export is a component and an export ending in
+// "Slides" returns slides. Only that it's a function is checked: Guard and the try below catch the rest.
+const isComponent = (value: unknown): value is () => ReactNode => typeof value === "function";
+const isSlideSet = (value: unknown): value is () => Array<SlideInput> => typeof value === "function";
 
 function librarySlides(): Array<SlideEntry> {
   const out: Array<SlideEntry> = [];
   for (const [path, mod] of Object.entries(slideFiles)) {
     const file = fileOf(path);
     for (const [name, value] of Object.entries(mod)) {
-      if (typeof value !== "function") {
-        continue;
-      }
-      if (/^[A-Z]/u.test(name)) {
-        const LibrarySlide = value as () => ReactNode;
+      if (/^[A-Z]/u.test(name) && isComponent(value)) {
+        const LibrarySlide = value;
         out.push(
           slide(
             <Guard name={`${file}: <${name} />`} hint={SLIDE_HINT}>
@@ -36,11 +38,11 @@ function librarySlides(): Array<SlideEntry> {
             { id: `${file}/${name}`, notes: `src/library/slides/${file}: <${name} />` },
           ),
         );
-      } else if (name.endsWith("Slides")) {
+      } else if (name.endsWith("Slides") && isSlideSet(value)) {
         // A set may return plain JSX or slide() entries; keep an entry's own notes and options.
         let set: Array<SlideInput>;
         try {
-          set = (value as () => Array<SlideInput>)();
+          set = value();
         } catch (error) {
           set = [<Broken name={`${file}: ${name}()`} hint={SLIDE_HINT} error={error} />];
         }
@@ -55,20 +57,24 @@ function librarySlides(): Array<SlideEntry> {
 }
 
 /** One slide per block file that exports an `example`; the files that don't are listed by name. */
-function libraryBlocks(): { slides: Array<SlideEntry>; without: Array<string> } {
+interface LibraryBlocks {
+  slides: Array<SlideEntry>;
+  without: Array<string>;
+}
+
+function libraryBlocks(): LibraryBlocks {
   const slides: Array<SlideEntry> = [];
   const without: Array<string> = [];
   for (const [path, mod] of Object.entries(blockFiles)) {
     const file = fileOf(path);
-    const example = mod.example as ReactNode | SlideEntry | undefined;
+    const { example } = mod;
     if (example === undefined) {
       without.push(file);
       continue;
     }
     const name = `blocks/${file}`;
     const whole = isEntry(example);
-    slides.push({
-      ...(whole ? example : {}),
+    const own = {
       id: name,
       notes: `src/library/blocks/${file}: its \`example\``,
       content: (
@@ -82,7 +88,8 @@ function libraryBlocks(): { slides: Array<SlideEntry>; without: Array<string> } 
           )}
         </Guard>
       ),
-    });
+    };
+    slides.push(whole ? { ...example, ...own } : own);
   }
   return { slides, without };
 }
@@ -139,7 +146,10 @@ function Broken({ name, hint, error }: { name: string; hint: string; error: unkn
 }
 
 class Guard extends Component<{ name: string; hint: string; children: ReactNode }, { error: unknown }> {
-  state = { error: undefined as unknown };
+  constructor(props: { name: string; hint: string; children: ReactNode }) {
+    super(props);
+    this.state = { error: undefined };
+  }
   static getDerivedStateFromError(error: unknown) {
     return { error };
   }

@@ -12,6 +12,14 @@ export interface Bar {
  * the key value as a headline number in the chart's emptier top corner. Up to 12 bars get a value
  * each; longer series label only the key bar.
  */
+/** Value labels shrink as bars get narrower (`step` is the space per bar). */
+function valueSizeFor(step: number): string {
+  if (step > 120) {
+    return "text-[40px]";
+  }
+  return step > 70 ? "text-[30px]" : "text-label";
+}
+
 export function BarSeries({
   data,
   max,
@@ -79,7 +87,7 @@ export function BarSeries({
   const last = n - 1;
   const key = hover ?? last;
   const each = Math.min(stagger, 1200 / n);
-  const valueSize = step > 120 ? "text-[40px]" : step > 70 ? "text-[30px]" : "text-label";
+  const valueSize = valueSizeFor(step);
   // The headline goes in whichever top corner the bars leave emptier.
   const third = Math.max(1, Math.floor(n / 3));
   const leftTall = Math.max(...data.slice(0, third).map((d) => d.value));

@@ -32,7 +32,7 @@ export function PhotoSlide({
           src={src}
           alt={alt}
           className={`${drift ? "kenburns " : ""}h-full w-full object-cover`}
-          style={{ objectPosition: position, ...(drift ? loop(1200, 26) : {}) }}
+          style={drift ? { objectPosition: position, ...loop(1200, 26) } : { objectPosition: position }}
         />
       </div>
       <div className={`absolute inset-0 ${gradient}`} />
@@ -104,7 +104,7 @@ export function PhotoSplit({
           src={src}
           alt={alt}
           className={`${drift ? "kenburns " : ""}h-full w-full object-cover`}
-          style={{ objectPosition: position, ...(drift ? loop(1500, 26) : {}) }}
+          style={drift ? { objectPosition: position, ...loop(1500, 26) } : { objectPosition: position }}
         />
       </div>
     </section>

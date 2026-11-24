@@ -6,7 +6,7 @@ import type { BuildProp } from "./steps.ts";
 
 type Item = ReactNode | { title: ReactNode; detail?: ReactNode };
 const isRich = (item: Item): item is { title: ReactNode; detail?: ReactNode } =>
-  typeof item === "object" && item !== null && "title" in (item as object);
+  typeof item === "object" && item !== null && "title" in item;
 
 /**
  * A list as rows between hairlines, numbered 01, 02 … (or `marker="square"` for an unnumbered list).
