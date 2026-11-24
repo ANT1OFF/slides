@@ -47,7 +47,7 @@ to describe what is there now. They are your files, and nothing updates them for
 ### 2. Add your theme
 
 Copy `src/themes/acme/` to `src/themes/<team>/`, rename `acme` inside `theme.css`, and set your
-colours, fonts and logo. The README's "Make your own theme" has the steps. Every deck that says
+colours, fonts and logo. [themes.md](themes.md) has the steps. Every deck that says
 `theme: "<team>"` gets it, and only those decks embed its fonts.
 
 To make it the default for every deck that doesn't name a theme, set it in
