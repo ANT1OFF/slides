@@ -11,13 +11,19 @@ import type { Plugin } from "vite";
 
 const ID = "\0virtual:library";
 
+/** Entrance effects and slide transitions, by name. */
+export interface MotionNames {
+  effects: Array<string>;
+  transitions: Array<string>;
+}
+
 /** The entrance effects and slide transitions a CSS file defines. */
-export function motionNames(css: string): { effects: Array<string>; transitions: Array<string> } {
+export function motionNames(css: string): MotionNames {
   const frames = new Set([...css.matchAll(/(?<=@keyframes\s+)[\w-]+/gu)].map((m) => m[0]));
   const classes = new Set([...css.matchAll(/(?<=^\s*\.)[\w-]+(?=\s*[,{])/gmu)].map((m) => m[0]));
   return {
     effects: [...classes].filter((c) => frames.has(c)),
-    transitions: [...frames].filter((k) => k.endsWith("-in") && frames.has(`${k.slice(0, -3)}-out`)).map((k) => k.slice(0, -3)),
+    transitions: [...frames].flatMap((k) => (k.endsWith("-in") && frames.has(`${k.slice(0, -3)}-out`) ? [k.slice(0, -3)] : [])),
   };
 }
 

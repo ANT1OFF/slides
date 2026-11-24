@@ -11,6 +11,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import type { DataFile } from "../src/core/data.ts";
 import { deckDir, listDecks } from "../vite.config.ts";
+import { errorMessage } from "./error-message.ts";
 import { libraryData } from "./library-data.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -41,23 +42,26 @@ if (files.length === 0) {
 
 /** Reads a data file, or says what's wrong with it. */
 function read(file: string): DataFile | string {
-  let d: Partial<DataFile>;
+  let d: unknown;
   try {
     d = JSON.parse(readFileSync(file, "utf8"));
   } catch (error) {
-    return `not valid JSON (${(error as Error).message})`;
+    return `not valid JSON (${errorMessage(error)})`;
   }
-  if (!["script", "agent", "manual"].includes(d.source as string)) {
+  if (typeof d !== "object" || d === null || !("source" in d) || !isSource(d.source)) {
     return `"source" must be "script", "agent" or "manual"`;
   }
-  if (typeof d.how !== "string" || !d.how.trim()) {
+  if (!("how" in d) || typeof d.how !== "string" || !d.how.trim()) {
     return `"how" must say how to get the values`;
   }
-  if (typeof d.updated !== "string" || !/^\d{4}-\d\d-\d\d$/u.test(d.updated) || Number.isNaN(Date.parse(d.updated))) {
+  if (!("updated" in d) || typeof d.updated !== "string" || !/^\d{4}-\d\d-\d\d$/u.test(d.updated) || Number.isNaN(Date.parse(d.updated))) {
     return `"updated" must be a date like 2026-11-24`;
   }
-  return d as DataFile;
+  const staleAfter = "staleAfter" in d && typeof d.staleAfter === "number" ? d.staleAfter : undefined;
+  return { source: d.source, how: d.how, updated: d.updated, staleAfter, values: "values" in d ? d.values : undefined };
 }
+
+const isSource = (source: unknown): source is DataFile["source"] => source === "script" || source === "agent" || source === "manual";
 const lastLine = (text: string) => text.trim().split("\n").filter(Boolean).pop() ?? "";
 const age = (d: DataFile) => Math.floor((Date.now() - Date.parse(`${d.updated}T00:00:00Z`)) / 86_400_000);
 
@@ -89,10 +93,12 @@ for (const file of files) {
       }
     } catch (error) {
       failed++;
-      writeFileSync(file, before); // whatever the script wrote, the old values stay
-      const err = error as { stderr?: Buffer; message?: string };
+      // Whatever the script wrote, the old values stay.
+      writeFileSync(file, before);
+      const stderr =
+        typeof error === "object" && error !== null && "stderr" in error && Buffer.isBuffer(error.stderr) ? error.stderr.toString() : "";
       console.log(
-        `  FAILED     ${name}: ${data.how}\n             ${lastLine(String(err.stderr ?? "")) || err.message}\n             The old values are kept.`,
+        `  FAILED     ${name}: ${data.how}\n             ${lastLine(stderr) || errorMessage(error)}\n             The old values are kept.`,
       );
     }
     continue;

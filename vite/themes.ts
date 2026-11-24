@@ -5,6 +5,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import type { Plugin } from "vite";
+import { errorMessage } from "../scripts/error-message.ts";
 
 const LOGOS = ["logo.svg", "logo.png", "logo.jpg", "logo.webp"];
 
@@ -21,15 +22,17 @@ export function teamDefaultTheme(themesDir: string, libraryDir: string): string 
   if (!existsSync(file)) {
     return "default";
   }
-  let theme: unknown;
+  let settings: unknown;
   try {
-    theme = JSON.parse(readFileSync(file, "utf8")).defaultTheme ?? "default";
+    settings = JSON.parse(readFileSync(file, "utf8"));
   } catch (error) {
-    throw new Error(`src/library/settings.json is not valid JSON: ${(error as Error).message}`);
+    throw new Error(`src/library/settings.json is not valid JSON: ${errorMessage(error)}`, { cause: error });
   }
+  const theme =
+    typeof settings === "object" && settings !== null && "defaultTheme" in settings ? (settings.defaultTheme ?? "default") : "default";
   if (typeof theme !== "string" || !existsSync(resolve(themesDir, theme, "theme.css"))) {
     throw new Error(
-      `src/library/settings.json: defaultTheme "${theme}" is not a folder in src/themes. Themes: ${listThemes(themesDir).join(", ")}`,
+      `src/library/settings.json: defaultTheme ${JSON.stringify(theme)} is not a folder in src/themes. Themes: ${listThemes(themesDir).join(", ")}`,
     );
   }
   return theme;
@@ -48,8 +51,9 @@ export function deckThemeKey(source: string): number {
     ? new RegExp(`\\b(?:const|let|var)\\s+${name.replaceAll("$", String.raw`\$`)}\\b[^=]*=\\s*\\{`, "u").exec(code)
     : /\bexport\s+default\s+\{/u.exec(code);
   if (!open) {
+    // Not a deck object we can find: the first `theme:` anywhere.
     return /\btheme\s*:/u.exec(code)?.index ?? -1;
-  } // not a deck object we can find: the first `theme:` anywhere
+  }
   let depth = 0;
   for (let i = open.index + open[0].length - 1; i < code.length; i++) {
     const c = code[i];
@@ -64,12 +68,18 @@ export function deckThemeKey(source: string): number {
   return -1;
 }
 
+/** A double-quoted string stays; a template literal keeps its backticks; a comment becomes spaces. */
+function blank(s: string): string {
+  if (s.startsWith('"')) {
+    return s;
+  }
+  return s.startsWith("`") ? `\`${" ".repeat(s.length - 2)}\`` : " ".repeat(s.length);
+}
+
 /** The theme a deck names with `theme: "name"` on its deck object, or the team default. Code in template literals and comments is ignored. */
 export function deckTheme(deckFile: string, libraryDir: string): string {
   // One pass, so a // inside a string is not a comment. Blanked, not removed, so offsets still match.
-  const source = readFileSync(deckFile, "utf8").replaceAll(/"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|\/\*[\s\S]*?\*\/|\/\/.*$/gmu, (s) =>
-    s.startsWith('"') ? s : s.startsWith("`") ? `\`${" ".repeat(s.length - 2)}\`` : " ".repeat(s.length),
-  );
+  const source = readFileSync(deckFile, "utf8").replaceAll(/"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|\/\*[\s\S]*?\*\/|\/\/.*$/gmu, blank);
   const at = deckThemeKey(source);
   if (at < 0) {
     return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
@@ -122,7 +132,7 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
         if (logos.length > 1) {
           this.error(`src/themes/${name} has more than one logo (${logos.join(", ")}). Keep one.`);
         }
-        const logo = logos[0];
+        const [logo] = logos;
         if (logo?.endsWith(".svg")) {
           lines.push(`import logo${i} from ${JSON.stringify(`${dir}/${logo}?raw`)};`);
           entries.push(`${JSON.stringify(name)}: { svg: logo${i} }`);

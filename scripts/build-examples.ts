@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { resolve } from "node:path";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";
+import { errorMessage } from "./error-message.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const outDir = resolve(root, "examples/html");
@@ -28,7 +29,7 @@ for (const deck of decks) {
   try {
     await build({ logLevel: "warn", build: { outDir: resolve(scratch, deck) } });
   } catch (error) {
-    console.error(`\n${deck}: ${(error as Error).message.split("\n    at ")[0]}`);
+    console.error(`\n${deck}: ${errorMessage(error).split("\n    at ")[0]}`);
     process.exit(1);
   }
   const fresh = resolve(scratch, deck, "index.html");

@@ -20,13 +20,10 @@ const FONT = /\.(?:woff2?|ttf|otf)$/iu;
 
 const key = (name: string) => name.toLowerCase().replaceAll(/[^a-z0-9]/gu, "");
 /** "JetBrainsMono-LICENSE.txt" → "jetbrainsmono"; a plain "LICENSE.txt" or "OFL.txt" → "". */
-const stem = (licence: string) =>
-  key(
-    licence
-      .split(/[\\/]/u)
-      .pop()!
-      .replace(/[-_ ]?(?:licen[cs]e|ofl)(?:\.(?:txt|md))?$/iu, ""),
-  );
+function stem(licence: string): string {
+  const file = licence.slice(Math.max(licence.lastIndexOf("/"), licence.lastIndexOf("\\")) + 1);
+  return key(file.replace(/[-_ ]?(?:licen[cs]e|ofl)(?:\.(?:txt|md))?$/iu, ""));
+}
 
 /**
  * Font files under `dir`, each with its licence: in its own folder or a parent up to `dir`, the
@@ -50,7 +47,8 @@ function fontFiles(dir: string, root: string): Array<{ font: string; licence?: s
         }
         const named = here.find((l) => stem(l) && key(e.name).startsWith(stem(l)));
         const generic = here.length === 1 ? here[0] : here.find((l) => !stem(l));
-        return { font: rel(font), licence: named ? rel(named) : generic ? rel(generic) : `one of ${here.map(rel).join(", ")}` };
+        const licence = named ?? generic;
+        return { font: rel(font), licence: licence ? rel(licence) : `one of ${here.map((l) => rel(l)).join(", ")}` };
       }
       return { font: rel(font) };
     });
@@ -83,7 +81,7 @@ export function notices({ root, folders }: { root: string; folders: () => Array<
         const body = [...byText].map(([text, heads]) => `== ${heads.join(", ")} ==\n\n${text}`).join("\n\n");
         // Which font files the deck can embed, and the licence that covers each.
         const fonts = folders().flatMap((f) => fontFiles(f, root));
-        for (const f of fonts.filter((f) => !f.licence)) {
+        for (const f of fonts.filter((font) => !font.licence)) {
           console.warn(
             `\n  Warning: ${f.font} has no licence file next to it. Add the font's licence (e.g. MyFont-LICENSE.txt) to its folder.`,
           );

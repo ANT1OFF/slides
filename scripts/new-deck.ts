@@ -6,7 +6,7 @@ import { format, resolveConfig } from "prettier";
 const STARTER = "src/decks/_starter";
 const PLACEHOLDER = "New deck";
 
-const name = process.argv[2];
+const name = process.argv.at(2);
 if (!name || !/^[a-z0-9][a-z0-9-]*$/u.test(name)) {
   console.error("Usage: npm run new <name>   (lowercase letters, digits and dashes, e.g. my-talk)");
   process.exit(1);

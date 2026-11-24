@@ -9,6 +9,7 @@ import { chromium } from "playwright-core";
 import { listDecks } from "../vite.config.ts";
 import { chromePath } from "./chrome.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
+import { errorMessage } from "./error-message.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const known = listDecks();
@@ -47,7 +48,7 @@ let executablePath: string | undefined;
 try {
   executablePath = chromePath();
 } catch (error) {
-  console.error((error as Error).message);
+  console.error(errorMessage(error));
   process.exit(1);
 }
 let browser;
@@ -73,7 +74,7 @@ for (const deck of decks) {
     console.log(`dist/${deck}.pdf  (${pages} page${pages === 1 ? "" : "s"})`);
   } catch (error) {
     failed = true;
-    console.error(`${deck}: ${(error as Error).message}`);
+    console.error(`${deck}: ${errorMessage(error)}`);
   }
 }
 await browser.close();

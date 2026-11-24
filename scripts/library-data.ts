@@ -2,16 +2,18 @@ import { readFileSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { Visitor, parseSync, resolveConfig } from "vite";
 
+function inside(dir: string, file: string): boolean {
+  const path = relative(dir, file);
+  return path !== ".." && !path.startsWith(`..${sep}`) && !isAbsolute(path);
+}
+
 /** Find library data referred to by the deck's local module graph, without loading its code. */
 export async function libraryData(entry: string, root: string, library: string): Promise<Array<string>> {
   const config = await resolveConfig({ configFile: false, root, resolve: { alias: { "@library": library } } }, "serve");
+  // oxlint-disable-next-line typescript/no-deprecated -- its replacement, createIdResolver, needs a dev server environment
   const resolveImport = config.createResolver();
   const visited = new Set<string>();
   const found: Array<string> = [];
-  const inside = (dir: string, file: string) => {
-    const path = relative(dir, file);
-    return path !== ".." && !path.startsWith(`..${sep}`) && !isAbsolute(path);
-  };
 
   async function visit(file: string) {
     if (visited.has(file)) {
@@ -31,14 +33,14 @@ export async function libraryData(entry: string, root: string, library: string):
     }
     const imports = new Set<string>();
     for (const item of module.staticImports) {
-      if (item.entries.length === 0 || item.entries.some((entry) => !entry.isType)) {
+      if (item.entries.length === 0 || item.entries.some((spec) => !spec.isType)) {
         imports.add(item.moduleRequest.value);
       }
     }
     for (const item of module.staticExports) {
-      for (const entry of item.entries) {
-        if (!entry.isType && entry.moduleRequest) {
-          imports.add(entry.moduleRequest.value);
+      for (const spec of item.entries) {
+        if (!spec.isType && spec.moduleRequest) {
+          imports.add(spec.moduleRequest.value);
         }
       }
     }

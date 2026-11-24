@@ -17,7 +17,7 @@ export function sourceTags(): Plugin {
     apply: "serve",
     enforce: "pre",
     transform(code, id) {
-      const file = id.split("?")[0];
+      const [file] = id.split("?");
       if (!own(file)) {
         return;
       }
@@ -60,7 +60,7 @@ export function slideNames(): Plugin {
     name: "slides:slide-names",
     enforce: "pre",
     transform(code, id) {
-      const file = id.split("?")[0];
+      const [file] = id.split("?");
       if (!/\/(?:src\/decks|examples)\/[^/]+\/index\.tsx$/u.test(file) || !own(file)) {
         return;
       }

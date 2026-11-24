@@ -2,6 +2,7 @@
 import { mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";
+import { errorMessage } from "./error-message.ts";
 
 const named = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const known = listDecks();
@@ -30,7 +31,7 @@ for (const deck of named.length > 0 ? named : known) {
   try {
     await build({ logLevel: "warn" });
   } catch (error) {
-    console.error(`\n${deck}: ${(error as Error).message.split("\n    at ")[0]}`);
+    console.error(`\n${deck}: ${errorMessage(error).split("\n    at ")[0]}`);
     process.exit(1);
   }
   renameSync(`dist/.${deck}/index.html`, `dist/${deck}.html`);

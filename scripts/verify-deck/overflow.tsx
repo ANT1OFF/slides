@@ -5,7 +5,9 @@ import type { DeckDefinition } from "@core";
 import { Footer, Frame, FrameBody, Slide, SlideHeader } from "@blocks";
 
 /** Too much for one slide: a block taller than any body. */
-const Tall = ({ height }: { height: number }) => <div className="shrink-0 bg-accent" style={{ height }} />;
+function Tall({ height }: { height: number }) {
+  return <div className="shrink-0 bg-accent" style={{ height }} />;
+}
 
 // A `theme` field in the deck's own data: the build must not read it as the deck's theme.
 const topics = [{ theme: "Not a theme folder", height: 200 }];

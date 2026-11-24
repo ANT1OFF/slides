@@ -12,10 +12,11 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
 import type { Browser, BrowserContext, Page } from "playwright-core";
-import { build } from "vite";
+import { build as viteBuild } from "vite";
 import { listDecks } from "../vite.config.ts";
 import { deckTheme } from "../vite/themes.ts";
 import { chromePath } from "./chrome.ts";
+import { errorMessage } from "./error-message.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
 
 const dist = resolve(import.meta.dirname, "../dist");
@@ -54,11 +55,14 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
   });
   // Let P print without a dialog, and count the calls.
   await ctx.addInitScript(() => {
-    const w = window as unknown as { __printed: number };
-    w.__printed = 0;
+    // SAFETY: `printed` is this script's own counter on the window, set before the page runs.
+    const w = window as Window & { printed?: number };
+    w.printed = 0;
     window.print = () => {
-      w.__printed++;
-      setTimeout(() => dispatchEvent(new Event("afterprint")), 50);
+      w.printed = (w.printed ?? 0) + 1;
+      setTimeout(() => {
+        dispatchEvent(new Event("afterprint"));
+      }, 50);
     };
   });
   return { ctx, blocked };
@@ -71,13 +75,12 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
  */
 function tooTall(page: Page): Promise<Array<string>> {
   return page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>("[data-deck-mode=overview] [data-slide]")]
-      .filter(
-        (s) =>
-          [...s.querySelectorAll<HTMLElement>("[data-frame-body]")].some((b) => b.scrollHeight > b.clientHeight + 2) ||
-          [...s.querySelectorAll<HTMLElement>("[data-stage] > *, [data-stage] section")].some((el) => el.scrollHeight > 1080 + 2),
-      )
-      .map((s) => `${s.dataset.slideId} (slide ${s.dataset.slide})`),
+    [...document.querySelectorAll<HTMLElement>("[data-deck-mode=overview] [data-slide]")].flatMap((s) =>
+      [...s.querySelectorAll<HTMLElement>("[data-frame-body]")].some((b) => b.scrollHeight > b.clientHeight + 2) ||
+      [...s.querySelectorAll<HTMLElement>("[data-stage] > *, [data-stage] section")].some((el) => el.scrollHeight > 1080 + 2)
+        ? [`${s.dataset.slideId} (slide ${s.dataset.slide})`]
+        : [],
+    ),
   );
 }
 
@@ -105,9 +108,9 @@ async function selfContained(browser: Browser, file: string) {
       media.map((m) =>
         m.readyState >= 2
           ? null
-          : new Promise((r) => {
-              m.addEventListener("loadeddata", r, { once: true });
-              setTimeout(r, 3000);
+          : new Promise((ready) => {
+              m.addEventListener("loadeddata", ready, { once: true });
+              setTimeout(ready, 3000);
             }),
       ),
     );
@@ -177,7 +180,7 @@ async function features(browser: Browser, file: string) {
     await page.waitForTimeout(wait);
   };
   const slideOf = (id: string) =>
-    page.evaluate((id) => Number(document.querySelector<HTMLElement>(`[data-slide-id="${id}"]`)?.dataset.slide), id);
+    page.evaluate((slideId) => Number(document.querySelector<HTMLElement>(`[data-slide-id="${slideId}"]`)?.dataset.slide), id);
   const blanks = async () => (await page.locator("div.fixed.inset-0.bg-black").count()) - 1;
 
   await page.goto(`file://${file}`);
@@ -252,7 +255,7 @@ async function features(browser: Browser, file: string) {
       seen.push(await visible());
     }
     // Each tier has a dot and a label on the same step, then the floor gets its own step.
-    const expected = [...Array<number>(start).fill(0), 2, 4, 5];
+    const expected = [...Array.from({ length: start }, () => 0), 2, 4, 5];
     check(
       `Spectrum build={${start}} sequences tiers and floor`,
       total === start + 2 && (await slideNo()) === slide && seen.join(",") === expected.join(","),
@@ -266,16 +269,10 @@ async function features(browser: Browser, file: string) {
   check("Code's highlight steps are counted", (await builds()) === 3);
   await go(at.tokenize);
   const kw = (id: string) => page.$$eval(`${sel} #${id} .tok-kw`, (els) => els.map((e) => e.textContent));
-  check(
-    "Code's tokenize prop replaces the highlighter",
-    (await kw("own-tokens")).join(",") === "SHOUT",
-    (await kw("own-tokens")).join(","),
-  );
-  check(
-    "the built-in tokenizer takes other keywords",
-    (await kw("own-keywords")).join(",") === "select",
-    (await kw("own-keywords")).join(","),
-  );
+  const ownTokens = await kw("own-tokens");
+  const ownKeywords = await kw("own-keywords");
+  check("Code's tokenize prop replaces the highlighter", ownTokens.join(",") === "SHOUT", ownTokens.join(","));
+  check("the built-in tokenizer takes other keywords", ownKeywords.join(",") === "select", ownKeywords.join(","));
 
   // Keys and extras of one's own: the fixture's overlay uses useDeckNav() and useDeckKey().
   await go(at.bullets);
@@ -320,7 +317,8 @@ async function features(browser: Browser, file: string) {
   }
   check("a hidden slide is skipped when presenting", (await slideNo()) === at.end, `at ${await slideNo()}`);
   await go(at.bullets);
-  check("the footer shows the slide number", (await page.textContent(`${sel} footer`))?.includes(String(at.bullets).padStart(2, "0")));
+  const footer = await page.textContent(`${sel} footer`);
+  check("the footer shows the slide number", footer?.includes(String(at.bullets).padStart(2, "0")));
 
   await key("Home");
   await page.mouse.click(1400, 450);
@@ -385,7 +383,8 @@ async function features(browser: Browser, file: string) {
 
   const [popup] = await Promise.all([page.waitForEvent("popup"), key("n", 100)]);
   await popup.waitForTimeout(1000);
-  check("N opens the presenter window", (await popup.title()).startsWith("Presenter"));
+  const title = await popup.title();
+  check("N opens the presenter window", title.startsWith("Presenter"));
   const from = await slideNo();
   await popup.keyboard.press("ArrowRight");
   await popup.waitForTimeout(300);
@@ -397,7 +396,8 @@ async function features(browser: Browser, file: string) {
   await popup.waitForTimeout(1500);
   await popup.keyboard.press("r");
   await popup.waitForTimeout(200);
-  check("R resets the timer", (await popup.textContent("[data-deck-mode=presenter]"))?.includes("00:00"));
+  const reset = await popup.textContent("[data-deck-mode=presenter]");
+  check("R resets the timer", reset?.includes("00:00"));
   // A message from any other window is ignored.
   await page.evaluate(() => window.postMessage({ type: "slides:nav", dir: 1 }, "*"));
   await page.waitForTimeout(200);
@@ -408,12 +408,15 @@ async function features(browser: Browser, file: string) {
   check("P puts every visible slide on its own page", pages === at.total - 1, `${pages} pages`);
   check("the overlay is not printed", (await page.locator("[data-deck-overlay]").count()) === 0);
   await page.waitForTimeout(1500);
-  check("P opens the print dialog", (await page.evaluate(() => (window as unknown as { __printed: number }).__printed)) === 1);
+  // SAFETY: offline() sets the counter on every page before it runs.
+  const printed = await page.evaluate(() => (window as Window & { printed?: number }).printed);
+  check("P opens the print dialog", printed === 1);
   check("back to the deck after printing", (await page.locator("[data-deck-mode=present]").count()) === 1);
 
   await page.goto(`file://${file}?display=relative#${at.stat}`);
   await page.waitForTimeout(2600);
-  check("?display=relative opens in growth mode", (await page.textContent(sel))?.includes("81"));
+  const growth = await page.textContent(sel);
+  check("?display=relative opens in growth mode", growth?.includes("81"));
 
   const reduced = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1600, height: 900 } });
   const rp = await reduced.newPage();
@@ -441,7 +444,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   const { ctx } = await offline(browser, mode === "reduced motion");
   const page = await ctx.newPage();
   if (mode === "no View Transitions API") {
-    await page.addInitScript(() => delete (Document.prototype as { startViewTransition?: unknown }).startViewTransition);
+    await page.addInitScript(() => Reflect.deleteProperty(Document.prototype, "startViewTransition"));
   }
   const errors: Array<string> = [];
   page.on("pageerror", (e) => errors.push(String(e)));
@@ -459,22 +462,28 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
         back: Object.hasOwn(root.dataset, "transitionBack"),
         leftover: root.getAttribute("style") ?? "",
         // An element with the same view-transition-name on both slides gets a group of its own.
-        carried: document.getAnimations().some((a) => (a.effect as KeyframeEffect).pseudoElement === "::view-transition-group(hero)"),
+        carried: document.getAnimations().some(
+          // SAFETY: every animation on the page is a CSS animation or transition, so its effect is a KeyframeEffect.
+          (a) => (a.effect as KeyframeEffect).pseudoElement === "::view-transition-group(hero)",
+        ),
         // "fade-in new reverse 1500": the keyframes on each of the slide's two snapshots.
         running: document.getAnimations().flatMap((a) => {
+          // SAFETY: every animation on the page is a CSS animation (view transitions are too), with a KeyframeEffect.
           const effect = a.effect as KeyframeEffect;
           const part = /^::view-transition-(?<part>old|new)\(slide\)$/u.exec(effect.pseudoElement ?? "")?.groups?.part;
           const timing = effect.getComputedTiming();
-          return part ? [`${(a as CSSAnimation).animationName} ${part} ${timing.direction} ${timing.duration}`] : [];
+          // SAFETY: as above.
+          const { animationName } = a as CSSAnimation;
+          return part ? [`${animationName} ${part} ${timing.direction} ${String(timing.duration)}`] : [];
         }),
       };
     });
   /** A computed style of the element that wraps `#id` (the Reveal or Build around it), or of `#id` itself. */
   const style = (selector: string, prop: string, parent = true) =>
     page.evaluate(
-      ([selector, prop, parent]) => {
-        const el = document.querySelector(selector)!;
-        return getComputedStyle(parent ? el.parentElement! : el).getPropertyValue(prop);
+      ([query, name, ofParent]) => {
+        const el = document.querySelector(query)!;
+        return getComputedStyle(ofParent ? el.parentElement! : el).getPropertyValue(name);
       },
       [selector, prop, parent] as const,
     );
@@ -484,13 +493,18 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   };
   /** Several keys in the same frame: faster than a transition can apply its move. */
   const burst = (keys: Array<string>) =>
-    page.evaluate((keys) => keys.forEach((key) => dispatchEvent(new KeyboardEvent("keydown", { key }))), keys);
+    page.evaluate((list) => {
+      for (const name of list) {
+        dispatchEvent(new KeyboardEvent("keydown", { key: name }));
+      }
+    }, keys);
   const go = async (n: number) => {
-    await page.evaluate((n) => (location.hash = `#${n}`), n);
+    await page.evaluate((slideNumber) => (location.hash = `#${slideNumber}`), n);
     await page.waitForTimeout(settle);
   };
-  const DURING = 250; // into a transition (the fixture's last 1500 ms)
-  const settle = animated ? 1900 : 250; // after it
+  // Into a transition (the fixture's last 1500 ms), and after it.
+  const DURING = 250;
+  const settle = animated ? 1900 : 250;
 
   await page.goto(`file://${file}`);
   await page.waitForTimeout(600);
@@ -561,7 +575,8 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
     );
   }
   await page.waitForTimeout(settle);
-  test("← lands on the slide before, every step shown", (await state()).slide === "two" && (await state()).build === "1", await state());
+  const before = await state();
+  test("← lands on the slide before, every step shown", before.slide === "two" && before.build === "1", before);
 
   await go(3);
   await key("ArrowRight", 150);
@@ -592,6 +607,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   const overview = await page.evaluate(() => {
     const view = document.querySelector("[data-deck-mode=overview]")!;
     return {
+      // SAFETY: every animation on the page is a CSS animation or transition, so its effect is a KeyframeEffect.
       running: document.getAnimations().filter((a) => view.contains((a.effect as KeyframeEffect).target)).length,
       built: getComputedStyle(view.querySelector("#built")!.parentElement!).visibility,
     };
@@ -600,6 +616,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await key("Escape", 200);
   await key("p", 200);
   const print = await page.evaluate(() => {
+    // oxlint-disable-next-line unicorn/consistent-function-scoping -- runs in the page, which gets only this callback
     const of = (id: string) => getComputedStyle(document.querySelector(`.print-page ${id}`)!.parentElement!);
     return { built: of("#built").visibility, opacity: of("#revealed").opacity, transform: of("#revealed").transform };
   });
@@ -674,7 +691,8 @@ async function overflow(browser: Browser, file: string) {
   await page.waitForTimeout(400);
   await page.keyboard.press("g");
   await page.waitForTimeout(800);
-  const found = (await tooTall(page)).join(", ");
+  const tall = await tooTall(page);
+  const found = tall.join(", ");
   check(
     "overflow is reported for a Frame body, a layout's FrameBody and a slide taller than the stage, by id and slide number",
     found === "slide-2 (slide 2), layout-too-tall (slide 3), slide-too-tall (slide 4)",
@@ -701,7 +719,7 @@ function themeDetection() {
     try {
       return deckTheme(resolve(dir, "index.tsx"), resolve(import.meta.dirname, "../examples/_library"));
     } catch (error) {
-      return `error: ${(error as Error).message}`;
+      return `error: ${errorMessage(error)}`;
     }
   };
   const cases: Array<[string, string, string]> = [
@@ -746,10 +764,14 @@ async function upstreamDecksAlone() {
   const once = async (out: string) => {
     process.env.DECK = "showcase";
     process.env.DECK_FILE = showcase;
-    await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts"), build: { outDir: resolve(dist, out) } });
+    await viteBuild({
+      logLevel: "warn",
+      configFile: resolve(import.meta.dirname, "../vite.config.ts"),
+      build: { outDir: resolve(dist, out) },
+    });
     return readFileSync(resolve(dist, out, "index.html"));
   };
-  const files: Record<string, string> = {
+  const libraryFiles = {
     "settings.json": `{ "defaultTheme": "editorial" }`,
     "styles.css": `@theme { --color-leak: #123456; }\n@utility leak-row { display: flex; color: var(--color-leak); }\n`,
     "motion/leak.css": `.leak { animation: leak 1s; }\n@keyframes leak { from { opacity: 0; } }\n@keyframes leak-in { from { opacity: 0; } }\n@keyframes leak-out { to { opacity: 0; } }\n`,
@@ -757,7 +779,7 @@ async function upstreamDecksAlone() {
   };
   try {
     const before = await once(".alone-a");
-    for (const [name, text] of Object.entries(files)) {
+    for (const [name, text] of Object.entries(libraryFiles)) {
       mkdirSync(resolve(leak, name, ".."), { recursive: true });
       writeFileSync(resolve(leak, name), text);
     }
@@ -791,7 +813,7 @@ async function rejectsExternalAssets() {
       process.env.DECK_FILE = resolve(import.meta.dirname, `verify-deck/${fixture}.tsx`);
       let message = "build succeeded";
       try {
-        await build({ logLevel: "silent", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+        await viteBuild({ logLevel: "silent", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
       } catch (error) {
         message = String(error);
       } finally {
@@ -837,7 +859,7 @@ for (const file of files) {
 // The team library, as one deck: every library slide must render offline without errors or overflow.
 process.env.DECK = "library";
 process.env.DECK_FILE = resolve(import.meta.dirname, "../src/library-view.tsx");
-await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
 deckName = "library view (src/library: slides, block examples, motion)";
 await selfContained(browser, resolve(dist, ".library/index.html"));
 rmSync(resolve(dist, ".library"), { recursive: true, force: true });
@@ -845,7 +867,7 @@ rmSync(resolve(dist, ".library"), { recursive: true, force: true });
 // The fixture deck: built here, checked, removed.
 process.env.DECK = "verify";
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/index.tsx");
-await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
 const fixture = resolve(dist, ".verify/index.html");
 deckName = "verify-deck (fixture)";
 await selfContained(browser, fixture);
@@ -856,7 +878,7 @@ rmSync(resolve(dist, ".verify"), { recursive: true, force: true });
 // The overflow check, on a deck made to overflow.
 process.env.DECK = "verify-overflow";
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/overflow.tsx");
-await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
 deckName = "verify-deck/overflow (fixture: slides too tall in three ways)";
 await overflow(browser, resolve(dist, ".verify-overflow/index.html"));
 rmSync(resolve(dist, ".verify-overflow"), { recursive: true, force: true });
@@ -865,14 +887,14 @@ rmSync(resolve(dist, ".verify-overflow"), { recursive: true, force: true });
 process.env.LIBRARY_DIR = resolve(import.meta.dirname, "verify-deck/library");
 process.env.DECK = "verify-library";
 process.env.DECK_FILE = resolve(import.meta.dirname, "../src/library-view.tsx");
-await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
 deckName = "library view of the fixture library (verify-deck/library)";
 await libraryView(browser, resolve(dist, ".verify-library/index.html"));
 rmSync(resolve(dist, ".verify-library"), { recursive: true, force: true });
 
 process.env.DECK = "verify-motion";
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/motion.tsx");
-await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
 const motionFixture = resolve(dist, ".verify-motion/index.html");
 deckName = "verify-deck/motion (fixture: effects, transitions and team CSS by name)";
 await selfContained(browser, motionFixture);
@@ -885,7 +907,8 @@ await browser.close();
 let deck = "";
 for (const r of results) {
   if (r.deck !== deck) {
-    console.log(`\n${(deck = r.deck)}`);
+    ({ deck } = r);
+    console.log(`\n${deck}`);
   }
   console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${r.name}${!r.ok && r.detail ? `  (${r.detail})` : ""}`);
 }

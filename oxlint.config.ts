@@ -25,6 +25,8 @@ export default defineConfig({
     // type-aware backend doesn't resolve an `import type` inside `declare module`.
     "typescript/consistent-type-imports": ["error", { disallowTypeAnnotations: false }],
     "import/no-unassigned-import": ["error", { allow: ["**/*.css", "virtual:library"] }],
+    // Scripts import node:path's `resolve`, so a promise there names its resolver `ready`.
+    "promise/param-names": ["error", { resolvePattern: "^(?:resolve|ready)$" }],
     // `__DECK__` is a build-time constant (vite.config.ts `define`), named like Vite's own.
     "no-underscore-dangle": ["error", { allow: ["__DECK__"] }],
     // Type-only imports go on their own line (import/consistent-type-specifier-style).
@@ -86,6 +88,8 @@ export default defineConfig({
     "jsx-a11y/click-events-have-key-events": "off",
     // Effects and event handlers aren't async: `.then` there reads better than an async wrapper.
     "promise/prefer-await-to-then": "off",
+    // A DOM event or timer wrapped in a promise (in code a page runs) needs `new Promise`.
+    "promise/avoid-new": "off",
     // Number.parseInt reads the number at the start of text like a URL hash; Number("3x") is NaN.
     "unicorn/prefer-number-coercion": "off",
     // React effects return a cleanup only when they set something up, and a Vite hook returns nothing
@@ -95,6 +99,21 @@ export default defineConfig({
     "vitest/require-hook": "off",
   },
   overrides: [
+    {
+      // The browser checks and their fixture decks are this repo's tests: the same relaxations
+      // @cloudflare/oxlint-config gives *.test.ts files. They read the DOM of pages they built, and a
+      // wrong guess fails the check it's in. A cast still needs its SAFETY comment.
+      files: ["scripts/verify.ts", "scripts/verify-deck/**"],
+      rules: {
+        "typescript/no-non-null-assertion": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/only-throw-error": "off",
+        "typescript/unbound-method": "off",
+      },
+    },
     {
       // Command-line tools and build plugins: they run on Node and print to the terminal.
       files: ["scripts/**", "vite/**", "vite.config.ts", "oxlint.config.ts", "tools/**", "examples/*/*.ts"],

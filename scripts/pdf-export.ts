@@ -40,13 +40,13 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
         [...document.images].map((i) =>
           i.complete
             ? null
-            : new Promise((r) => {
-                i.addEventListener("load", r);
-                i.addEventListener("error", r);
+            : new Promise((ready) => {
+                i.addEventListener("load", ready);
+                i.addEventListener("error", ready);
               }),
         ),
       );
-      return [...document.fonts].filter((f) => f.status !== "loaded").map((f) => f.family);
+      return [...document.fonts].flatMap((f) => (f.status === "loaded" ? [] : [f.family]));
     });
     if (unready.length > 0) {
       throw new Error(`fonts did not load: ${[...new Set(unready)].join(", ")}`);
@@ -68,8 +68,15 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
   }
 }
 
+/** A PDF's page count and first page size, in PDF points. */
+export interface PdfInfo {
+  pages: number;
+  width: number;
+  height: number;
+}
+
 /** Page count and first page size (in PDF points) read from the file itself; no PDF library needed. */
-export function inspectPdf(pdf: Buffer): { pages: number; width: number; height: number } {
+export function inspectPdf(pdf: Buffer): PdfInfo {
   const text = pdf.toString("latin1");
   const pages = Math.max(0, ...[...text.matchAll(/\/Type\s*\/Pages[^>]*?\/Count\s+(?<count>\d+)/gu)].map((m) => Number(m.groups?.count)));
   const box = /\/MediaBox\s*\[\s*0\s+0\s+(?<width>[\d.]+)\s+(?<height>[\d.]+)\s*\]/u.exec(text);
