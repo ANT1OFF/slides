@@ -20,5 +20,5 @@
       "@library/*": ["./src/library/*"]
     }
   },
-  "include": ["src", "examples", "scripts", "vite", "vite.config.ts"]
+  "include": ["src", "examples", "scripts", "tools", "vite", "vite.config.ts", "oxlint.config.ts"]
 }
