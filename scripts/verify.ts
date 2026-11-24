@@ -265,6 +265,11 @@ async function features(browser: Browser, file: string) {
   );
   await key("b", 200);
 
+  await key("k", 200);
+  check("useDeckNav() finds hidden slides and jumps to their ids", (await slideNo()) === at.hidden);
+  await key("u", 200);
+  check("goto() ignores an unknown id", (await slideNo()) === at.hidden);
+
   await go(at.hidden - 1);
   for (let k = 0; k < 6 && (await slideNo()) === at.hidden - 1; k++) await key("ArrowRight");
   check("a hidden slide is skipped when presenting", (await slideNo()) === at.end, `at ${await slideNo()}`);

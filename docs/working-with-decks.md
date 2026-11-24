@@ -133,8 +133,9 @@ npm run upgrade
 ```
 
 It fetches `upstream`, merges `upstream/main` into a new `upgrade/<date>` branch, installs, and runs
-`npm run check` and `npm run verify`. If there's a conflict it stops and says how to resolve or back
-out (your folders win; upstream's win elsewhere). When it passes, flip through your decks
+`npm run check` and `npm run verify`. The merge keeps your existing `src/library/` and
+`src/decks/` trees (except `src/decks/showcase/`), including any starters you deleted. For
+conflicts elsewhere, it stops and prints the commands to finish or abort. When it passes, flip through your decks
 (`npm run dev`, press G) and merge the branch. Upstream's CHANGELOG.md says what changed; merge a
 release tag (`npm run upgrade v0.3.0`) rather than `main` if you prefer to move in steps.
 
@@ -173,8 +174,10 @@ import tickets from "./tickets.data.json";
 
 `npm run refresh [deck]` runs every `script` source and lists the `agent` and `manual` ones with their
 instructions and age. `how` for a script is run as a shell command, so review it in pull requests like
-any code. With a deck named it covers only that deck's folder; add `--shared` to include
-`src/library/`'s data too: `npm run refresh -- <deck> --shared` (with the `--`, so npm passes the flag on). With no deck it covers your decks and `src/library/` (upstream's examples only when named). Then rebuild and verify. The values are baked into the HTML at build time; a
+any code. With a deck named, it covers the deck's own data and follows local imports and re-exports
+to find the library data it uses. Use `npm run refresh -- <deck> --shared` to include every library
+data file, including those reached via computed imports. With no deck it covers your decks and
+`src/library/` (upstream's examples only when named). Then rebuild and verify. The values are baked into the HTML at build time; a
 deck never fetches data when it opens. `examples/example-update` has one of each kind of source,
 and `examples/example-pitch` an agent one.
 

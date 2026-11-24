@@ -9,13 +9,15 @@ export interface DeckNav {
   step: number;
   /** How many slides the deck has, hidden ones included. */
   count: number;
+  /** Slide ids and backup status in deck order, including hidden slides. */
+  slides: readonly Readonly<{ id: string; hidden: boolean }>[];
   /** One step forward (1) or back (-1): the next build step, then the next slide. What → and ← do. */
   nav: (dir: 1 | -1) => void;
-  /** Jump to a slide, counted from 0. */
-  goto: (index: number) => void;
+  /** Jump by zero-based index or id, including to hidden slides. An unknown id leaves the deck in place. */
+  goto: (slide: number | string) => void;
 }
 
-export const NavContext = createContext<DeckNav>({ index: 0, step: 0, count: 0, nav: () => {}, goto: () => {} });
+export const NavContext = createContext<DeckNav>({ index: 0, step: 0, count: 0, slides: [], nav: () => {}, goto: () => {} });
 
 /**
  * The deck's position and its controls, for a component of your own: a progress or timer bar, a

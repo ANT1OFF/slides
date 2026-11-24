@@ -17,7 +17,13 @@ Keep pull requests small, and keep the README's key table and block table in syn
 and delete the starters there, so any upstream change to them is an upgrade conflict in every team
 copy. They are frozen as they were first shipped. A new example of a library block, layout or slide
 goes in the docs (to copy in by hand) or in `examples/`; a fix to a starter goes in the CHANGELOG
-as an upgrade note that teams can apply themselves. `npm run check` fails, in this repo, on a change that touches these paths (and so does CI).
+as an upgrade note that teams can apply themselves.
+
+`npm run check` compares these paths with the branch's merge base with `origin/main`. Gram's local
+gate runs in an isolated Git worktree with no remotes, so the check compares its synthetic merge
+with the first parent (the pull request's base). Teams using Gram for their own copy can set
+`SLIDES_TEAM_COPY=1` for `npm run check` in their gate command. Teams' regular clones can edit these
+paths freely.
 
 ## Releases
 

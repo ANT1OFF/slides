@@ -6,10 +6,15 @@ import { Bullets, Code, EndSlide, Flow, Frame, Stat, TitleSlide, tokenize } from
 
 /** A presenter extra as a team would write one: it reads the deck's position and adds two keys. */
 function Extras() {
-  const { index, step, count, nav, goto } = useDeckNav();
+  const { index, step, count, slides, nav, goto } = useDeckNav();
   const [taken, setTaken] = useState(0);
   useDeckKey("x", "Fixture: jump to the third slide", () => goto(2));
   useDeckKey("j", "Fixture: one step on", () => nav(1));
+  useDeckKey("k", "Fixture: jump to the first backup", () => {
+    const backup = slides.find((s) => s.hidden);
+    if (backup) goto(backup.id);
+  });
+  useDeckKey("u", "Fixture: jump to an unknown id", () => goto("missing-slide"));
   // B is a built-in key (blank the screen), which must win.
   useDeckKey("b", "Fixture: never runs", () => setTaken((n) => n + 1));
   return (

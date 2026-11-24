@@ -264,10 +264,25 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [mode, help, blank, display, nav, goto, neighbour, count, extraKeys]);
 
-  const jump = useCallback((index: number) => goto(index), [goto]);
+  const slideInfo = useMemo(() => slides.map(({ id, hidden }) => ({ id, hidden: !!hidden })), [slides]);
+  const jump = useCallback<DeckNav["goto"]>(
+    (slide) => {
+      if (typeof slide === "number") return goto(slide);
+      const index = slideInfo.findIndex(({ id }) => id === slide);
+      if (index !== -1) goto(index);
+    },
+    [goto, slideInfo],
+  );
   const deckNav = useMemo<DeckNav>(
-    () => ({ index: pos.index, step: Math.min(pos.step, built.index === pos.index ? built.count : 0), count, nav, goto: jump }),
-    [pos, built, count, nav, jump],
+    () => ({
+      index: pos.index,
+      step: Math.min(pos.step, built.index === pos.index ? built.count : 0),
+      count,
+      slides: slideInfo,
+      nav,
+      goto: jump,
+    }),
+    [pos, built, count, slideInfo, nav, jump],
   );
   const provide = (children: ReactNode) => (
     <DeckContext.Provider value={look}>

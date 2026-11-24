@@ -42,6 +42,8 @@ export function BarSeries({
    * While the deck shows growth (M), bars become multiples of this base: "first" for the first
    * bar, or a number such as a yearly average, with the label it is measured against. `format`
    * "growth" shows percent growth over the base instead, and `always` uses it in both modes.
+   * If the first bar covers a partial period, pass the value of the first complete period as the
+   * numeric base and name that period in `label`. Use a positive base for a meaningful comparison.
    */
   relativeTo?: { base: "first" | number; label: string; format?: "multiple" | "growth"; always?: boolean };
   /** Kept for older decks; values are written on the bars instead of a value axis. */
