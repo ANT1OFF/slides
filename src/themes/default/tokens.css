@@ -153,6 +153,28 @@
   --rule-strong: 6px; /* the kicker bar, panel tops, the title-slide rule */
 }
 
+/*
+ * Compact: a dense slide (<Frame density="compact">, or the class on any wrapper). Body text, small
+ * text, padding and gaps step down a notch, from whatever the theme set; titles and labels stay.
+ * The values are worked out on .compact itself and applied to its children, so each step reads
+ * the theme's size rather than the one it replaces. Small text stops halfway to --text-label.
+ */
+.compact {
+  --compact-lead: var(--text-body);
+  --compact-body: var(--text-small);
+  --compact-small: calc((var(--text-small) + var(--text-label)) / 2);
+  --compact-pad: calc(var(--pad-box) * 2 / 3);
+  --compact-gap: calc(var(--gap-item) * 5 / 8);
+  font-size: var(--compact-body);
+}
+.compact > * {
+  --text-lead: var(--compact-lead);
+  --text-body: var(--compact-body);
+  --text-small: var(--compact-small);
+  --pad-box: var(--compact-pad);
+  --gap-item: var(--compact-gap);
+}
+
 /* ---------- 5. Motion ---------- */
 :root {
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* everything entering */

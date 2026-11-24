@@ -32,14 +32,38 @@ export function teamDefaultTheme(themesDir: string, libraryDir: string): string 
   return theme;
 }
 
-/** The theme a deck names with `theme: "name"`, or the team default. Code in template literals and comments is ignored. */
+/**
+ * Where the `theme:` key of the deck object (the default export) is in `source`, or -1. Only keys
+ * of that object count: a `theme` field in the deck's data, in a slide's props or in slide() options
+ * is something else. `source` has its comments and template literals blanked out.
+ */
+export function deckThemeKey(source: string): number {
+  // Double-quoted strings are blanked too (same length, so offsets still match), so a brace in one doesn't count.
+  const code = source.replace(/"(?:\\.|[^"\\\n])*"/g, (s) => `"${" ".repeat(s.length - 2)}"`);
+  const name = /\bexport\s+default\s+([A-Za-z_$][\w$]*)\s*(?:;|$)/m.exec(code)?.[1];
+  const open = name
+    ? new RegExp(`\\b(?:const|let|var)\\s+${name.replace(/\$/g, "\\$")}\\b[^=]*=\\s*\\{`).exec(code)
+    : /\bexport\s+default\s+\{/.exec(code);
+  if (!open) return /\btheme\s*:/.exec(code)?.index ?? -1; // not a deck object we can find: the first `theme:` anywhere
+  let depth = 0;
+  for (let i = open.index + open[0].length - 1; i < code.length; i++) {
+    const c = code[i];
+    if (c === "{") depth++;
+    else if (c === "}" && --depth === 0) return -1;
+    else if (depth === 1 && c === "t" && /^theme\s*:/.test(code.slice(i, i + 40)) && !/[\w$.]/.test(code[i - 1])) return i;
+  }
+  return -1;
+}
+
+/** The theme a deck names with `theme: "name"` on its deck object, or the team default. Code in template literals and comments is ignored. */
 export function deckTheme(deckFile: string, libraryDir: string): string {
-  const source = readFileSync(deckFile, "utf8")
-    .replace(/`(?:\\.|[^`\\])*`/g, "``")
-    .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
-  const m = /\btheme\s*:\s*(\S)/.exec(source);
-  if (!m) return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
-  const literal = /^\s*:\s*["']([\w-]+)["']/.exec(source.slice(m.index + "theme".length));
+  // One pass, so a // inside a string is not a comment. Blanked, not removed, so offsets still match.
+  const source = readFileSync(deckFile, "utf8").replace(/"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|\/\*[\s\S]*?\*\/|\/\/.*$/gm, (s) =>
+    s[0] === '"' ? s : s[0] === "`" ? `\`${" ".repeat(s.length - 2)}\`` : " ".repeat(s.length),
+  );
+  const at = deckThemeKey(source);
+  if (at < 0) return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
+  const literal = /^\s*:\s*["']([\w-]+)["']/.exec(source.slice(at + "theme".length));
   if (!literal)
     throw new Error(
       `${relative(process.cwd(), deckFile)}: write the theme as a string literal, e.g. theme: "editorial". ` +

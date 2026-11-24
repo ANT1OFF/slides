@@ -9,11 +9,11 @@ New decks borrow what fits, add what's missing, and give the reusable parts back
 The folders split into what you own and what comes from this repo upstream. Upstream never changes
 your folders, so pulling its updates doesn't conflict with your work.
 
-| Owned by                 | Paths                                                                                                                                                                                                                                                                                                                                                                                                  | Rule                                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| **You** (your team)      | `src/decks/` (except `showcase/`; `_starter/` is the deck `npm run new` copies), `src/library/` (slides, blocks, `motion/`, `styles.css`, data, assets, `settings.json`, `AGENTS.md`), `src/themes/<yours>/`                                                                                                                                                                                           | Change freely. Upstream ships a few starters there and never touches them again.                   |
-| **Upstream** (this repo) | `src/core/`, `src/blocks/`, `src/decks/showcase/`, `src/themes/{default,editorial,signal,acme}/`, `src/main.tsx`, `src/styles.css`, `src/gallery.tsx`, `src/library-view.tsx`, `src/virtual-deck.d.ts`, `index.html`, `examples/`, `scripts/`, `vite/`, `docs/`, `.github/`, `.claude/skills/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE` | Don't edit; `npm run upgrade` replaces them. Fix things for everyone with a pull request upstream. |
-| Shared                   | `package.json`, `package-lock.json`, `tsconfig.json`, `vite.config.ts`, `.gitignore`, `.prettierrc`, `.prettierignore`                                                                                                                                                                                                                                                                                 | Edit only when you must (e.g. adding a dependency); expect small merges.                           |
+| Owned by                 | Paths                                                                                                                                                                                                                                                                                                                                                                                                  | Rule                                                                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **You** (your team)      | `src/decks/` (except `showcase/`; `_starter/` is the deck `npm run new` copies), `src/library/` (slides, blocks, `motion/`, `styles.css`, data, assets, `settings.json`, `AGENTS.md`), `src/themes/<yours>/`                                                                                                                                                                                           | Change freely. The first clone brings a few starters; upstream never changes, adds or removes a file there after that, so an upgrade can't conflict there. |
+| **Upstream** (this repo) | `src/core/`, `src/blocks/`, `src/decks/showcase/`, `src/themes/{default,editorial,signal,acme}/`, `src/main.tsx`, `src/styles.css`, `src/gallery.tsx`, `src/library-view.tsx`, `src/virtual-deck.d.ts`, `index.html`, `examples/`, `scripts/`, `vite/`, `docs/`, `.github/`, `.claude/skills/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE` | Don't edit; `npm run upgrade` replaces them. Fix things for everyone with a pull request upstream.                                                         |
+| Shared                   | `package.json`, `package-lock.json`, `tsconfig.json`, `vite.config.ts`, `.gitignore`, `.prettierrc`, `.prettierignore`                                                                                                                                                                                                                                                                                 | Edit only when you must (e.g. adding a dependency); expect small merges.                                                                                   |
 
 ## The lifecycle
 
@@ -22,6 +22,7 @@ your folders, so pulling its updates doesn't conflict with your work.
 ```bash
 git clone https://github.com/ANT1OFF/slides.git our-slides && cd our-slides
 git remote rename origin upstream
+git remote set-url --push upstream DISABLED   # fetch-only: your decks can't be pushed to the public kit
 git remote add origin <your team's empty private repo URL>
 git push -u origin main
 npm install
@@ -29,7 +30,19 @@ npm install
 
 Not "Use this template" (no shared history, so `npm run upgrade` can't merge) and not a public fork
 (it can't be private). Team members then clone your team's repo as usual; whoever runs upgrades adds
-the upstream remote once in their clone: `git remote add upstream https://github.com/ANT1OFF/slides.git`.
+the upstream remote once in their clone, fetch-only:
+
+```bash
+git remote add upstream https://github.com/ANT1OFF/slides.git
+git remote set-url --push upstream DISABLED
+```
+
+`upstream` is the public kit, so a push to it by mistake could publish private decks;
+`npm run upgrade` warns when it can be pushed to.
+
+Then make the starters yours: replace or delete the examples in `src/library/` (`Funnel`, `team.tsx`
+and the rest) and `src/decks/_starter/`, and update `src/library/README.md` and `src/library/AGENTS.md`
+to describe what is there now. They are your files, and nothing updates them for you.
 
 ### 2. Add your theme
 
@@ -161,7 +174,7 @@ import tickets from "./tickets.data.json";
 `npm run refresh [deck]` runs every `script` source and lists the `agent` and `manual` ones with their
 instructions and age. `how` for a script is run as a shell command, so review it in pull requests like
 any code. With a deck named it covers only that deck's folder; add `--shared` to include
-`src/library/`'s data too. With no deck it covers your decks and `src/library/` (upstream's examples only when named). Then rebuild and verify. The values are baked into the HTML at build time; a
+`src/library/`'s data too: `npm run refresh -- <deck> --shared` (with the `--`, so npm passes the flag on). With no deck it covers your decks and `src/library/` (upstream's examples only when named). Then rebuild and verify. The values are baked into the HTML at build time; a
 deck never fetches data when it opens. `examples/example-update` has one of each kind of source,
 and `examples/example-pitch` an agent one.
 

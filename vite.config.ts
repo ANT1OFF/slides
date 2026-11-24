@@ -48,8 +48,9 @@ const upstreamDeck = deckFile.startsWith(`${examples}${sep}`) || deckFile === re
 
 export default defineConfig(({ command }) => {
   const alone = command === "build" && upstreamDeck;
-  // The team's library. LIBRARY_DIR points it elsewhere (npm run verify uses it for its own fixture library).
-  const libraryDir = process.env.LIBRARY_DIR ?? (alone ? resolve(examples, "_library") : resolve(src, "library"));
+  // The team's library. LIBRARY_DIR points it elsewhere (npm run verify uses it for its own fixture
+  // library), but never for upstream's decks, which always build with the empty one.
+  const libraryDir = alone ? resolve(examples, "_library") : (process.env.LIBRARY_DIR ?? resolve(src, "library"));
   return {
     plugins: [
       alone &&

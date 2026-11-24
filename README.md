@@ -30,6 +30,8 @@ npm run build my-talk    # writes dist/my-talk.html
 ```
 
 `npm run build` with no name builds every deck. Open the HTML file and press **F** for fullscreen.
+npm 11 may warn about install scripts (`fsevents`) during `npm install`; that is harmless and needs
+nothing from you.
 
 ## Example decks
 
@@ -81,18 +83,19 @@ hidden backup slide, give it a stable id, or have it arrive with its own transit
 Open the **showcase** deck (`npm run dev`, then `showcase`) to see every block. It is also the visual
 test: if a block changes, look there.
 
-| Kind         | Blocks                                                                                                                                                                                                                                               |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Whole slides | `TitleSlide`, `Frame` (the standard slide), `SectionSlide`, `StatementSlide`, `QuoteSlide`, `EndSlide`, `PhotoSlide` + `PhotoCaption`, `PhotoSplit`; the pieces they are made of, for a layout of your own: `Slide`, `SlideHeader`, `Footer`, `Logo` |
-| Text         | `Bullets`, `Agenda`, `Lead`, `Callout`, `Quote`, `Code`, `Kicker`                                                                                                                                                                                    |
-| Layout       | `Columns`, `Cards`, `Compare`, `Table`, `Figure`                                                                                                                                                                                                     |
-| Media        | `Video`, `Audio`                                                                                                                                                                                                                                     |
-| Numbers      | `Stat`, `StatRow`                                                                                                                                                                                                                                    |
-| Diagrams     | `Flow`, `Node` + `Arrow` (for your own SVG), `Pipeline`, `Cycle`, `Timeline`, `Spectrum`                                                                                                                                                             |
-| Charts       | `BarSeries`, `HBars`, `LineChart`, `StackedArea`, `StackedBar`, `Pie`, `DotGrid`                                                                                                                                                                     |
+| Kind         | Blocks                                                                                                                                                                                                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Whole slides | `TitleSlide`, `Frame` (the standard slide), `SectionSlide`, `StatementSlide`, `QuoteSlide`, `EndSlide`, `PhotoSlide` + `PhotoCaption`, `PhotoSplit`; the pieces they are made of, for a layout of your own: `Slide`, `SlideHeader`, `FrameBody`, `Footer`, `Logo` |
+| Text         | `Bullets`, `Agenda`, `Lead`, `Callout`, `Quote`, `Code`, `Kicker`                                                                                                                                                                                                 |
+| Layout       | `Columns`, `Cards`, `Compare`, `Table`, `Figure`                                                                                                                                                                                                                  |
+| Media        | `Video`, `Audio`                                                                                                                                                                                                                                                  |
+| Numbers      | `Stat`, `StatRow`                                                                                                                                                                                                                                                 |
+| Diagrams     | `Flow`, `Node` + `Arrow` (for your own SVG), `Pipeline`, `Cycle`, `Timeline`, `Spectrum`                                                                                                                                                                          |
+| Charts       | `BarSeries`, `HBars`, `LineChart`, `StackedArea`, `StackedBar`, `Pie`, `DotGrid`                                                                                                                                                                                  |
 
 The same props mean the same thing everywhere: `start` delays a block's entrance (ms); `build`
-reveals a list-like block one item per press of → (`true` starts at step 1, a number starts there;
+reveals a list-like block one item per press of → (`true` starts at step 1, a number starts there,
+and `build={0}` shows the first item at once and builds the rest;
 on `Bullets`, `Cards`, `Columns`, `Compare`, `Table`, `StatRow`, `Timeline`, `Pipeline`, `Spectrum`);
 `inverted` puts a slide on the theme's other scheme (a dark slide in a light deck). Write a slide's
 title as its point ("Lead time fell by four fifths"), not its topic. Anything else is plain JSX with
@@ -145,7 +148,8 @@ In `npm run dev`, add `&theme=signal&scheme=dark` to a deck's URL to preview it 
    surface, ink, accent, accent-text, on-accent, accent-2, accent-3) and five chart colours. Keep
    `accent-text` at 4.5:1 or more against the canvas; it is the accent used as text.
 4. **Your font, or none:** delete the copied `fonts/` folder and its `@font-face` rule if you don't
-   want Archivo. To embed your own, put the font files and their licence file in `fonts/`, add one
+   want Archivo: the default theme's Inter and JetBrains Mono are in every deck already, so a theme
+   without fonts of its own uses them, and can name them in `--font-*` with no `@font-face`. To embed your own, put the font files and their licence file in `fonts/`, add one
    `@font-face` per file with a relative URL, and set `--font-display`, `--font-body` and
    `--font-label`. For an ordinary (not variable) font, one rule per weight:
    ```css
@@ -201,18 +205,18 @@ served by a link to it.
 
 Every key works in the built file, offline.
 
-| Key                         | Does                                                                                                                       |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| → Space ↓ PgDn, click right | Next build step, then next slide                                                                                           |
-| ← ↑ PgUp, click left        | Previous build step, then previous slide                                                                                   |
-| Home / End                  | First / last slide                                                                                                         |
-| a number, then Enter        | Jump to that slide                                                                                                         |
-| F                           | Fullscreen                                                                                                                 |
-| N                           | Presenter window: current and next slide, notes, elapsed time and clock. Its arrow keys drive the deck; R resets the timer |
-| G                           | Overview grid: click a slide to jump, Esc or G closes. Hidden slides are greyed                                            |
-| P                           | Print every visible slide to its own page in its final state; choose "Save as PDF"                                         |
-| B or .                      | Blank the screen; any key brings it back                                                                                   |
-| ?                           | List these keys                                                                                                            |
+| Key                         | Does                                                                                                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| → Space ↓ PgDn, click right | Next build step, then next slide                                                                                              |
+| ← ↑ PgUp, click left        | Previous build step, then previous slide                                                                                      |
+| Home / End                  | First / last slide                                                                                                            |
+| a number, then Enter        | Jump to that slide                                                                                                            |
+| F                           | Fullscreen                                                                                                                    |
+| N                           | Presenter window: current and next slide, notes, elapsed time and clock. Its arrow keys drive the deck; R resets the timer    |
+| G                           | Overview grid: click a slide, or move with the arrow keys and press Enter, to jump; Esc or G closes. Hidden slides are greyed |
+| P                           | Print every visible slide to its own page in its final state; choose "Save as PDF"                                            |
+| B or .                      | Blank the screen; any key brings it back                                                                                      |
+| ?                           | List these keys                                                                                                               |
 
 - The URL hash is the slide number (`deck.html#12`), so a link can open a given slide.
 - Hidden slides (`slide(x, { hidden: true })`) are skipped when presenting and printing; reach them
@@ -250,20 +254,28 @@ npm run upgrade  # merges upstream updates on a branch, then check and verify
 `npm run verify` (and `npm run pdf`) use your installed Chrome (or `CHROME_PATH`), else Playwright's Chromium
 (`npx playwright-core install chromium`).
 
-## For teams
+## Your own copy (for teams)
 
 Keep a **private copy** of this repo as your team's slide library:
 
 ```bash
 git clone https://github.com/ANT1OFF/slides.git our-slides && cd our-slides
 git remote rename origin upstream          # this repo becomes "upstream"
+git remote set-url --push upstream DISABLED   # never push your decks to the public kit by mistake
 git remote add origin <your team's empty private repo URL>
 git push -u origin main
 ```
 
 Not GitHub's "Use this template" (no shared history, so updates can't merge) and not a public fork
 (it can't be private). Teammates clone your team's repo; whoever runs upgrades adds the upstream
-remote once (`git remote add upstream https://github.com/ANT1OFF/slides.git`).
+remote once, fetch-only:
+
+```bash
+git remote add upstream https://github.com/ANT1OFF/slides.git
+git remote set-url --push upstream DISABLED
+```
+
+`npm run upgrade` warns if `upstream` can still be pushed to.
 
 - **Your folders:** `src/decks/`, `src/library/` and your theme folders. Upstream never changes
   them, so `npm run upgrade` (merge upstream on a branch, then check and verify) stays clean.

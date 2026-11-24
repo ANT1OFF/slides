@@ -1,5 +1,5 @@
 // npm run upgrade [ref]  →  brings upstream's changes into your copy, safely:
-//   1. checks your working tree is clean and an `upstream` remote exists
+//   1. checks your working tree is clean and an `upstream` remote exists (and warns if it can be pushed to)
 //   2. fetches upstream and merges `ref` (default upstream/main) into a new branch upgrade/<date>
 //   3. installs, then runs npm run check and npm run verify
 // You review the branch and merge it yourself. Nothing is pushed. Already up to date: it says so and
@@ -19,6 +19,14 @@ if (run("git status --porcelain", true).trim())
 if (!run("git remote", true).split("\n").includes("upstream"))
   fail("No `upstream` remote. Add it once: git remote add upstream https://github.com/ANT1OFF/slides.git");
 
+// upstream is the public kit: a push there could publish a team's private decks. Fetch-only is safest.
+const pushUrl = run("git remote get-url --push upstream", true).trim();
+if (pushUrl === run("git remote get-url upstream", true).trim() || /:\/\/|^[\w.-]+@[\w.-]+:|^[/.~]/.test(pushUrl) || existsSync(pushUrl))
+  console.warn(
+    `\nWarning: \`upstream\` can be pushed to (${pushUrl}), so a push there could publish your private decks.\n` +
+      "Make it fetch-only: git remote set-url --push upstream DISABLED\n",
+  );
+
 const from = run("git rev-parse --abbrev-ref HEAD", true).trim();
 run("git fetch upstream --tags");
 try {
@@ -26,7 +34,7 @@ try {
 } catch {
   fail(
     `Your copy shares no history with ${ref}, so it can't be merged. That happens with GitHub's\n` +
-      `"Use this template". Make the private copy by cloning instead (README: "Your own copy").`,
+      `"Use this template". Make the private copy by cloning instead (README: "Your own copy (for teams)").`,
   );
 }
 if (run(`git rev-list --count HEAD..${ref}`, true).trim() === "0") {

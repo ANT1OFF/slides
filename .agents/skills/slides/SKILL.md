@@ -35,8 +35,9 @@ HTML: every deck is built by the repo.
 Each is a file in a team folder, used by name or import; never edit `src/core/`, `src/blocks/` or
 `src/styles.css` for it. `docs/extending.md` has the table and the examples.
 
-1. Layout: a block in `src/library/blocks/` built from `Slide`, `SlideHeader`, `Footer` (`@blocks`).
-   Example: `src/library/blocks/SplitFrame.tsx`.
+1. Layout: a block in `src/library/blocks/` built from `Slide`, `SlideHeader`, `FrameBody`, `Footer`
+   (`@blocks`); the body goes in `FrameBody` so verify checks it fits. Example:
+   `src/library/blocks/SplitFrame.tsx`. A dense slide: `<Frame density="compact">` (docs/design.md).
 2. Team-wide token or utility class: `src/library/styles.css` (`@theme`, `@utility`). One deck only:
    a `.css` file in the deck's folder, imported by the deck.
 3. Entrance or build-step effect: `src/library/motion/<name>.css`, a class named after a from-only
@@ -62,7 +63,7 @@ Each is a file in a team folder, used by name or import; never edit `src/core/`,
 
 ## Refresh data
 
-Follow AGENTS.md "Data: provenance and refresh": `npm run refresh <deck>` (plus `--shared` for library data), follow `how` for agent
+Follow AGENTS.md "Data: provenance and refresh": `npm run refresh <deck>` (`npm run refresh -- <deck> --shared` for library data too), follow `how` for agent
 sources, ask the user for manual ones, update `updated`, rebuild.
 
 ## Export a PDF
@@ -78,3 +79,9 @@ sources, ask the user for manual ones, update `updated`, rebuild.
 
 `npm run check` then `npm run verify`; both must pass. Then look at the changed slides in
 `npm run dev` (press G). Upstream updates: `npm run upgrade`.
+
+## Set up a team's private copy
+
+Follow README "Your own copy (for teams)". The `upstream` remote must be fetch-only, so private decks
+can never be pushed to the public kit: `git remote set-url --push upstream DISABLED` (`npm run upgrade`
+warns if it isn't). Never push to `upstream`.

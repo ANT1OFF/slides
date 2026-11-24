@@ -88,6 +88,30 @@ export function TitleSlide({
 }
 
 /**
+ * The space under a slide's title: it takes the height left between the header and the footer.
+ * Use it in a layout of your own: `npm run verify` checks that what is inside fits (data-frame-body).
+ */
+export function FrameBody({
+  children,
+  align = "center",
+  className = "",
+}: {
+  children?: ReactNode;
+  /** Where the content sits in the space. */
+  align?: "center" | "top";
+  className?: string;
+}) {
+  return (
+    <div
+      data-frame-body=""
+      className={`relative mt-(--gap-title) mb-12 flex min-h-0 flex-1 flex-col ${align === "center" ? "justify-center-safe" : ""} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
  * The standard slide: kicker and logo on top, a title that states the point, the body, and a
  * footer with the slide number. Put any content block inside. `inverted` uses the theme's other
  * scheme (a dark slide in a light deck, and back).
@@ -101,6 +125,7 @@ export function Frame({
   footer,
   align = "center",
   className = "",
+  density = "normal",
 }: {
   /** The kicker above the title. */
   section?: ReactNode;
@@ -115,21 +140,18 @@ export function Frame({
   align?: "center" | "top";
   /** Extra classes on the slide itself, e.g. a team utility from src/library/styles.css. */
   className?: string;
+  /** "compact" steps body text, padding and gaps down a notch, for a dense slide (the `.compact` class). */
+  density?: "normal" | "compact";
 }) {
   return (
-    <Slide inverted={inverted} className={className}>
+    <Slide inverted={inverted} className={`${density === "compact" ? "compact" : ""} ${className}`}>
       <SlideHeader kicker={section} aside={aside} />
       {title && (
         <Reveal delay={80} as="h2" className="type-title mt-9 max-w-(--measure)">
           {title}
         </Reveal>
       )}
-      <div
-        data-frame-body=""
-        className={`relative mt-(--gap-title) mb-12 flex min-h-0 flex-1 flex-col ${align === "center" ? "justify-center-safe" : ""}`}
-      >
-        {children}
-      </div>
+      <FrameBody align={align}>{children}</FrameBody>
       <Footer note={footer} />
     </Slide>
   );

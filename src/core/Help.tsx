@@ -8,7 +8,7 @@ export const KEYS: [keys: string, does: string][] = [
   ["3  Enter", "Jump to slide 3"],
   ["F", "Fullscreen"],
   ["N", "Presenter window: notes, next slide, timer (R resets)"],
-  ["G", "Overview grid; click a slide to jump, Esc closes"],
+  ["G", "Overview grid; click a slide, or arrows and Enter, to jump; Esc closes"],
   ["P", "Print every slide to a page (Save as PDF)"],
   ["B  .", "Blank the screen"],
   ["M", "Switch numbers between raw counts and growth"],
