@@ -434,6 +434,7 @@ const deck: DeckDefinition = {
           />
           <Pie
             ring
+            highlight={0}
             size={380}
             slices={[
               { name: "Returning", value: 64 },
@@ -523,7 +524,7 @@ const deck: DeckDefinition = {
     ),
     slide(
       <Frame section="Your own" title="Yours to extend: one file each" density="compact">
-        <div className="flex flex-col gap-(--gap-title)">
+        <div className="flex flex-col gap-(--gap-item)">
           <Table
             columns={["To add", "A file in src/library/", "Use it"]}
             rows={[
@@ -533,7 +534,7 @@ const deck: DeckDefinition = {
             ]}
             strong={0}
           />
-          <Code title="src/library/motion/swoop.css">{`
+          <Code caption="Themes, transitions, keys and the rest, each a file too: docs/extending.md">{`
             @keyframes swoop { from { opacity: 0; transform: translateX(-120px); } }
             .swoop { animation: swoop var(--duration-slow) var(--ease-out) both; }
           `}</Code>
