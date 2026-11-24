@@ -41,11 +41,11 @@ function librarySlides(): Array<SlideEntry> {
         let set: Array<SlideInput>;
         try {
           set = (value as () => Array<SlideInput>)();
-        } catch (e) {
-          set = [<Broken name={`${file}: ${name}()`} hint={SLIDE_HINT} error={e} />];
+        } catch (error) {
+          set = [<Broken name={`${file}: ${name}()`} hint={SLIDE_HINT} error={error} />];
         }
         set.forEach((s, i) => {
-          const entry = isEntry(s) ? s : slide(s as ReactNode);
+          const entry = isEntry(s) ? s : slide(s);
           out.push({ ...entry, id: `${file}/${name}[${i}]`, notes: entry.notes ?? `src/library/slides/${file}: ...${name}()` });
         });
       }
@@ -121,12 +121,18 @@ function libraryMotion(): Array<SlideEntry> {
 const SLIDE_HINT = "Library slides need a default for every prop, so they can be shown on their own.";
 const BLOCK_HINT = "A block file's `example` must render on its own: give the block every prop it needs.";
 
+/** What a thrown value says: its `message` if it has one, else the value itself. */
+function errorText(error: unknown): string {
+  const message = typeof error === "object" && error !== null && "message" in error ? error.message : undefined;
+  return String(message ?? error);
+}
+
 /** One broken library file shows what's wrong instead of blanking the whole view. */
 function Broken({ name, hint, error }: { name: string; hint: string; error: unknown }) {
   return (
     <div data-broken={name} className="contents">
       <Frame section="Broken in the library" title={name}>
-        <Lead detail={hint}>{String((error as Error)?.message ?? error)}</Lead>
+        <Lead detail={hint}>{errorText(error)}</Lead>
       </Frame>
     </div>
   );
@@ -138,10 +144,10 @@ class Guard extends Component<{ name: string; hint: string; children: ReactNode 
     return { error };
   }
   render() {
-    return this.state.error !== undefined ? (
-      <Broken name={this.props.name} hint={this.props.hint} error={this.state.error} />
-    ) : (
+    return this.state.error === undefined ? (
       this.props.children
+    ) : (
+      <Broken name={this.props.name} hint={this.props.hint} error={this.state.error} />
     );
   }
 }
@@ -160,12 +166,13 @@ const all = [...library.slides, ...library.blocks, ...library.motion];
 const deck: DeckDefinition = {
   title: "Library",
   footer: "src/library",
-  slides: all.length
-    ? all
-    : [
-        <Frame title="Nothing in the library yet">
-          <Lead>Add a component to src/library/slides/ and it shows up here.</Lead>
-        </Frame>,
-      ],
+  slides:
+    all.length > 0
+      ? all
+      : [
+          <Frame title="Nothing in the library yet">
+            <Lead>Add a component to src/library/slides/ and it shows up here.</Lead>
+          </Frame>,
+        ],
 };
 export default deck;

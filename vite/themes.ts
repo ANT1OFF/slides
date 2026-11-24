@@ -12,7 +12,7 @@ export function listThemes(themesDir: string): Array<string> {
   return readdirSync(themesDir, { withFileTypes: true })
     .filter((e) => e.isDirectory() && existsSync(resolve(themesDir, e.name, "theme.css")))
     .map((e) => e.name)
-    .sort();
+    .toSorted();
 }
 
 /** The team's default theme from the library's settings.json (src/library), or "default". */
@@ -24,8 +24,8 @@ export function teamDefaultTheme(themesDir: string, libraryDir: string): string 
   let theme: unknown;
   try {
     theme = JSON.parse(readFileSync(file, "utf8")).defaultTheme ?? "default";
-  } catch (e) {
-    throw new Error(`src/library/settings.json is not valid JSON: ${(e as Error).message}`);
+  } catch (error) {
+    throw new Error(`src/library/settings.json is not valid JSON: ${(error as Error).message}`);
   }
   if (typeof theme !== "string" || !existsSync(resolve(themesDir, theme, "theme.css"))) {
     throw new Error(

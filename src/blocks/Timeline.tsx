@@ -24,7 +24,7 @@ export function Timeline({ items, build, start = 300 }: { items: Array<Milestone
       />
       <div className="relative grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((m, i) => (
-          <Build key={i} at={stepOf(build, i)} enabled={!!build} className="pr-10">
+          <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="pr-10">
             <div className="type-label text-ink-2">{m.when}</div>
             <span
               className={`pop mt-8 block size-7 rounded-full ${

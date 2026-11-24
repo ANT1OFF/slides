@@ -52,7 +52,7 @@ export function BarSeries({
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const display = useDisplay();
-  const scaledMode = !!relativeTo && (display === "relative" || !!relativeTo.always);
+  const scaledMode = relativeTo !== undefined && (display === "relative" || relativeTo.always === true);
   const asGrowth = scaledMode && relativeTo?.format === "growth";
   let shownUnit = unit;
   let write = format;

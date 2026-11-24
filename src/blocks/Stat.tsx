@@ -76,7 +76,7 @@ export function StatRow({
       {stats.map((s, i) => {
         const v = display === "relative" && s.relative ? s.relative : s;
         return (
-          <Build key={i} at={stepOf(build, i)} enabled={!!build}>
+          <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)}>
             <Reveal delay={build ? 0 : start + i * 150} className="rule-top-ink pt-6">
               <div className={`type-stat ${stats.length <= 3 ? "text-[calc(var(--text-stat-sm)*1.5)]" : "text-stat-sm"}`}>
                 {v.prefix}

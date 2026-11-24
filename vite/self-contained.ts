@@ -56,7 +56,7 @@ export function selfContained({ warnAtMB = 15 } = {}): Plugin {
           this.warn(`${file} is ${(size / MB).toFixed(1)} MB. Large media is inlined as base64 (+33%); compress or trim it.`);
         }
       }
-      if (problems.length) {
+      if (problems.length > 0) {
         this.error(
           `The deck would not be self-contained:\n  - ${[...new Set(problems)].join("\n  - ")}\n` +
             `Import files instead of linking them (import clip from "./clip.mp4"), so they are inlined into the HTML.\n` +

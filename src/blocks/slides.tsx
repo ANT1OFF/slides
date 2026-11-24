@@ -30,7 +30,7 @@ export function SlideHeader({ kicker, aside }: { kicker?: ReactNode; aside?: Rea
   return (
     <header className="flex min-h-[30px] items-center justify-between">
       {kicker ? <Kicker>{kicker}</Kicker> : <span />}
-      {aside !== undefined ? <div className="type-label text-ink-2">{aside}</div> : <Logo className="h-10" />}
+      {aside === undefined ? <Logo className="h-10" /> : <div className="type-label text-ink-2">{aside}</div>}
     </header>
   );
 }

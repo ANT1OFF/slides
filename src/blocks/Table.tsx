@@ -29,9 +29,7 @@ export function Table({
   const isNum = (c: number) =>
     numeric
       ? numeric.includes(c)
-      : rows.every(
-          (r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/u.test(r[c] as string)),
-        );
+      : rows.every((r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/u.test(r[c])));
   const align = columns.map((_, c) => (isNum(c) ? "text-right tabular-nums" : "text-left"));
   const cellTone = (c: number) => (strong === undefined || c === 0 ? "" : c === strong ? "weight-strong" : "text-ink-2");
   return (
@@ -48,7 +46,13 @@ export function Table({
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <Build key={i} as="tr" at={stepOf(build, i)} enabled={!!build} className={`rule-top ${highlight === i ? "bg-highlight" : ""}`}>
+            <Build
+              key={i}
+              as="tr"
+              at={stepOf(build, i)}
+              enabled={Boolean(build)}
+              className={`rule-top ${highlight === i ? "bg-highlight" : ""}`}
+            >
               {r.map((cell, c) => (
                 <td
                   key={c}

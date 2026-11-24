@@ -27,8 +27,8 @@ for (const deck of decks) {
   process.env.DECK = deck;
   try {
     await build({ logLevel: "warn", build: { outDir: resolve(scratch, deck) } });
-  } catch (e) {
-    console.error(`\n${deck}: ${(e as Error).message.split("\n    at ")[0]}`);
+  } catch (error) {
+    console.error(`\n${deck}: ${(error as Error).message.split("\n    at ")[0]}`);
     process.exit(1);
   }
   const fresh = resolve(scratch, deck, "index.html");
@@ -56,7 +56,7 @@ for (const f of orphans) {
 }
 
 if (checking) {
-  if (stale.length) {
+  if (stale.length > 0) {
     console.error(`Out of date with their source:\n  ${stale.join("\n  ")}\nRun \`npm run build:examples\` and commit the result.`);
     process.exit(1);
   }

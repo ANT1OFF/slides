@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Traveller, delay } from "@core";
 
 export interface FlowNode {
@@ -84,7 +84,7 @@ export function Node({
         width={w}
         height={h}
         className={strong ? "fill-ink" : "fill-surface"}
-        style={{ rx: "var(--radius-box)" } as CSSProperties}
+        style={{ rx: "var(--radius-box)" }}
       />
       <text
         x={x}

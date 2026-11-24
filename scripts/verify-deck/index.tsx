@@ -55,10 +55,10 @@ const deck: DeckDefinition = {
     slide(
       <Frame title="Code with a tokenizer of one's own">
         <div id="own-tokens">
-          <Code tokenize={(line) => [<span className="tok-kw">{line.toUpperCase()}</span>]}>{`shout`}</Code>
+          <Code tokenize={(line) => [<span className="tok-kw">{line.toUpperCase()}</span>]}>shout</Code>
         </div>
         <div id="own-keywords">
-          <Code tokenize={(line) => tokenize(line, SHOUT)}>{`select const`}</Code>
+          <Code tokenize={(line) => tokenize(line, SHOUT)}>select const</Code>
         </div>
       </Frame>,
       { id: "Tokenize" },

@@ -71,7 +71,7 @@ const teamChanges = (...options: Array<string>) =>
     .split("\0")
     .filter(Boolean);
 const touched = teamChanges();
-if (touched.length) {
+if (touched.length > 0) {
   // Git restore needs an explicit removal for an unmerged path that doesn't exist in HEAD.
   for (const file of teamChanges("--diff-filter=U")) {
     if (!git(["--literal-pathspecs", "ls-tree", "HEAD", "--", file], true)) {
@@ -79,7 +79,7 @@ if (touched.length) {
     }
   }
   const remaining = teamChanges();
-  if (remaining.length) {
+  if (remaining.length > 0) {
     git(["--literal-pathspecs", "restore", "--source=HEAD", "--staged", "--worktree", "--", ...remaining]);
   }
   console.log(`\nKept your team-owned paths as they were before the upgrade:\n${touched.join("\n")}`);

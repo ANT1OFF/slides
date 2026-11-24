@@ -38,7 +38,7 @@ export function Pipeline({ steps, build, start = 300 }: { steps: Array<Step>; bu
               x={(cx(i) + cx(i + 1)) / 2}
               y={y - 22}
               textAnchor="middle"
-              className={"fade font-label text-label fill-accent-text"}
+              className="fade font-label text-label fill-accent-text"
               style={delay(start + 600 + i * 140)}
             >
               {s.edge}
@@ -68,10 +68,10 @@ export function Pipeline({ steps, build, start = 300 }: { steps: Array<Step>; bu
       </svg>
       <div className="mt-6 grid" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
         {steps.map((s, i) => (
-          <Build key={i} at={stepOf(build, i)} enabled={!!build}>
+          <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)}>
             <Reveal delay={build ? 0 : start + 320 + i * 140} className="px-4 text-center">
               <div className="type-small weight-strong leading-tight">{s.title}</div>
-              {s.detail && <div className={`mt-3 text-[28px] leading-snug text-ink-2`}>{s.detail}</div>}
+              {s.detail && <div className="mt-3 text-[28px] leading-snug text-ink-2">{s.detail}</div>}
             </Reveal>
           </Build>
         ))}

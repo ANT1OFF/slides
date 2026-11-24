@@ -51,7 +51,11 @@ try {
 } catch {
   // A downloaded copy has no history to compare.
 }
-const isUpstream = !!remotes && /^origin\s+\S*github\.com[:/]ANT1OFF\/slides(?:\.git)?\s/mu.test(remotes) && !/^upstream\s/mu.test(remotes);
+const isUpstream =
+  remotes !== undefined &&
+  remotes !== "" &&
+  /^origin\s+\S*github\.com[:/]ANT1OFF\/slides(?:\.git)?\s/mu.test(remotes) &&
+  !/^upstream\s/mu.test(remotes);
 const gramMerge =
   remotes === "" &&
   process.env.SLIDES_TEAM_COPY !== "1" &&
@@ -74,7 +78,7 @@ if (isUpstream || gramMerge) {
   }
 }
 
-if (problems.length) {
+if (problems.length > 0) {
   console.error(`Repository boundary checks failed:\n${problems.join("\n")}`);
   process.exit(1);
 }

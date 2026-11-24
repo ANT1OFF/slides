@@ -531,7 +531,7 @@ const deck: DeckDefinition = {
             rows={[
               ["A block", <code className="font-mono">blocks/Funnel.tsx</code>, <code className="font-mono">{"<Funnel />"}</code>],
               ["A layout", <code className="font-mono">blocks/SplitFrame.tsx</code>, <code className="font-mono">{"<SplitFrame />"}</code>],
-              ["An effect", <code className="font-mono">motion/swoop.css</code>, <code className="font-mono">{'effect="swoop"'}</code>],
+              ["An effect", <code className="font-mono">motion/swoop.css</code>, <code className="font-mono">effect="swoop"</code>],
             ]}
             strong={0}
           />

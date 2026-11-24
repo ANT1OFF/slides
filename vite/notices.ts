@@ -13,7 +13,7 @@ function licenceFiles(dir: string): Array<string> {
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter((e) => e.isFile() && /licen[cs]e|^ofl/iu.test(e.name) && /\.(?:txt|md)$|^LICENSE$/iu.test(e.name))
     .map((e) => resolve(e.parentPath, e.name))
-    .sort();
+    .toSorted();
 }
 
 const FONT = /\.(?:woff2?|ttf|otf)$/iu;
@@ -45,7 +45,7 @@ function fontFiles(dir: string, root: string): Array<{ font: string; licence?: s
       const font = resolve(e.parentPath, e.name);
       for (let folder = e.parentPath; folder.startsWith(dir); folder = resolve(folder, "..")) {
         const here = licences.filter((l) => resolve(l, "..") === folder);
-        if (!here.length) {
+        if (here.length === 0) {
           continue;
         }
         const named = here.find((l) => stem(l) && key(e.name).startsWith(stem(l)));

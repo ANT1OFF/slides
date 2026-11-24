@@ -40,14 +40,16 @@ const chosen = await pick();
 const picked = chosen && { ...chosen, deck: withThemeLogo(chosen.deck) };
 const Gallery = import.meta.env.DEV && !picked ? (await import("./gallery.tsx")).Gallery : null;
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.querySelector("#root")!).render(
   <StrictMode>
-    {!picked ? (
-      Gallery && <Gallery />
-    ) : isPresenter() ? (
-      <Presenter deck={picked.deck} name={picked.name} />
+    {picked ? (
+      isPresenter() ? (
+        <Presenter deck={picked.deck} name={picked.name} />
+      ) : (
+        <Deck deck={picked.deck} name={picked.name} />
+      )
     ) : (
-      <Deck deck={picked.deck} name={picked.name} />
+      Gallery && <Gallery />
     )}
   </StrictMode>,
 );

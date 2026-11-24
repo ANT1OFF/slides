@@ -26,7 +26,7 @@ export function Bullets({
   return (
     <ul className="rule-bottom flex max-h-[620px] flex-1 flex-col">
       {items.map((item, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} as="li" className="rule-top flex flex-1 flex-col justify-center">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} as="li" className="rule-top flex flex-1 flex-col justify-center">
           <Reveal delay={build ? 0 : start} order={build ? 0 : i} className="grid grid-cols-[140px_1fr] items-baseline py-6">
             {marker === "number" ? (
               <span className="type-label text-[30px] tracking-[0.06em] text-accent-text">{String(i + 1).padStart(2, "0")}</span>

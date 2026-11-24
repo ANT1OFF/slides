@@ -26,12 +26,12 @@ export async function libraryData(entry: string, root: string, library: string):
     }
 
     const { module, program, errors } = parseSync(file, readFileSync(file, "utf8"));
-    if (errors.length) {
+    if (errors.length > 0) {
       throw new Error(`Can't trace imports in ${relative(root, file)}: ${errors[0].message}`);
     }
     const imports = new Set<string>();
     for (const item of module.staticImports) {
-      if (!item.entries.length || item.entries.some((entry) => !entry.isType)) {
+      if (item.entries.length === 0 || item.entries.some((entry) => !entry.isType)) {
         imports.add(item.moduleRequest.value);
       }
     }

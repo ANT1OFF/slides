@@ -27,7 +27,7 @@ export function Columns({
   return (
     <div className="grid gap-(--gap-column)" style={{ gridTemplateColumns: template, alignItems: align }}>
       {cols.map((col, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} className="min-w-0">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="min-w-0">
           <Reveal delay={build ? 0 : start + i * 140}>{col}</Reveal>
         </Build>
       ))}
@@ -70,7 +70,7 @@ export function Cards({
   return (
     <div className="grid gap-(--gap-item)" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
       {items.map((c, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} className="h-full">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="h-full">
           <Reveal delay={build ? 0 : start + i * 110} className="rule-top-strong flex h-full flex-col rounded-box bg-surface p-(--pad-box)">
             {c.icon && <div className="type-label mb-8 text-[30px] text-accent-text">{c.icon}</div>}
             <div className="type-strong">{c.title}</div>
@@ -95,7 +95,7 @@ export function Compare({ sides, build, start = 200 }: { sides: Array<CompareSid
   return (
     <div className="grid gap-(--gap-item)" style={{ gridTemplateColumns: `repeat(${sides.length}, minmax(0, 1fr))` }}>
       {sides.map((s, i) => (
-        <Build key={i} at={stepOf(build, i)} enabled={!!build} className="h-full">
+        <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="h-full">
           <Reveal
             delay={build ? 0 : start + i * 160}
             className={`rule-top-strong flex h-full flex-col rounded-box p-(--pad-box) ${s.highlight ? "inverted" : "bg-surface"}`}

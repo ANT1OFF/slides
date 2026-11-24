@@ -74,8 +74,7 @@ export const slideTags = (slide: DeckSlide, index: number) => ({
 export function entries(deck: DeckDefinition): Array<DeckSlide> {
   const taken = new Map<string, number>();
   return deck.slides.map((s, i) => {
-    const entry: SlideEntry =
-      s !== null && typeof s === "object" && !isValidElement(s) && "content" in s ? (s as SlideEntry) : { content: s as ReactNode };
+    const entry: SlideEntry = s !== null && typeof s === "object" && !isValidElement(s) && "content" in s ? s : { content: s as ReactNode };
     const base = entry.id ?? nameOf(entry.content) ?? `slide-${i + 1}`;
     const seen = (taken.get(base) ?? 0) + 1;
     taken.set(base, seen);

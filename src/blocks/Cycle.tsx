@@ -46,7 +46,7 @@ export function Cycle({
     const angle = (t: number) => -Math.PI / 2 + ((i + t) / n) * Math.PI * 2;
     const point = (t: number) => ({ x: cx + rx * Math.cos(angle(t)), y: cy + ry * Math.sin(angle(t)) });
     const open = Array.from({ length: 101 }, (_, k) => k / 100).filter((t) => !under(point(t), i) && !under(point(t), i + 1));
-    const a = angle(open.length ? (open[0] + open[open.length - 1]) / 2 : 0.5);
+    const a = angle(open.length > 0 ? (open[0] + (open.at(-1) ?? open[0])) / 2 : 0.5);
     const p = { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) };
     const [tx, ty] = [-rx * Math.sin(a), ry * Math.cos(a)];
     const len = Math.hypot(tx, ty);

@@ -23,10 +23,10 @@ const decks = listDecks();
 const built = existsSync(dist) ? readdirSync(dist).filter((f) => f.endsWith(".html")) : [];
 const files = built.filter((f) => decks.includes(f.slice(0, -5)));
 const stale = built.filter((f) => !files.includes(f));
-if (stale.length) {
+if (stale.length > 0) {
   console.warn(`Skipping ${stale.join(", ")}: no such deck any more.`);
 }
-if (!files.length) {
+if (files.length === 0) {
   console.error("No decks in dist/. Run npm run build first.");
   process.exit(1);
 }
@@ -35,7 +35,7 @@ const executablePath = chromePath();
 
 const results: Array<{ deck: string; name: string; ok: boolean; detail?: string }> = [];
 let deckName = "";
-const check = (name: string, ok: unknown, detail = "") => results.push({ deck: deckName, name, ok: !!ok, detail });
+const check = (name: string, ok: unknown, detail = "") => results.push({ deck: deckName, name, ok: Boolean(ok), detail });
 
 /** A context that refuses every request that isn't the file itself or inline data. */
 async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: BrowserContext; blocked: Array<string> }> {
@@ -140,10 +140,10 @@ async function selfContained(browser: Browser, file: string) {
     JSON.stringify(report.media),
   );
   const overflowing = await tooTall(page);
-  const broken = await page.$$eval("[data-deck-mode=overview] [data-broken]", (els) => els.map((e) => e.getAttribute("data-broken")));
+  const broken = await page.$$eval("[data-deck-mode=overview] [data-broken]", (els) => els.map((e) => e.dataset.broken));
   check(
     "nothing in the library is broken (slides need a default for every prop; a block's example must render)",
-    !broken.length,
+    broken.length === 0,
     broken.join(", "),
   );
   check("every slide's content fits (its Frame body, and the stage)", overflowing.length === 0, `too tall: ${overflowing.join(", ")}`);
@@ -177,7 +177,7 @@ async function features(browser: Browser, file: string) {
     await page.waitForTimeout(wait);
   };
   const slideOf = (id: string) =>
-    page.evaluate((id) => Number(document.querySelector(`[data-slide-id="${id}"]`)?.getAttribute("data-slide")), id);
+    page.evaluate((id) => Number(document.querySelector<HTMLElement>(`[data-slide-id="${id}"]`)?.dataset.slide), id);
   const blanks = async () => (await page.locator("div.fixed.inset-0.bg-black").count()) - 1;
 
   await page.goto(`file://${file}`);
@@ -199,7 +199,7 @@ async function features(browser: Browser, file: string) {
 
   check("opens on slide 1", (await slideNo()) === 1);
   const extras = () => page.textContent("[data-deck-overlay] #extras");
-  check("the deck's overlay is drawn once, over the stage", (await page.locator("#extras").count()) === 1 && !!(await extras()));
+  check("the deck's overlay is drawn once, over the stage", (await page.locator("#extras").count()) === 1 && Boolean(await extras()));
   await key("ArrowRight");
   check("→ next slide", (await slideNo()) === 2);
   await key("ArrowLeft");
@@ -255,7 +255,7 @@ async function features(browser: Browser, file: string) {
     const expected = [...Array<number>(start).fill(0), 2, 4, 5];
     check(
       `Spectrum build={${start}} sequences tiers and floor`,
-      total === start + 2 && (await slideNo()) === slide && seen.join() === expected.join(),
+      total === start + 2 && (await slideNo()) === slide && seen.join(",") === expected.join(","),
       `build count ${total}; revealed elements by step: ${seen.join(", ")}`,
     );
   }
@@ -266,8 +266,16 @@ async function features(browser: Browser, file: string) {
   check("Code's highlight steps are counted", (await builds()) === 3);
   await go(at.tokenize);
   const kw = (id: string) => page.$$eval(`${sel} #${id} .tok-kw`, (els) => els.map((e) => e.textContent));
-  check("Code's tokenize prop replaces the highlighter", (await kw("own-tokens")).join() === "SHOUT", (await kw("own-tokens")).join());
-  check("the built-in tokenizer takes other keywords", (await kw("own-keywords")).join() === "select", (await kw("own-keywords")).join());
+  check(
+    "Code's tokenize prop replaces the highlighter",
+    (await kw("own-tokens")).join(",") === "SHOUT",
+    (await kw("own-tokens")).join(","),
+  );
+  check(
+    "the built-in tokenizer takes other keywords",
+    (await kw("own-keywords")).join(",") === "select",
+    (await kw("own-keywords")).join(","),
+  );
 
   // Keys and extras of one's own: the fixture's overlay uses useDeckNav() and useDeckKey().
   await go(at.bullets);
@@ -323,7 +331,7 @@ async function features(browser: Browser, file: string) {
   check("click on the left → back", (await slideNo()) === 1);
 
   await key("f", 500);
-  check("F → fullscreen", await page.evaluate(() => !!document.fullscreenElement));
+  check("F → fullscreen", await page.evaluate(() => Boolean(document.fullscreenElement)));
   await key("f", 500);
   check("F again leaves fullscreen", await page.evaluate(() => !document.fullscreenElement));
 
@@ -442,13 +450,13 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   /** Where the deck is, and the view transition running right now, if any. */
   const state = () =>
     page.evaluate(() => {
-      const current = document.querySelector("[data-deck-mode=present] [data-slide]");
+      const current = document.querySelector<HTMLElement>("[data-deck-mode=present] [data-slide]");
       const root = document.documentElement;
       return {
-        slide: current?.getAttribute("data-slide-id"),
-        build: current?.getAttribute("data-build"),
+        slide: current?.dataset.slideId,
+        build: current?.dataset.build,
         transition: root.dataset.transition ?? null,
-        back: root.hasAttribute("data-transition-back"),
+        back: Object.hasOwn(root.dataset, "transitionBack"),
         leftover: root.getAttribute("style") ?? "",
         // An element with the same view-transition-name on both slides gets a group of its own.
         carried: document.getAnimations().some((a) => (a.effect as KeyframeEffect).pseudoElement === "::view-transition-group(hero)"),
@@ -465,8 +473,8 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   const style = (selector: string, prop: string, parent = true) =>
     page.evaluate(
       ([selector, prop, parent]) => {
-        const el = document.querySelector(selector as string)!;
-        return getComputedStyle(parent ? el.parentElement! : el).getPropertyValue(prop as string);
+        const el = document.querySelector(selector)!;
+        return getComputedStyle(parent ? el.parentElement! : el).getPropertyValue(prop);
       },
       [selector, prop, parent] as const,
     );
@@ -509,7 +517,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
       s.running,
     );
   } else {
-    test("no view transition starts; the slide just changes", s.slide === "two" && s.transition === null && !s.running.length, s);
+    test("no view transition starts; the slide just changes", s.slide === "two" && s.transition === null && s.running.length === 0, s);
   }
   test("<Reveal effect> uses the team's effect", (await style("#revealed", "animation-name")) === "verify-swoop");
   await page.waitForTimeout(settle);
@@ -558,7 +566,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await go(3);
   await key("ArrowRight", 150);
   s = await state();
-  test('transition: "none" changes the slide at once', s.slide === "four" && s.transition === null && !s.running.length, s);
+  test('transition: "none" changes the slide at once', s.slide === "four" && s.transition === null && s.running.length === 0, s);
 
   // Rapid keys: a move made while a transition is still waiting to apply must win.
   await burst(["End", "Home", "End"]);
@@ -615,10 +623,11 @@ async function libraryView(browser: Browser, file: string) {
     const overview = document.querySelector("[data-deck-mode=overview]")!;
     const slide = (id: string) => overview.querySelector(`[data-slide-id="${id}"]`);
     return {
-      ids: [...overview.querySelectorAll("[data-slide-id]")].map((s) => s.getAttribute("data-slide-id")!),
-      broken: [...overview.querySelectorAll("[data-broken]")].map((b) => b.getAttribute("data-broken")),
-      good: !!slide("blocks/Good.tsx")?.querySelector("[data-frame-body] #good-block"),
-      whole: !!slide("blocks/Whole.tsx")?.querySelector("#whole-block") && !slide("blocks/Whole.tsx")?.querySelector("[data-frame-body]"),
+      ids: [...overview.querySelectorAll<HTMLElement>("[data-slide-id]")].map((s) => s.dataset.slideId!),
+      broken: [...overview.querySelectorAll<HTMLElement>("[data-broken]")].map((b) => b.dataset.broken),
+      good: Boolean(slide("blocks/Good.tsx")?.querySelector("[data-frame-body] #good-block")),
+      whole:
+        Boolean(slide("blocks/Whole.tsx")?.querySelector("#whole-block")) && !slide("blocks/Whole.tsx")?.querySelector("[data-frame-body]"),
     };
   });
   const numberOf = (id: string) => view.ids.indexOf(id) + 1;
@@ -627,8 +636,8 @@ async function libraryView(browser: Browser, file: string) {
   check("a block file without an `example` is left out", !view.ids.some((id) => id.includes("NoExample")), view.ids.join(" "));
   check(
     "a block whose example can't render is reported by name (and fails the check above on a real library)",
-    view.broken.join() === "blocks/Throws.tsx",
-    view.broken.join(),
+    view.broken.join(",") === "blocks/Throws.tsx",
+    view.broken.join(","),
   );
   check(
     "every effect and transition in the library's motion folder has a slide",
@@ -647,8 +656,8 @@ async function libraryView(browser: Browser, file: string) {
   const after = await names();
   check(
     "an effect's slide plays it when it opens, and again on →",
-    before.join() === "verify-swoop visible,verify-swoop visible,none hidden" && after[2] === "verify-swoop visible",
-    `${before.join()} | ${after.join()}`,
+    before.join(",") === "verify-swoop visible,verify-swoop visible,none hidden" && after[2] === "verify-swoop visible",
+    `${before.join(",")} | ${after.join(",")}`,
   );
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(150);
@@ -678,8 +687,8 @@ async function overflow(browser: Browser, file: string) {
   );
   check(
     'density="compact" steps text down a notch (default theme: small 38 → 32 px, body 44 → 38 px)',
-    sizes.join() === "38px,32px,38px",
-    sizes.join(),
+    sizes.join(",") === "38px,32px,38px",
+    sizes.join(","),
   );
   await ctx.close();
 }
@@ -691,8 +700,8 @@ function themeDetection() {
     writeFileSync(resolve(dir, "index.tsx"), source);
     try {
       return deckTheme(resolve(dir, "index.tsx"), resolve(import.meta.dirname, "../examples/_library"));
-    } catch (e) {
-      return `error: ${(e as Error).message}`;
+    } catch (error) {
+      return `error: ${(error as Error).message}`;
     }
   };
   const cases: Array<[string, string, string]> = [

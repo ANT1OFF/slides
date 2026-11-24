@@ -33,8 +33,8 @@ const localFiles = dirs.flatMap((dir) =>
     : [],
 );
 const imported = deck && !shared ? await libraryData(resolve(deckDir(deck), "index.tsx"), root, library) : [];
-const files = [...new Set([...localFiles, ...imported])].sort();
-if (!files.length) {
+const files = [...new Set([...localFiles, ...imported])].toSorted();
+if (files.length === 0) {
   console.log("No *.data.json files found.");
   process.exit(0);
 }
@@ -44,8 +44,8 @@ function read(file: string): DataFile | string {
   let d: Partial<DataFile>;
   try {
     d = JSON.parse(readFileSync(file, "utf8"));
-  } catch (e) {
-    return `not valid JSON (${(e as Error).message})`;
+  } catch (error) {
+    return `not valid JSON (${(error as Error).message})`;
   }
   if (!["script", "agent", "manual"].includes(d.source as string)) {
     return `"source" must be "script", "agent" or "manual"`;
@@ -87,10 +87,10 @@ for (const file of files) {
       } else {
         console.log(`  refreshed  ${name}  (updated ${after.updated})`);
       }
-    } catch (e) {
+    } catch (error) {
       failed++;
       writeFileSync(file, before); // whatever the script wrote, the old values stay
-      const err = e as { stderr?: Buffer; message?: string };
+      const err = error as { stderr?: Buffer; message?: string };
       console.log(
         `  FAILED     ${name}: ${data.how}\n             ${lastLine(String(err.stderr ?? "")) || err.message}\n             The old values are kept.`,
       );
@@ -104,7 +104,7 @@ for (const file of files) {
   );
 }
 
-if (todo.length) {
+if (todo.length > 0) {
   console.log(`\nNeeds an agent or a person (follow "how", update the values and "updated"):\n${todo.join("\n")}`);
 }
 console.log(`\nThen: npm run build${deck ? ` ${deck}` : ""} && npm run verify`);

@@ -58,7 +58,7 @@ export function StackedArea({
   );
   const band = (s: number) => {
     const upper = cumulative[s].map((v, i) => `${xs(i)},${ys(v)}`);
-    const lower = (s === 0 ? x.map(() => 0) : cumulative[s - 1]).map((v, i) => `${xs(i)},${ys(v)}`).reverse();
+    const lower = (s === 0 ? x.map(() => 0) : cumulative[s - 1]).map((v, i) => `${xs(i)},${ys(v)}`).toReversed();
     return `M ${upper.join(" L ")} L ${lower.join(" L ")} Z`;
   };
   const last = n - 1;

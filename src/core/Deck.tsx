@@ -285,7 +285,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [mode, help, blank, display, nav, goto, neighbour, count, extraKeys]);
 
-  const slideInfo = useMemo(() => slides.map(({ id, hidden }) => ({ id, hidden: !!hidden })), [slides]);
+  const slideInfo = useMemo(() => slides.map(({ id, hidden }) => ({ id, hidden: Boolean(hidden) })), [slides]);
   const jump = useCallback<DeckNav["goto"]>(
     (slide) => {
       if (typeof slide === "number") {

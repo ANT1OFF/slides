@@ -14,13 +14,13 @@ const root = resolve(import.meta.dirname, "..");
 const known = listDecks();
 const named = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const unknown = named.filter((d) => !known.includes(d));
-if (!known.length || unknown.length) {
+if (known.length === 0 || unknown.length > 0) {
   console.error(
-    unknown.length ? `No such deck: ${unknown.join(", ")}. Decks: ${known.join(", ")}` : "No decks yet. Start one: npm run new my-talk",
+    unknown.length > 0 ? `No such deck: ${unknown.join(", ")}. Decks: ${known.join(", ")}` : "No decks yet. Start one: npm run new my-talk",
   );
   process.exit(1);
 }
-const decks = named.length ? named : known;
+const decks = named.length > 0 ? named : known;
 
 // Build what is missing or stale (older than anything under src/), so the PDF is never of old slides.
 const newest = (dir: string) =>
@@ -35,7 +35,7 @@ const stale = decks.filter((d) => {
   const html = resolve(root, "dist", `${d}.html`);
   return !existsSync(html) || statSync(html).mtimeMs < sourceTime;
 });
-if (stale.length) {
+if (stale.length > 0) {
   console.log(`Building ${stale.join(", ")}…`);
   const built = spawnSync("npm", ["run", "build", "--silent", "--", ...stale], { cwd: root, stdio: "inherit" });
   if (built.status !== 0) {
@@ -46,8 +46,8 @@ if (stale.length) {
 let executablePath: string | undefined;
 try {
   executablePath = chromePath();
-} catch (e) {
-  console.error((e as Error).message);
+} catch (error) {
+  console.error((error as Error).message);
   process.exit(1);
 }
 let browser;
@@ -71,9 +71,9 @@ for (const deck of decks) {
       throw new Error(`${slides} slides but ${pages} pages in the PDF`);
     }
     console.log(`dist/${deck}.pdf  (${pages} page${pages === 1 ? "" : "s"})`);
-  } catch (e) {
+  } catch (error) {
     failed = true;
-    console.error(`${deck}: ${(e as Error).message}`);
+    console.error(`${deck}: ${(error as Error).message}`);
   }
 }
 await browser.close();

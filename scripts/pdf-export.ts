@@ -48,17 +48,17 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
       );
       return [...document.fonts].filter((f) => f.status !== "loaded").map((f) => f.family);
     });
-    if (unready.length) {
+    if (unready.length > 0) {
       throw new Error(`fonts did not load: ${[...new Set(unready)].join(", ")}`);
     }
     await page.waitForTimeout(300);
     const slides = await page.locator(".print-page").count();
     await page.emulateMedia({ media: "print" });
     const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
-    if (blocked.length) {
+    if (blocked.length > 0) {
       throw new Error(`the deck asked for the network: ${blocked.slice(0, 3).join(" ")}`);
     }
-    if (errors.length) {
+    if (errors.length > 0) {
       throw new Error(`page errors: ${errors.join(" | ")}`);
     }
     writeFileSync(out, pdf);

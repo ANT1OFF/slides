@@ -9,7 +9,7 @@ import { entries, slideLabel, slideNumber, slideTags } from "./types.ts";
 import type { DeckDefinition } from "./types.ts";
 
 // The deck window that opened us; a parent page also works, e.g. when embedded for testing.
-const peer = (): Window | null => window.opener ?? (window.parent !== window ? window.parent : null);
+const peer = (): Window | null => window.opener ?? (window.parent === window ? null : window.parent);
 const send = (m: Message) => peer()?.postMessage(m, postTarget());
 
 function useClock() {

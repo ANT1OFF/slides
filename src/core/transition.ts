@@ -37,7 +37,7 @@ export function useSlideTransition() {
         return;
       }
       delete root.dataset.transition;
-      root.removeAttribute("data-transition-back");
+      delete root.dataset.transitionBack;
       for (const p of TRANSITION_STATE) {
         root.style.removeProperty(p);
       }

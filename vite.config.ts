@@ -24,7 +24,7 @@ export function listDecks(): Array<string> {
           .map((e) => e.name)
       : [],
   );
-  return [...new Set(names)].sort();
+  return [...new Set(names)].toSorted();
 }
 
 /** The folder a deck lives in. */

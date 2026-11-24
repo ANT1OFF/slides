@@ -22,6 +22,8 @@ export default defineConfig({
     "func-style": ["error", "declaration", { allowArrowFunctions: true }],
     "sort-imports": ["error", { ignoreDeclarationSort: true }],
     "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],
+    // Type-only imports go on their own line (import/consistent-type-specifier-style).
+    "no-duplicate-imports": ["error", { allowSeparateTypeImports: true }],
 
     // Off: at odds with this codebase.
     // A deck's `slides: [<A />, <B />]` is data the engine keys itself, not rendered children.
@@ -77,6 +79,8 @@ export default defineConfig({
     // Clicks on a slide or backdrop are mouse shortcuts; the deck handles every key globally.
     "jsx-a11y/no-static-element-interactions": "off",
     "jsx-a11y/click-events-have-key-events": "off",
+    // Number.parseInt reads the number at the start of text like a URL hash; Number("3x") is NaN.
+    "unicorn/prefer-number-coercion": "off",
     // There are no tests; it flags top-level statements in scripts.
     "vitest/require-hook": "off",
   },

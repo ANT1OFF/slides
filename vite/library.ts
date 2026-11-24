@@ -27,7 +27,7 @@ export function library({ libraryDir }: { libraryDir: string }): Plugin {
     existsSync(dir)
       ? readdirSync(dir)
           .filter((f) => f.endsWith(".css"))
-          .sort()
+          .toSorted()
           .map((f) => resolve(dir, f).replaceAll("\\", "/"))
       : [];
   return {
