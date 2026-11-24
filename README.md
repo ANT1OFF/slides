@@ -26,8 +26,7 @@ npm run build my-talk    # writes dist/my-talk.html
 ```
 
 `npm run build` with no name builds every deck. Open the HTML file and press **F** for fullscreen.
-npm 11 may warn about install scripts (`fsevents`) during `npm install`; that is harmless and needs
-nothing from you.
+An npm 11 warning about `fsevents` install scripts is harmless.
 
 ## Example decks
 
@@ -81,16 +80,8 @@ The same props mean the same thing everywhere: `start` delays a block's entrance
 reveals a list-like block one item per press of → (`true` starts at step 1, a number starts there,
 `build={0}` shows the first item at once); `inverted` puts a slide on the theme's other scheme.
 Anything else is plain JSX with Tailwind classes; wrap any element in `<Build at={1}>` to reveal it
-on a press of →.
-
-### Animation
-
-All by name, all plain CSS underneath: `<Reveal effect="pop">` for an entrance (`rise`, `fade`,
-`pop`), `<Build at={1} effect="pop">` for a build step, and `transition: "fade"` on a deck or
-`slide(…, { transition: "push" })` between slides (`fade`, `push`, `zoom`). Your own effects and
-transitions are CSS files in `src/library/motion/`; see [docs/extending.md](docs/extending.md#motion).
-Where the browser lacks View Transitions, or the viewer prefers reduced motion, the slide simply
-changes.
+on a press of →. Motion is CSS used by name: `<Reveal effect="pop">`, `<Build effect="pop">`, and
+`transition: "fade"` between slides ([docs/extending.md](docs/extending.md#motion)).
 
 ## Themes
 

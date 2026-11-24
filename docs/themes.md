@@ -31,11 +31,12 @@ In `npm run dev`, add `&theme=signal&scheme=dark` to a deck's URL to preview it 
 3. **Set your colours:** the light block and the dark block each have eight colours (canvas,
    surface, ink, accent, accent-text, on-accent, accent-2, accent-3) and five chart colours. Keep
    `accent-text` at 4.5:1 or more against the canvas; it is the accent used as text.
-4. **Your font, or none:** delete the copied `fonts/` folder and its `@font-face` rule if you don't
-   want Archivo: the default theme's Inter and JetBrains Mono are in every deck already, so a theme
-   without fonts of its own uses them, and can name them in `--font-*` with no `@font-face`. To
-   embed your own, put the font files and their licence file in `fonts/`, add one `@font-face` per
-   file with a relative URL, and set `--font-display`, `--font-body` and `--font-label`. For an
+4. **Your font, or none:** to use the default fonts (Inter and JetBrains Mono, in every deck
+   already), delete the copied `fonts/` folder, its `@font-face` rule, the three `--font-*` lines
+   and the Archivo-tuned `--display-stretch`, weights and tracking, so the default theme's values
+   apply. (The build fails if an `@font-face` points at a file that isn't there.) To embed your
+   own, put the font files and their licence file in `fonts/`, add one `@font-face` per file with
+   a relative URL, and set `--font-display`, `--font-body` and `--font-label`. For an
    ordinary (not variable) font, one rule per weight:
    ```css
    @font-face {
@@ -59,7 +60,8 @@ In `npm run dev`, add `&theme=signal&scheme=dark` to a deck's URL to preview it 
    slides. The example's wordmark uses the Archivo font, so replace it rather than keep it.
 6. **Use it:** `theme: "mine"` in a deck, written as a string literal (the build reads it from the
    file to bundle only that theme). Then `npm run dev` and check the showcase with
-   `?deck=showcase&theme=mine`, light and `&scheme=dark`.
+   `?deck=showcase&theme=mine`, light and `&scheme=dark`. Run `npm run format` after editing, as
+   `npm run check` checks the formatting.
 
 Every token and what it does is in `src/themes/default/tokens.css`; a theme only lists what it
 changes. The design behind the default theme and the token set is in [design.md](design.md).

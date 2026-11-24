@@ -44,21 +44,9 @@ First public version.
 - Wrap the main content of your `SplitFrame` (or any layout of your own) in `<FrameBody>`, so
   `npm run verify` checks it for overflow. See
   [the layout example](docs/making-a-block.md#make-your-own-layout).
-- `HBars` fills the content width (1680px) by default; pass `width` to narrow it.
-  Built-in motion is a little quicker (`fade` and `pop` 600 ms, build steps 300 ms)
-  and reads the theme's motion tokens.
-- `Cycle` draws an arrowhead between each pair of cards, so the direction reads without the
-  moving dot, and its default cards are smaller (280×96), so more of the ring shows. `Flow` is
-  taller by default (400px, nodes up to 260px); pass a smaller `height` for flatter boxes.
-- `Pie` takes `highlight={i}`: that slice in the key colour and the rest muted, like `BarSeries`'
-  key bar. The editorial example uses it.
-- `StatRow` with three numbers or fewer sets them half a size larger, so the row fills more of the
-  slide. `Cycle`'s default ring is rounder (540px tall). Signal's dark surface is a step lighter, so
-  boxes stand off the black.
-- The build also fails on a CSS `url()` it couldn't resolve, such as a theme's `@font-face` whose
-  font file was deleted (it used to leave the path in, to be fetched on open), and `npm run build`
-  prints each deck's size.
-- `Code` no longer hangs the deck on a number followed by letters (`120px`, `0x1f`, `3d`); they
-  are coloured as numbers.
-- The README's theme walkthrough is now [docs/themes.md](docs/themes.md), and the private-copy
-  steps are in [docs/working-with-decks.md](docs/working-with-decks.md).
+- Some defaults changed, so look at slides that use these: `HBars` fills the content width (pass
+  `width` to narrow it), `Flow` is taller (pass `height`), `Cycle` has arrowheads, smaller cards
+  and a rounder ring, `StatRow` with three numbers or fewer is larger, and built-in motion is a
+  little quicker and reads the theme's motion tokens.
+- The build now also fails on a CSS `url()` it can't resolve, such as a theme's `@font-face` whose
+  font file was deleted: delete the rule, or put the font back.
