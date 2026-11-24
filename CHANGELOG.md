@@ -19,6 +19,8 @@ Charts, diagrams and examples:
 - Fewer files: the disabled `upstream-sync` workflow is gone (`npm run upgrade` does the same
   merge locally, and needs no third-party action with write access), and the page-review tags
   moved from their own page into [docs/extending.md](docs/extending.md#page-review-tags).
+- `Spectrum` runs from ink to the accent (it ended in `accent-2`, which turned the axis muddy in
+  most themes).
 
 From dogfooding a team copy:
 
