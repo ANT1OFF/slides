@@ -15,7 +15,7 @@ export interface FlowNode {
 export function Flow({
   nodes,
   width = 1680,
-  height = 320,
+  height = 400,
   start = 300,
 }: {
   nodes: FlowNode[];
@@ -45,7 +45,7 @@ export function Flow({
           x={x(i)}
           y={y}
           w={w}
-          h={Math.min(height, 190)}
+          h={Math.min(height, 260)}
           title={node.title}
           sub={node.sub}
           strong={node.strong}

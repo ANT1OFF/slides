@@ -304,12 +304,12 @@ const deck: DeckDefinition = {
           <Cycle
             nodes={[
               { title: "Plan", sub: "what to try" },
-              { title: "Build", sub: "the smallest version" },
+              { title: "Build", sub: "a small version" },
               { title: "Measure", sub: "what happened" },
               { title: "Learn", sub: "keep or drop" },
             ]}
           />
-          <Lead detail="A dot circles forever and each card glows as it passes. Loops belong on diagrams like this, not on content slides.">
+          <Lead detail="Arrowheads show the direction, even in print. A dot circles forever and each card glows as it passes. Loops belong on diagrams like this, not on content slides.">
             Cards on an ellipse.
           </Lead>
         </Columns>
