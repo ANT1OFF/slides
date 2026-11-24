@@ -52,6 +52,9 @@ First public version.
   taller by default (400px, nodes up to 260px); pass a smaller `height` for flatter boxes.
 - `Pie` takes `highlight={i}`: that slice in the key colour and the rest muted, like `BarSeries`'
   key bar. The editorial example uses it.
+- The build also fails on a CSS `url()` it couldn't resolve, such as a theme's `@font-face` whose
+  font file was deleted (it used to leave the path in, to be fetched on open), and `npm run build`
+  prints each deck's size.
 - `Code` no longer hangs the deck on a number followed by letters (`120px`, `0x1f`, `3d`); they
   are coloured as numbers.
 - The README's theme walkthrough is now [docs/themes.md](docs/themes.md), and the private-copy

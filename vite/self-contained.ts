@@ -12,6 +12,9 @@ const REMOTE: [RegExp, string][] = [
   [/<(?:image|use|feImage)\b[^>]*\b(?:href|xlink:href)\s*=\s*["']((?:https?:)?\/\/[^"']+)/g, "SVG href"],
   [/["'`](?:image|use|feImage)["'`]\s*,\s*\{[^}]*?\b(?:href|xlinkHref)\s*:\s*["'`]((?:https?:)?\/\/[^"'`\s]+)/g, "SVG href"],
   [/url\(\s*["']?((?:https?:)?\/\/[^"')\s]+)/g, "CSS url()"],
+  // A relative url() the build couldn't resolve (e.g. a font file that was deleted) is left as is,
+  // and the browser would try to fetch it when the deck opens.
+  [/url\(\s*["']?((?!data:|#|%23|https?:|\/\/|blob:)[^"')\s]+)/g, "CSS url() to a file that wasn't found"],
   [/@import\s+(?:url\()?\s*["']((?:https?:)?\/\/[^"']+)/g, "CSS @import"],
   [/<link\b[^>]*\bhref\s*=\s*["']((?:https?:)?\/\/[^"']+)/g, "<link href>"],
   [/<script\b[^>]*\bsrc\s*=\s*["']((?:https?:)?\/\/[^"']+)/g, "<script src>"],
