@@ -23,6 +23,7 @@ export function Stage({
   number?: string;
 }) {
   const look = useDeck();
+
   return (
     <div className={`relative shrink-0 overflow-hidden ${className}`} style={{ width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }}>
       <div
@@ -52,7 +53,9 @@ export function useWindowSize(): { width: number; height: number } {
   useEffect(() => {
     const onResize = () => setSize(readWindowSize());
     window.addEventListener("resize", onResize);
+
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
   return size;
 }

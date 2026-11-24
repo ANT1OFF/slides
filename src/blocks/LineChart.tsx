@@ -105,12 +105,15 @@ export function LineChart({
       ))}
       {series.map((s, k) => {
         const cut = estimateFrom ?? last;
+
         const path = (from: number, to: number) =>
           s.values
             .slice(from, to + 1)
             .map((v, i) => `${i ? "L" : "M"} ${xs(from + i)} ${ys(v)}`)
             .join(" ");
+
         const end = s.values[last];
+
         return (
           <g key={s.name}>
             <path

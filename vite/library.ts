@@ -21,6 +21,7 @@ export interface MotionNames {
 export function motionNames(css: string): MotionNames {
   const frames = new Set([...css.matchAll(/(?<=@keyframes\s+)[\w-]+/gu)].map((m) => m[0]));
   const classes = new Set([...css.matchAll(/(?<=^\s*\.)[\w-]+(?=\s*[,{])/gmu)].map((m) => m[0]));
+
   return {
     effects: [...classes].filter((c) => frames.has(c)),
     transitions: [...frames].flatMap((k) => (k.endsWith("-in") && frames.has(`${k.slice(0, -3)}-out`) ? [k.slice(0, -3)] : [])),
@@ -29,6 +30,7 @@ export function motionNames(css: string): MotionNames {
 
 export function library({ libraryDir }: { libraryDir: string }): Plugin {
   const dir = resolve(libraryDir, "motion");
+
   const files = () =>
     existsSync(dir)
       ? readdirSync(dir)
@@ -36,6 +38,7 @@ export function library({ libraryDir }: { libraryDir: string }): Plugin {
           .toSorted()
           .map((f) => resolve(dir, f).replaceAll("\\", "/"))
       : [];
+
   return {
     name: "slides:library",
     resolveId(id) {
@@ -47,8 +50,10 @@ export function library({ libraryDir }: { libraryDir: string }): Plugin {
       if (id !== ID) {
         return;
       }
+
       const found = files().map((file) => motionNames(readFileSync(file, "utf8")));
       const motion = { effects: found.flatMap((f) => f.effects), transitions: found.flatMap((f) => f.transitions) };
+
       return `${files()
         .map((file) => `import ${JSON.stringify(file)};`)
         .join("\n")}\nexport const motion = ${JSON.stringify(motion)};\n`;

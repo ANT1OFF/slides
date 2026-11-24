@@ -17,6 +17,7 @@ function valueSizeFor(step: number): string {
   if (step > 120) {
     return "text-[40px]";
   }
+
   return step > 70 ? "text-[30px]" : "text-label";
 }
 
@@ -64,6 +65,7 @@ export function BarSeries({
   const asGrowth = scaledMode && relativeTo?.format === "growth";
   let shownUnit = unit;
   let write = format;
+
   if (scaledMode && relativeTo) {
     const base = relativeTo.base === "first" ? data[0].value : relativeTo.base;
     data = data.map((d) => ({
@@ -74,6 +76,7 @@ export function BarSeries({
     write = asGrowth ? (v) => (v ? `+${v.toLocaleString("en-US")}%` : "0") : (v) => `${v}×`;
     shownUnit = asGrowth ? `since ${relativeTo.label}` : `vs ${relativeTo.label}`;
   }
+
   const top = Math.max(max ?? 0, ...data.map((d) => d.value)) || 1;
   const n = data.length;
   const labelAll = n <= 12;
@@ -88,6 +91,7 @@ export function BarSeries({
   const key = hover ?? last;
   const each = Math.min(stagger, 1200 / n);
   const valueSize = valueSizeFor(step);
+
   // The headline goes in whichever top corner the bars leave emptier.
   const third = Math.max(1, Math.floor(n / 3));
   const leftTall = Math.max(...data.slice(0, third).map((d) => d.value));
@@ -100,6 +104,7 @@ export function BarSeries({
         {data.map((d, i) => {
           const x = i * step + gap / 2;
           const h = y(d.value);
+
           return (
             <g key={d.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
               <rect x={i * step} y={pad.top} width={step} height={innerH} fill="transparent" />

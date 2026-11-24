@@ -19,6 +19,7 @@ const examples = import.meta.glob<{ default: DeckDefinition }>("../examples/*/in
 const deckNames = Object.keys(decks)
   .map((path) => path.split("/")[2])
   .filter((n) => n !== "showcase");
+
 // The showcase lives in src/decks (it's the visual test) but is upstream's, so it's listed with the examples.
 const exampleNames = ["showcase", ...Object.keys(examples).map((path) => path.split("/")[2])];
 
@@ -27,19 +28,24 @@ const parseScheme = (scheme: string | null) => (scheme === "light" || scheme ===
 export async function devPick(params: URLSearchParams): Promise<{ deck: DeckDefinition; name: string } | null> {
   let deck: DeckDefinition;
   let name: string;
+
   if (params.has("library")) {
     name = "library";
     deck = libraryDeck;
   } else {
     name = params.get("deck") ?? "";
     const load = decks[`./decks/${name}/index.tsx`] ?? examples[`../examples/${name}/index.tsx`];
+
     if (!load) {
       return null;
     }
+
     ({ default: deck } = await load());
   }
+
   const theme = params.get("theme") ?? deck.theme;
   const scheme = parseScheme(params.get("scheme")) ?? deck.scheme;
+
   return { deck: { ...deck, theme, scheme }, name };
 }
 
@@ -76,6 +82,7 @@ function Previews({ entries, from }: { entries: Array<SlideEntry>; from: number 
 
 export function Gallery() {
   const builtIn = Object.keys(blocks).filter((k) => /^[A-Z]/u.test(k));
+
   return (
     <main className="min-h-screen bg-canvas px-16 py-16 font-sans text-ink">
       <h1 className="text-5xl font-semibold tracking-tight">Slides</h1>

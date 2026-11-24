@@ -11,6 +11,7 @@ export interface Segment {
 /** One part-to-whole bar with 2px gaps and a legend carrying the values. */
 export function StackedBar({ segments, start = 400 }: { segments: Array<Segment>; start?: number }) {
   const total = segments.reduce((s, m) => s + m.value, 0);
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex h-24 w-full gap-[2px]">

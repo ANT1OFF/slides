@@ -24,9 +24,11 @@ const decks = listDecks();
 const built = existsSync(dist) ? readdirSync(dist).filter((f) => f.endsWith(".html")) : [];
 const files = built.filter((f) => decks.includes(f.slice(0, -5)));
 const stale = built.filter((f) => !files.includes(f));
+
 if (stale.length > 0) {
   console.warn(`Skipping ${stale.join(", ")}: no such deck any more.`);
 }
+
 if (files.length === 0) {
   console.error("No decks in dist/. Run npm run build first.");
   process.exit(1);
@@ -44,13 +46,17 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
     viewport: { width: 1600, height: 900 },
     reducedMotion: reducedMotion ? "reduce" : "no-preference",
   });
+
   const blocked: Array<string> = [];
   await ctx.route("**/*", (route) => {
     const url = route.request().url();
+
     if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) {
       return route.continue();
     }
+
     blocked.push(url);
+
     return route.abort();
   });
   // Let P print without a dialog, and count the calls.
@@ -65,6 +71,7 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
       }, 50);
     };
   });
+
   return { ctx, blocked };
 }
 
@@ -95,13 +102,16 @@ async function selfContained(browser: Browser, file: string) {
   // Open the overview: every slide renders at once, so every font, image and video is requested.
   await page.keyboard.press("g");
   await page.waitForTimeout(1500);
+
   const report = await page.evaluate(async () => {
     await document.fonts.ready;
     const faces = [...document.fonts].map((f) => ({ family: f.family, status: f.status }));
     const used = new Set<string>();
+
     for (const el of document.querySelectorAll("[data-stage] *")) {
       used.add(getComputedStyle(el).fontFamily.split(",")[0].replaceAll(/["']/gu, "").trim());
     }
+
     const images = [...document.images].map((img) => ({ src: img.currentSrc.slice(0, 40), ok: img.complete && img.naturalWidth > 0 }));
     const media = [...document.querySelectorAll<HTMLMediaElement>("video, audio")];
     await Promise.all(
@@ -114,6 +124,7 @@ async function selfContained(browser: Browser, file: string) {
             }),
       ),
     );
+
     return {
       faces,
       used: [...used],
@@ -121,6 +132,7 @@ async function selfContained(browser: Browser, file: string) {
       media: media.map((m) => ({ tag: m.tagName, ok: m.readyState >= 2 && !m.error, inline: m.currentSrc.startsWith("data:") })),
     };
   });
+
   check("no network requests", blocked.length === 0, blocked.slice(0, 3).join(" "));
   const embedded = report.faces.filter((f) => report.used.includes(f.family));
   check(
@@ -171,22 +183,27 @@ async function features(browser: Browser, file: string) {
   const slideNo = () => page.getAttribute(sel, "data-slide").then(Number);
   const build = () => page.getAttribute(sel, "data-build").then(Number);
   const builds = () => page.getAttribute(sel, "data-build-count").then(Number);
+
   const key = async (k: string, wait = 150) => {
     await page.keyboard.press(k);
     await page.waitForTimeout(wait);
   };
+
   const go = async (n: number, wait = 300) => {
     await page.evaluate((i) => (location.hash = `#${i}`), n);
     await page.waitForTimeout(wait);
   };
+
   const slideOf = (id: string) =>
     page.evaluate((slideId) => Number(document.querySelector<HTMLElement>(`[data-slide-id="${slideId}"]`)?.dataset.slide), id);
+
   const blanks = async () => (await page.locator("div.fixed.inset-0.bg-black").count()) - 1;
 
   await page.goto(`file://${file}`);
   await page.waitForTimeout(600);
   // Slide numbers by id, from the overview, so the checks don't depend on the deck's order.
   await key("g", 400);
+
   const at = {
     bullets: await slideOf("Bullets"),
     code: await slideOf("Code"),
@@ -198,6 +215,7 @@ async function features(browser: Browser, file: string) {
     end: await slideOf("EndSlide"),
     total: await page.locator("[data-deck-mode=overview] [data-slide]").count(),
   };
+
   await key("Escape", 200);
 
   check("opens on slide 1", (await slideNo()) === 1);
@@ -220,9 +238,11 @@ async function features(browser: Browser, file: string) {
   check("End → last slide", (await slideNo()) === at.end);
   await key("Home");
   check("Home → first slide", (await slideNo()) === 1);
+
   for (const d of String(at.bullets)) {
     await key(d, 50);
   }
+
   await key("Enter");
   check("a number then Enter jumps there", (await slideNo()) === at.bullets);
 
@@ -250,10 +270,12 @@ async function features(browser: Browser, file: string) {
     const total = await builds();
     const visible = () => page.locator(`${sel} .build-on`).count();
     const seen = [await visible()];
+
     for (let i = 1; i <= start + 2; i++) {
       await key("ArrowRight");
       seen.push(await visible());
     }
+
     // Each tier has a dot and a label on the same step, then the floor gets its own step.
     const expected = [...Array.from({ length: start }, () => 0), 2, 4, 5];
     check(
@@ -312,9 +334,11 @@ async function features(browser: Browser, file: string) {
   check("goto() ignores an unknown id", (await slideNo()) === at.hidden);
 
   await go(at.hidden - 1);
+
   for (let k = 0; k < 6 && (await slideNo()) === at.hidden - 1; k++) {
     await key("ArrowRight");
   }
+
   check("a hidden slide is skipped when presenting", (await slideNo()) === at.end, `at ${await slideNo()}`);
   await go(at.bullets);
   const footer = await page.textContent(`${sel} footer`);
@@ -422,12 +446,14 @@ async function features(browser: Browser, file: string) {
   const rp = await reduced.newPage();
   await rp.goto(`file://${file}#${await slideOf("Flow")}`);
   await rp.waitForTimeout(400);
+
   const travellers = await rp.evaluate(
     () =>
       [...document.querySelectorAll("[data-deck-mode=present] animateMotion")].filter(
         (a) => getComputedStyle(a.parentElement!).display !== "none",
       ).length,
   );
+
   check("reduced motion hides looping travellers", travellers === 0, `${travellers} visible`);
   await reduced.close();
   await ctx.close();
@@ -443,18 +469,23 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   const animated = mode === "motion";
   const { ctx } = await offline(browser, mode === "reduced motion");
   const page = await ctx.newPage();
+
   if (mode === "no View Transitions API") {
     await page.addInitScript(() => Reflect.deleteProperty(Document.prototype, "startViewTransition"));
   }
+
   const errors: Array<string> = [];
   page.on("pageerror", (e) => errors.push(String(e)));
+
   const test = (name: string, ok: unknown, detail: unknown = "") =>
     check(`${mode}: ${name}`, ok, typeof detail === "string" ? detail : JSON.stringify(detail));
+
   /** Where the deck is, and the view transition running right now, if any. */
   const state = () =>
     page.evaluate(() => {
       const current = document.querySelector<HTMLElement>("[data-deck-mode=present] [data-slide]");
       const root = document.documentElement;
+
       return {
         slide: current?.dataset.slideId,
         build: current?.dataset.build,
@@ -472,25 +503,31 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
           const effect = a.effect as KeyframeEffect;
           const part = /^::view-transition-(?<part>old|new)\(slide\)$/u.exec(effect.pseudoElement ?? "")?.groups?.part;
           const timing = effect.getComputedTiming();
+
           // SAFETY: as above.
           const { animationName } = a as CSSAnimation;
+
           return part ? [`${animationName} ${part} ${timing.direction} ${String(timing.duration)}`] : [];
         }),
       };
     });
+
   /** A computed style of the element that wraps `#id` (the Reveal or Build around it), or of `#id` itself. */
   const style = (selector: string, prop: string, parent = true) =>
     page.evaluate(
       ([query, name, ofParent]) => {
         const el = document.querySelector(query)!;
+
         return getComputedStyle(ofParent ? el.parentElement! : el).getPropertyValue(name);
       },
       [selector, prop, parent] as const,
     );
+
   const key = async (k: string, wait: number) => {
     await page.keyboard.press(k);
     await page.waitForTimeout(wait);
   };
+
   /** Several keys in the same frame: faster than a transition can apply its move. */
   const burst = (keys: Array<string>) =>
     page.evaluate((list) => {
@@ -498,10 +535,12 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
         dispatchEvent(new KeyboardEvent("keydown", { key: name }));
       }
     }, keys);
+
   const go = async (n: number) => {
     await page.evaluate((slideNumber) => (location.hash = `#${slideNumber}`), n);
     await page.waitForTimeout(settle);
   };
+
   // Into a transition (the fixture's last 1500 ms), and after it.
   const DURING = 250;
   const settle = animated ? 1900 : 250;
@@ -517,6 +556,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
 
   await key("ArrowRight", DURING);
   let s = await state();
+
   if (animated) {
     test(
       "the deck's transition runs the team's keyframes on the two slides",
@@ -533,6 +573,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   } else {
     test("no view transition starts; the slide just changes", s.slide === "two" && s.transition === null && s.running.length === 0, s);
   }
+
   test("<Reveal effect> uses the team's effect", (await style("#revealed", "animation-name")) === "verify-swoop");
   await page.waitForTimeout(settle);
   s = await state();
@@ -553,6 +594,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
 
   await key("ArrowRight", DURING);
   s = await state();
+
   if (animated) {
     test(
       "a slide's own transition replaces the deck's",
@@ -561,9 +603,11 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
     );
     test("an element with the same viewTransitionName on both slides moves between them", s.carried, s);
   }
+
   await page.waitForTimeout(settle);
   await key("ArrowLeft", DURING);
   s = await state();
+
   if (animated) {
     test(
       "going back plays the same transition the other way round",
@@ -574,6 +618,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
       s,
     );
   }
+
   await page.waitForTimeout(settle);
   const before = await state();
   test("← lands on the slide before, every step shown", before.slide === "two" && before.build === "1", before);
@@ -604,22 +649,28 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
 
   await go(2);
   await key("g", 500);
+
   const overview = await page.evaluate(() => {
     const view = document.querySelector("[data-deck-mode=overview]")!;
+
     return {
       // SAFETY: every animation on the page is a CSS animation or transition, so its effect is a KeyframeEffect.
       running: document.getAnimations().filter((a) => view.contains((a.effect as KeyframeEffect).target)).length,
       built: getComputedStyle(view.querySelector("#built")!.parentElement!).visibility,
     };
   });
+
   test("the overview shows the final state, nothing moving", overview.running === 0 && overview.built === "visible", overview);
   await key("Escape", 200);
   await key("p", 200);
+
   const print = await page.evaluate(() => {
     // oxlint-disable-next-line unicorn/consistent-function-scoping -- runs in the page, which gets only this callback
     const of = (id: string) => getComputedStyle(document.querySelector(`.print-page ${id}`)!.parentElement!);
+
     return { built: of("#built").visibility, opacity: of("#revealed").opacity, transform: of("#revealed").transform };
   });
+
   test("print shows the final state", print.built === "visible" && print.opacity === "1" && print.transform === "none", print);
   test("no page errors", errors.length === 0, errors.join(" | "));
   await ctx.close();
@@ -636,9 +687,11 @@ async function libraryView(browser: Browser, file: string) {
   await page.waitForTimeout(600);
   await page.keyboard.press("g");
   await page.waitForTimeout(600);
+
   const view = await page.evaluate(() => {
     const overview = document.querySelector("[data-deck-mode=overview]")!;
     const slide = (id: string) => overview.querySelector(`[data-slide-id="${id}"]`);
+
     return {
       ids: [...overview.querySelectorAll<HTMLElement>("[data-slide-id]")].map((s) => s.dataset.slideId!),
       broken: [...overview.querySelectorAll<HTMLElement>("[data-broken]")].map((b) => b.dataset.broken),
@@ -647,6 +700,7 @@ async function libraryView(browser: Browser, file: string) {
         Boolean(slide("blocks/Whole.tsx")?.querySelector("#whole-block")) && !slide("blocks/Whole.tsx")?.querySelector("[data-frame-body]"),
     };
   });
+
   const numberOf = (id: string) => view.ids.indexOf(id) + 1;
   check("a block's `example` is a slide in the library view, inside a Frame", view.good, view.ids.join(" "));
   check("an `example` made with slide() (a layout) is shown as it is", view.whole);
@@ -665,8 +719,10 @@ async function libraryView(browser: Browser, file: string) {
   await page.evaluate((n) => (location.hash = `#${n}`), numberOf("motion/effect/verify-swoop"));
   await page.waitForTimeout(300);
   const present = "[data-deck-mode=present] [data-effect]";
+
   const names = () =>
     page.$$eval(`${present} > *`, (els) => els.map((e) => `${getComputedStyle(e).animationName} ${getComputedStyle(e).visibility}`));
+
   const before = await names();
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(200);
@@ -698,11 +754,13 @@ async function overflow(browser: Browser, file: string) {
     found === "slide-2 (slide 2), layout-too-tall (slide 3), slide-too-tall (slide 4)",
     found,
   );
+
   const sizes = await page.evaluate(() =>
     [".normal-small", ".compact-small", ".compact-plain"].map(
       (s) => getComputedStyle(document.querySelector(`[data-deck-mode=overview] ${s}`)!).fontSize,
     ),
   );
+
   check(
     'density="compact" steps text down a notch (default theme: small 38 → 32 px, body 44 → 38 px)',
     sizes.join(",") === "38px,32px,38px",
@@ -714,14 +772,17 @@ async function overflow(browser: Browser, file: string) {
 /** The theme the build reads off a deck file: only the deck object's own `theme` key counts. */
 function themeDetection() {
   const dir = mkdtempSync(resolve(tmpdir(), "slides-theme-"));
+
   const themeOf = (source: string) => {
     writeFileSync(resolve(dir, "index.tsx"), source);
+
     try {
       return deckTheme(resolve(dir, "index.tsx"), resolve(import.meta.dirname, "../examples/_library"));
     } catch (error) {
       return `error: ${errorMessage(error)}`;
     }
   };
+
   const cases: Array<[string, string, string]> = [
     [
       "the deck's own theme",
@@ -745,10 +806,12 @@ function themeDetection() {
       "default",
     ],
   ];
+
   for (const [name, source, want] of cases) {
     const got = themeOf(source);
     check(`theme detection: ${name}`, got === want, got);
   }
+
   rmSync(dir, { recursive: true, force: true });
 }
 
@@ -761,6 +824,7 @@ function themeDetection() {
 async function upstreamDecksAlone() {
   const leak = resolve(import.meta.dirname, "verify-deck/leak-library");
   const showcase = resolve(import.meta.dirname, "../src/decks/showcase/index.tsx");
+
   const once = async (out: string) => {
     process.env.DECK = "showcase";
     process.env.DECK_FILE = showcase;
@@ -769,20 +833,25 @@ async function upstreamDecksAlone() {
       configFile: resolve(import.meta.dirname, "../vite.config.ts"),
       build: { outDir: resolve(dist, out) },
     });
+
     return readFileSync(resolve(dist, out, "index.html"));
   };
+
   const libraryFiles = {
     "settings.json": `{ "defaultTheme": "editorial" }`,
     "styles.css": `@theme { --color-leak: #123456; }\n@utility leak-row { display: flex; color: var(--color-leak); }\n`,
     "motion/leak.css": `.leak { animation: leak 1s; }\n@keyframes leak { from { opacity: 0; } }\n@keyframes leak-in { from { opacity: 0; } }\n@keyframes leak-out { to { opacity: 0; } }\n`,
     "blocks/Leak.tsx": `export const Leak = () => <div className="leak-row bg-[#654321] text-[123px] mt-[77px]" />;\n`,
   };
+
   try {
     const before = await once(".alone-a");
+
     for (const [name, text] of Object.entries(libraryFiles)) {
       mkdirSync(resolve(leak, name, ".."), { recursive: true });
       writeFileSync(resolve(leak, name), text);
     }
+
     process.env.LIBRARY_DIR = leak;
     const after = await once(".alone-b");
     check(
@@ -793,6 +862,7 @@ async function upstreamDecksAlone() {
   } finally {
     delete process.env.LIBRARY_DIR;
     rmSync(leak, { recursive: true, force: true });
+
     for (const out of [".alone-a", ".alone-b"]) {
       rmSync(resolve(dist, out), { recursive: true, force: true });
     }
@@ -805,13 +875,16 @@ async function rejectsExternalAssets() {
     ["remote-image", "src/poster/srcset points at https://example.invalid/verify.png"],
     ["missing-font", "CSS url() to a file that wasn't found points at ./verify-missing.woff2"],
   ] as const;
+
   process.env.LIBRARY_DIR = resolve(import.meta.dirname, "../examples/_library");
+
   try {
     for (const [fixture, reason] of cases) {
       const deck = `verify-${fixture}`;
       process.env.DECK = deck;
       process.env.DECK_FILE = resolve(import.meta.dirname, `verify-deck/${fixture}.tsx`);
       let message = "build succeeded";
+
       try {
         await viteBuild({ logLevel: "silent", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
       } catch (error) {
@@ -819,6 +892,7 @@ async function rejectsExternalAssets() {
       } finally {
         rmSync(resolve(dist, `.${deck}`), { recursive: true, force: true });
       }
+
       check(
         `self-contained build rejects ${fixture}`,
         message.includes("The deck would not be self-contained:") && message.includes(reason),
@@ -834,6 +908,7 @@ async function rejectsExternalAssets() {
 async function pdf(browser: Browser, file: string) {
   const dir = mkdtempSync(resolve(tmpdir(), "slides-pdf-"));
   const out = resolve(dir, "verify.pdf");
+
   try {
     const slides = await exportPdf(browser, file, out);
     const bytes = readFileSync(out);
@@ -847,71 +922,113 @@ async function pdf(browser: Browser, file: string) {
 }
 
 deckName = "build (no browser)";
+
 themeDetection();
+
 await upstreamDecksAlone();
+
 await rejectsExternalAssets();
 
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
+
 for (const file of files) {
   deckName = file;
   await selfContained(browser, file);
 }
+
 // The team library, as one deck: every library slide must render offline without errors or overflow.
 process.env.DECK = "library";
+
 process.env.DECK_FILE = resolve(import.meta.dirname, "../src/library-view.tsx");
+
 await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
 deckName = "library view (src/library: slides, block examples, motion)";
+
 await selfContained(browser, resolve(dist, ".library/index.html"));
+
 rmSync(resolve(dist, ".library"), { recursive: true, force: true });
 
 // The fixture deck: built here, checked, removed.
 process.env.DECK = "verify";
+
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/index.tsx");
+
 await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
 const fixture = resolve(dist, ".verify/index.html");
+
 deckName = "verify-deck (fixture)";
+
 await selfContained(browser, fixture);
+
 await features(browser, fixture);
+
 await pdf(browser, fixture);
+
 rmSync(resolve(dist, ".verify"), { recursive: true, force: true });
 
 // The overflow check, on a deck made to overflow.
 process.env.DECK = "verify-overflow";
+
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/overflow.tsx");
+
 await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
 deckName = "verify-deck/overflow (fixture: slides too tall in three ways)";
+
 await overflow(browser, resolve(dist, ".verify-overflow/index.html"));
+
 rmSync(resolve(dist, ".verify-overflow"), { recursive: true, force: true });
 
 // The fixture library standing in for src/library: first its library view, then the motion fixture.
 process.env.LIBRARY_DIR = resolve(import.meta.dirname, "verify-deck/library");
+
 process.env.DECK = "verify-library";
+
 process.env.DECK_FILE = resolve(import.meta.dirname, "../src/library-view.tsx");
+
 await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
 deckName = "library view of the fixture library (verify-deck/library)";
+
 await libraryView(browser, resolve(dist, ".verify-library/index.html"));
+
 rmSync(resolve(dist, ".verify-library"), { recursive: true, force: true });
 
 process.env.DECK = "verify-motion";
+
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/motion.tsx");
+
 await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
 const motionFixture = resolve(dist, ".verify-motion/index.html");
+
 deckName = "verify-deck/motion (fixture: effects, transitions and team CSS by name)";
+
 await selfContained(browser, motionFixture);
+
 for (const mode of MODES) {
   await motion(browser, motionFixture, mode);
 }
+
 rmSync(resolve(dist, ".verify-motion"), { recursive: true, force: true });
+
 await browser.close();
 
 let deck = "";
+
 for (const r of results) {
   if (r.deck !== deck) {
     ({ deck } = r);
     console.log(`\n${deck}`);
   }
+
   console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${r.name}${!r.ok && r.detail ? `  (${r.detail})` : ""}`);
 }
+
 const failed = results.filter((r) => !r.ok).length;
+
 console.log(`\n${results.length - failed}/${results.length} passed`);
+
 process.exit(failed ? 1 : 0);

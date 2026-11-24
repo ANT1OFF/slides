@@ -10,6 +10,7 @@ function licenceFiles(dir: string): Array<string> {
   if (!existsSync(dir)) {
     return [];
   }
+
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter((e) => e.isFile() && /licen[cs]e|^ofl/iu.test(e.name) && /\.(?:txt|md)$|^LICENSE$/iu.test(e.name))
     .map((e) => resolve(e.parentPath, e.name))
@@ -19,9 +20,11 @@ function licenceFiles(dir: string): Array<string> {
 const FONT = /\.(?:woff2?|ttf|otf)$/iu;
 
 const key = (name: string) => name.toLowerCase().replaceAll(/[^a-z0-9]/gu, "");
+
 /** "JetBrainsMono-LICENSE.txt" → "jetbrainsmono"; a plain "LICENSE.txt" or "OFL.txt" → "". */
 function stem(licence: string): string {
   const file = licence.slice(Math.max(licence.lastIndexOf("/"), licence.lastIndexOf("\\")) + 1);
+
   return key(file.replace(/[-_ ]?(?:licen[cs]e|ofl)(?:\.(?:txt|md))?$/iu, ""));
 }
 
@@ -34,22 +37,29 @@ function fontFiles(dir: string, root: string): Array<{ font: string; licence?: s
   if (!existsSync(dir)) {
     return [];
   }
+
   const licences = licenceFiles(dir);
   const rel = (f: string) => f.slice(root.length + 1);
+
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter((e) => e.isFile() && FONT.test(e.name))
     .map((e) => {
       const font = resolve(e.parentPath, e.name);
+
       for (let folder = e.parentPath; folder.startsWith(dir); folder = resolve(folder, "..")) {
         const here = licences.filter((l) => resolve(l, "..") === folder);
+
         if (here.length === 0) {
           continue;
         }
+
         const named = here.find((l) => stem(l) && key(e.name).startsWith(stem(l)));
         const generic = here.length === 1 ? here[0] : here.find((l) => !stem(l));
         const licence = named ?? generic;
+
         return { font: rel(font), licence: licence ? rel(licence) : `one of ${here.map((l) => rel(l)).join(", ")}` };
       }
+
       return { font: rel(font) };
     });
 }
@@ -62,36 +72,47 @@ export function notices({ root, folders }: { root: string; folders: () => Array<
       order: "post",
       handler() {
         const parts: Array<{ heading: string; text: string }> = [];
+
         for (const pkg of ["react", "react-dom", "scheduler"]) {
           const file = resolve(root, "node_modules", pkg, "LICENSE");
+
           if (existsSync(file)) {
             parts.push({ heading: pkg, text: readFileSync(file, "utf8").trim() });
           }
         }
+
         for (const folder of folders()) {
           for (const file of licenceFiles(folder)) {
             parts.push({ heading: file.slice(root.length + 1), text: readFileSync(file, "utf8").trim() });
           }
         }
+
         // Same text once, with every heading it applies to.
         const byText = new Map<string, Array<string>>();
+
         for (const p of parts) {
           byText.set(p.text, [...(byText.get(p.text) ?? []), p.heading]);
         }
+
         const body = [...byText].map(([text, heads]) => `== ${heads.join(", ")} ==\n\n${text}`).join("\n\n");
+
         // Which font files the deck can embed, and the licence that covers each.
         const fonts = folders().flatMap((f) => fontFiles(f, root));
+
         for (const f of fonts.filter((font) => !font.licence)) {
           console.warn(
             `\n  Warning: ${f.font} has no licence file next to it. Add the font's licence (e.g. MyFont-LICENSE.txt) to its folder.`,
           );
         }
+
         const manifest = fonts.map((f) => `${f.font}: ${f.licence ?? "NO LICENCE FILE"}`).join("\n");
+
         const text =
           `Third-party notices for this presentation file.\n\nEmbedded font files and their licences:\n${manifest || "(none)"}\n\n${body}`.replaceAll(
             "</",
             String.raw`<\/`,
           );
+
         return [{ tag: "script", attrs: { type: "text/plain", id: "third-party-notices" }, children: text, injectTo: "head-prepend" }];
       },
     },

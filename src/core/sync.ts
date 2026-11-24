@@ -28,6 +28,7 @@ export function isMessage(data: unknown): data is Message {
   if (typeof data !== "object" || data === null || !("type" in data)) {
     return false;
   }
+
   switch (data.type) {
     case "slides:hello": {
       return true;
@@ -49,6 +50,7 @@ export function isMessage(data: unknown): data is Message {
 export function presenterUrl(): string {
   const url = new URL(location.href);
   url.searchParams.set("presenter", "1");
+
   return url.toString();
 }
 

@@ -40,6 +40,7 @@ export function Footer({ note }: { note?: ReactNode }) {
   const { footer, title } = useDeck();
   const number = useSlideNumber();
   const left = note ?? (footer === false ? null : (footer ?? title));
+
   return (
     <footer className="type-label flex min-h-[30px] items-center justify-between text-ink-2">
       <span>{left}</span>
@@ -178,6 +179,7 @@ export function SectionSlide({
   inverted?: boolean;
 }) {
   const label = typeof number === "number" ? [number, of].flatMap((n) => (n ? [String(n).padStart(2, "0")] : [])).join(" / ") : number;
+
   return (
     <Slide inverted={inverted} className="relative justify-end overflow-hidden pb-24">
       {label && (

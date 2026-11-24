@@ -12,6 +12,7 @@ import { library } from "./vite/library.ts";
 import { onlySources } from "./vite/sources.ts";
 
 const src = resolve(import.meta.dirname, "src");
+
 // Decks live in src/decks (yours) and examples/ (upstream's examples). A name in src/decks wins.
 const deckDirs = [resolve(src, "decks"), resolve(import.meta.dirname, "examples")];
 
@@ -24,6 +25,7 @@ export function listDecks(): Array<string> {
           .map((e) => e.name)
       : [],
   );
+
   return [...new Set(names)].toSorted();
 }
 
@@ -34,6 +36,7 @@ export function deckDir(name: string): string {
 
 // DECK picks which deck `virtual:deck` resolves to; defaults to the first one.
 const deck = process.env.DECK ?? listDecks()[0] ?? "";
+
 // DECK_FILE builds a deck from outside src/decks (npm run verify uses it for its fixture).
 // With no decks at all, the app still starts (on the library view) so `npm run new` is the next step.
 const deckFile = process.env.DECK_FILE ?? (deck ? resolve(deckDir(deck), "index.tsx") : resolve(src, "library-view.tsx"));
@@ -48,9 +51,11 @@ const upstreamDeck = deckFile.startsWith(`${examples}${sep}`) || deckFile === re
 
 export default defineConfig(({ command }) => {
   const alone = command === "build" && upstreamDeck;
+
   // The team's library. LIBRARY_DIR points it elsewhere (npm run verify uses it for its own fixture
   // library), but never for upstream's decks, which always build with the empty one.
   const libraryDir = alone ? resolve(examples, "_library") : (process.env.LIBRARY_DIR ?? resolve(src, "library"));
+
   return {
     plugins: [
       alone &&

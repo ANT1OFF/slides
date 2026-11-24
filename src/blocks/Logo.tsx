@@ -6,8 +6,10 @@ import { useDeck } from "@core";
  */
 export function Logo({ className = "" }: { className?: string }) {
   const { logo } = useDeck();
+
   if (logo === null || logo === undefined) {
     return null;
   }
+
   return <span className={`block [&>*]:h-full [&>*]:w-auto ${className}`}>{logo}</span>;
 }

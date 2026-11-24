@@ -19,6 +19,7 @@ export function Print({ slides, name, onDone }: { slides: Array<DeckSlide>; name
         }
       }, 300),
     );
+
     return () => {
       cancelled = true;
       window.removeEventListener("afterprint", done);

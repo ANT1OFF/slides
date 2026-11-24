@@ -28,6 +28,7 @@ export function Flow({
   const w = (width - gap * (n - 1)) / n;
   const y = height / 2;
   const x = (i: number) => i * (w + gap) + w / 2;
+
   return (
     <svg width={width} height={height} className="my-auto overflow-visible">
       {nodes.slice(1).map((_, i) => (
@@ -123,6 +124,7 @@ export function Arrow({
   const a = Math.atan2(y2 - y1, x2 - x1);
   const head = (s: number) => `${x2 - 18 * Math.cos(a - s)} ${y2 - 18 * Math.sin(a - s)}`;
   const d = `M ${x1} ${y1} L ${x2} ${y2}`;
+
   return (
     <g>
       <path d={d} pathLength={1} className={`draw fill-none ${className}`} strokeWidth={3} style={delay(start)} />

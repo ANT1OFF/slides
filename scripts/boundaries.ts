@@ -11,8 +11,10 @@ import { relative, resolve } from "node:path";
 import { teamPaths } from "./team-paths.ts";
 
 const root = resolve(import.meta.dirname, "..");
+
 // `from "x"`, `import "x"` and `import("x")`.
 const IMPORT = `(?:from|import)\\s*\\(?\\s*["'\`]`;
+
 const rules: Array<[string, RegExp]> = [
   ["src/core", new RegExp(`${IMPORT}(@blocks|@library|virtual:|\\.\\.\\/(blocks|library|decks|themes))`, "u")],
   ["src/blocks", new RegExp(`${IMPORT}(@library|virtual:|\\.\\.\\/(library|decks|themes))`, "u")],
@@ -20,12 +22,15 @@ const rules: Array<[string, RegExp]> = [
   ["examples", new RegExp(`${IMPORT}(@library|[./]*src\\/library)`, "u")],
   ["src/decks/showcase", new RegExp(`${IMPORT}(@library|\\.\\.\\/\\.\\.\\/library)`, "u")],
 ];
+
 const problems: Array<string> = [];
+
 for (const [dir, banned] of rules) {
   for (const e of readdirSync(resolve(root, dir), { recursive: true, withFileTypes: true })) {
     if (!e.isFile() || !/\.(?:ts|tsx)$/u.test(e.name)) {
       continue;
     }
+
     const file = resolve(e.parentPath, e.name);
     readFileSync(file, "utf8")
       .split("\n")
@@ -36,39 +41,50 @@ for (const [dir, banned] of rules) {
       });
   }
 }
+
 // The Codex copy of the project skill must match the Claude Code one.
 const skill = (dir: string) => resolve(root, dir, "skills/slides/SKILL.md");
+
 if (readFileSync(skill(".claude"), "utf8") !== readFileSync(skill(".agents"), "utf8")) {
   problems.push(".agents/skills/slides/SKILL.md differs from .claude/skills/slides/SKILL.md: copy it over.");
 }
+
 // Normal worktrees identify the upstream repo by its remotes. An isolated local merge gate has no
 // remotes and checks a synthetic merge whose first parent is the PR base.
 const git = (...args: Array<string>) =>
   execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+
 let remotes: string | undefined;
+
 try {
   remotes = git("remote", "-v");
 } catch {
   // A downloaded copy has no history to compare.
 }
+
 const isUpstream =
   remotes !== undefined &&
   remotes !== "" &&
   /^origin\s+\S*github\.com[:/]ANT1OFF\/slides(?:\.git)?\s/mu.test(remotes) &&
   !/^upstream\s/mu.test(remotes);
+
 const gramMerge =
   remotes === "" &&
   process.env.SLIDES_TEAM_COPY !== "1" &&
   /^Gram local check of [0-9a-f]{40} on [0-9a-f]{40}$/u.test(git("log", "-1", "--format=%s", "--ignore-missing", "HEAD"));
+
 if (isUpstream || gramMerge) {
   let base: string;
+
   try {
     base = gramMerge ? git("rev-parse", "HEAD^1") : git("merge-base", "origin/main", "HEAD");
   } catch {
     console.error("Team-owned paths: can't find the comparison base. In an upstream clone, run git fetch origin main.");
     process.exit(1);
   }
+
   const touched = git("diff", "--name-only", base, "--", ...teamPaths);
+
   if (touched) {
     problems.push(
       `Upstream never changes team-owned paths (src/library, src/decks except showcase). See CONTRIBUTING.md. Changed paths:\n  ${touched.split("\n").join("\n  ")}`,

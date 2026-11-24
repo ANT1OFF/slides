@@ -30,13 +30,17 @@ export function Table({
     numeric
       ? numeric.includes(c)
       : rows.every((r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/u.test(r[c])));
+
   const align = columns.map((_, c) => (isNum(c) ? "text-right tabular-nums" : "text-left"));
+
   const cellTone = (c: number) => {
     if (strong === undefined || c === 0) {
       return "";
     }
+
     return c === strong ? "weight-strong" : "text-ink-2";
   };
+
   return (
     <Reveal delay={start} className="rule-top-strong w-full rounded-box bg-surface px-(--pad-box) pt-3 pb-5">
       <table className="type-small w-full border-collapse">

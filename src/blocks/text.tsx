@@ -5,6 +5,7 @@ import { stepOf } from "./steps.ts";
 import type { BuildProp } from "./steps.ts";
 
 type Item = ReactNode | { title: ReactNode; detail?: ReactNode };
+
 const isRich = (item: Item): item is { title: ReactNode; detail?: ReactNode } =>
   typeof item === "object" && item !== null && "title" in item;
 
@@ -50,6 +51,7 @@ export function Agenda({ items, active, start = 200 }: { items: Array<ReactNode>
     <ol className="rule-bottom flex max-h-[620px] flex-1 flex-col">
       {items.map((item, i) => {
         const dim = active !== undefined && active !== i;
+
         return (
           <Reveal key={i} as="li" delay={start} order={i} className="rule-top grid flex-1 grid-cols-[140px_1fr] items-center">
             <span className={`type-label text-[30px] tracking-[0.06em] ${dim ? "text-ink-2" : "text-accent-text"}`}>
@@ -76,6 +78,7 @@ export function Callout({
   start?: number;
 }) {
   const bar = { accent: "bg-accent", "accent-2": "bg-accent-2", "accent-3": "bg-accent-3" }[tone];
+
   return (
     <Reveal delay={start} className="relative rounded-box bg-surface py-10 pr-12 pl-16">
       <span className={`absolute inset-y-0 left-0 w-(--rule-strong) ${bar}`} />

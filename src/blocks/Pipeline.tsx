@@ -23,6 +23,7 @@ export function Pipeline({ steps, build, start = 300 }: { steps: Array<Step>; bu
   const y = 40;
   const track = `M ${cx(0)} ${y} L ${cx(n - 1)} ${y}`;
   const ink = "stroke-rule";
+
   // Steady state begins once the last card has risen; the dot then crosses the track every `period`.
   const loopStart = start + 320 + n * 140 + 900;
   const period = Math.max(n * 0.9, 4);

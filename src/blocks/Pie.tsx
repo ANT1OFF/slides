@@ -16,9 +16,11 @@ export interface Slice {
 function sector(c: number, r: number, inner: number, a0: number, a1: number): string {
   const pt = (rad: number, a: number) => `${c + rad * Math.cos(a)} ${c + rad * Math.sin(a)}`;
   const large = a1 - a0 > Math.PI ? 1 : 0;
+
   if (inner <= 0) {
     return `M ${c} ${c} L ${pt(r, a0)} A ${r} ${r} 0 ${large} 1 ${pt(r, a1)} Z`;
   }
+
   return `M ${pt(r, a0)} A ${r} ${r} 0 ${large} 1 ${pt(r, a1)} L ${pt(inner, a1)} A ${inner} ${inner} 0 ${large} 0 ${pt(inner, a0)} Z`;
 }
 
@@ -53,15 +55,19 @@ export function Pie({
   const total = slices.reduce((s, x) => s + x.value, 0);
   const gap = slices.length > 1 ? 0.006 : 0;
   let angle = -Math.PI / 2;
+
   // The muted slices step down in strength, so neighbours stay apart.
   const look = (s: Slice, i: number) => {
     if (highlight === undefined) {
       return { fill: s.fill ?? series(i).fill, swatch: s.swatch ?? series(i).bg };
     }
+
     if (i === highlight) {
       return { fill: "fill-chart-key", swatch: "bg-chart-key" };
     }
+
     const rest = i < highlight ? i : i - 1;
+
     return { fill: "fill-muted", swatch: "bg-muted", opacity: 1 - (rest % 3) * 0.3 };
   };
 
@@ -90,6 +96,7 @@ export function Pie({
               // oxlint-disable-next-line react/immutability -- map runs during render; angle is a running total, not state
               angle += sweep;
               const { fill, opacity } = look(s, i);
+
               return <path key={s.name} d={path} className={fill} style={{ opacity }} />;
             })}
           </g>

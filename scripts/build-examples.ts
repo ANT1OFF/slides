@@ -23,17 +23,22 @@ const checking = process.argv.includes("--check");
 const decks = listDecks().filter((d) => d === "showcase" || existsSync(resolve(root, "examples", d, "index.tsx")));
 
 const stale: Array<string> = [];
+
 mkdirSync(outDir, { recursive: true });
+
 for (const deck of decks) {
   process.env.DECK = deck;
+
   try {
     await build({ logLevel: "warn", build: { outDir: resolve(scratch, deck) } });
   } catch (error) {
     console.error(`\n${deck}: ${errorMessage(error).split("\n    at ")[0]}`);
     process.exit(1);
   }
+
   const fresh = resolve(scratch, deck, "index.html");
   const target = resolve(outDir, `${deck}.html`);
+
   if (checking) {
     if (!existsSync(target) || !readFileSync(fresh).equals(readFileSync(target))) {
       stale.push(`examples/html/${deck}.html`);
@@ -43,10 +48,12 @@ for (const deck of decks) {
     console.log(`examples/html/${deck}.html`);
   }
 }
+
 rmSync(scratch, { recursive: true, force: true });
 
 // Files left from decks that no longer exist.
 const orphans = readdirSync(outDir).filter((f) => f.endsWith(".html") && !decks.includes(f.slice(0, -5)));
+
 for (const f of orphans) {
   if (checking) {
     stale.push(`examples/html/${f} (no such deck)`);
@@ -61,5 +68,6 @@ if (checking) {
     console.error(`Out of date with their source:\n  ${stale.join("\n  ")}\nRun \`npm run build:examples\` and commit the result.`);
     process.exit(1);
   }
+
   console.log(`examples/html: ${decks.length} files match their source`);
 }

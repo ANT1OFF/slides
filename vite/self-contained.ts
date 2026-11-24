@@ -39,23 +39,29 @@ export function selfContained({ warnAtMB = 15 } = {}): Plugin {
     // After vite-plugin-singlefile has inlined everything into the HTML.
     writeBundle(_options, bundle) {
       const problems: Array<string> = [];
+
       for (const [file, chunk] of Object.entries(bundle)) {
         if (!file.endsWith(".html")) {
           // Anything still emitted next to the HTML was not inlined and would be missing.
           problems.push(`${file} was emitted as a separate file instead of being inlined`);
           continue;
         }
+
         const text = chunk.type === "asset" ? String(chunk.source) : chunk.code;
+
         for (const [re, what] of REMOTE) {
           for (const m of text.matchAll(re)) {
             problems.push(`${what} points at ${(m.groups?.url ?? "").slice(0, 120)}`);
           }
         }
+
         const size = Buffer.byteLength(text);
+
         if (size > warnAtMB * MB) {
           this.warn(`${file} is ${(size / MB).toFixed(1)} MB. Large media is inlined as base64 (+33%); compress or trim it.`);
         }
       }
+
       if (problems.length > 0) {
         this.error(
           `The deck would not be self-contained:\n  - ${[...new Set(problems)].join("\n  - ")}\n` +

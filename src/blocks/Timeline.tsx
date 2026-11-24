@@ -18,11 +18,13 @@ function dotTone(isCurrent: boolean, done: boolean | undefined): string {
   if (isCurrent) {
     return "bg-accent";
   }
+
   return done ? "bg-ink" : "border-(length:--rule) border-ink bg-canvas";
 }
 
 export function Timeline({ items, build, start = 300 }: { items: Array<Milestone>; build?: BuildProp; start?: number }) {
   const current = items.findIndex((m) => !m.done);
+
   return (
     <div className="relative">
       {/* The line runs from the first node to the last one, through their centres. */}

@@ -21,6 +21,7 @@ export function Video({
   start?: number;
 }) {
   const still = useStatic();
+
   return (
     <Reveal as="figure" delay={start} className="flex flex-col gap-5">
       <div className="overflow-hidden rounded-box bg-surface" style={{ height }}>
@@ -45,17 +46,21 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
     const a = ref.current;
+
     if (!a) {
       return;
     }
+
     const stop = () => setPlaying(false);
     a.addEventListener("ended", stop);
     a.addEventListener("pause", stop);
+
     return () => {
       a.removeEventListener("ended", stop);
       a.removeEventListener("pause", stop);
     };
   }, []);
+
   return (
     <Reveal delay={start} className="inline-flex">
       <button
@@ -64,9 +69,11 @@ export function Audio({ src, label, start = 200 }: { src: string; label: ReactNo
           // Don't advance the slide.
           e.stopPropagation();
           const a = ref.current;
+
           if (!a) {
             return;
           }
+
           if (a.paused) {
             void a.play().then(() => setPlaying(true));
           } else {

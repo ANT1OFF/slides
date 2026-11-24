@@ -32,16 +32,21 @@ export function Cycle({
   const cy = height / 2;
   const rx = cx - cardWidth / 2;
   const ry = cy - cardHeight / 2;
+
   const at = (i: number) => {
     const a = -Math.PI / 2 + (i / n) * Math.PI * 2;
+
     return { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) };
   };
+
   // An arrowhead in the middle of the open stretch of ring between card i and card i + 1 (outside
   // both cards' boxes), pointing clockwise, so the direction reads without the moving dot.
   const under = (q: { x: number; y: number }, j: number) => {
     const c = at(j % n);
+
     return Math.abs(q.x - c.x) < cardWidth / 2 + 12 && Math.abs(q.y - c.y) < cardHeight / 2 + 12;
   };
+
   const head = (i: number) => {
     const angle = (t: number) => -Math.PI / 2 + ((i + t) / n) * Math.PI * 2;
     const point = (t: number) => ({ x: cx + rx * Math.cos(angle(t)), y: cy + ry * Math.sin(angle(t)) });
@@ -53,8 +58,10 @@ export function Cycle({
     const [ux, uy] = [tx / len, ty / len];
     const tip = `${p.x + ux * 10} ${p.y + uy * 10}`;
     const wing = (side: number) => `${p.x - ux * 10 + side * uy * 8} ${p.y - uy * 10 - side * ux * 8}`;
+
     return `M ${wing(1)} L ${tip} L ${wing(-1)}`;
   };
+
   const ring = `M ${cx} ${cy - ry} A ${rx} ${ry} 0 1 1 ${cx - 0.01} ${cy - ry}`;
   const loopStart = start + n * 180 + 900;
 
@@ -77,6 +84,7 @@ export function Cycle({
       </svg>
       {nodes.map((node, i) => {
         const p = at(i);
+
         return (
           <div
             key={node.title}

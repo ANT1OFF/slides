@@ -14,24 +14,30 @@ const isWindow = (w: unknown): w is Window => typeof w === "object" && w !== nul
 // The deck window that opened us; a parent page also works, e.g. when embedded for testing.
 function peer(): Window | null {
   const opener: unknown = window.opener;
+
   if (isWindow(opener)) {
     return opener;
   }
+
   return window.parent === window ? null : window.parent;
 }
+
 const send = (m: Message) => peer()?.postMessage(m, postTarget());
 
 function useClock() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
+
     return () => clearInterval(t);
   }, []);
+
   return now;
 }
 
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.floor(ms / 1000));
+
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 };
 
@@ -50,17 +56,21 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
 
   useEffect(() => {
     document.title = `Presenter · ${deck.title}`;
+
     const onMessage = (e: MessageEvent) => {
       if (e.source !== peer() || !sameOrigin(e) || !isMessage(e.data)) {
         return;
       }
+
       if (e.data.type === "slides:state") {
         setPos(e.data.position);
         setDisplay(e.data.display);
       }
     };
+
     window.addEventListener("message", onMessage);
     send({ type: "slides:hello" });
+
     return () => window.removeEventListener("message", onMessage);
   }, [deck.title]);
 
@@ -69,6 +79,7 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
       if (e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
+
       if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
         send({ type: "slides:nav", dir: 1 });
@@ -79,22 +90,27 @@ export function Presenter({ deck, name }: { deck: DeckDefinition; name: string }
         setStarted(Date.now());
       }
     };
+
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   if (!peer()) {
     return <div className="grid h-screen place-items-center bg-ink text-2xl text-canvas">Open this from the deck with N.</div>;
   }
+
   if (!pos) {
     return <div className="grid h-screen place-items-center bg-ink text-2xl text-canvas">Connecting to the deck…</div>;
   }
 
   const current = slides[pos.index];
   let nextIndex = pos.index + 1;
+
   while (nextIndex < slides.length && slides[nextIndex].hidden) {
     nextIndex++;
   }
+
   const next = slides[nextIndex];
 
   const pad = 32;

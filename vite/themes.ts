@@ -19,22 +19,28 @@ export function listThemes(themesDir: string): Array<string> {
 /** The team's default theme from the library's settings.json (src/library), or "default". */
 export function teamDefaultTheme(themesDir: string, libraryDir: string): string {
   const file = resolve(libraryDir, "settings.json");
+
   if (!existsSync(file)) {
     return "default";
   }
+
   let settings: unknown;
+
   try {
     settings = JSON.parse(readFileSync(file, "utf8"));
   } catch (error) {
     throw new Error(`src/library/settings.json is not valid JSON: ${errorMessage(error)}`, { cause: error });
   }
+
   const theme =
     typeof settings === "object" && settings !== null && "defaultTheme" in settings ? (settings.defaultTheme ?? "default") : "default";
+
   if (typeof theme !== "string" || !existsSync(resolve(themesDir, theme, "theme.css"))) {
     throw new Error(
       `src/library/settings.json: defaultTheme ${JSON.stringify(theme)} is not a folder in src/themes. Themes: ${listThemes(themesDir).join(", ")}`,
     );
   }
+
   return theme;
 }
 
@@ -47,16 +53,21 @@ export function deckThemeKey(source: string): number {
   // Double-quoted strings are blanked too (same length, so offsets still match), so a brace in one doesn't count.
   const code = source.replaceAll(/"(?:\\.|[^"\\\n])*"/gu, (s) => `"${" ".repeat(s.length - 2)}"`);
   const name = /\bexport\s+default\s+(?<name>[A-Za-z_$][\w$]*)\s*(?:;|$)/mu.exec(code)?.groups?.name;
+
   const open = name
     ? new RegExp(`\\b(?:const|let|var)\\s+${name.replaceAll("$", String.raw`\$`)}\\b[^=]*=\\s*\\{`, "u").exec(code)
     : /\bexport\s+default\s+\{/u.exec(code);
+
   if (!open) {
     // Not a deck object we can find: the first `theme:` anywhere.
     return /\btheme\s*:/u.exec(code)?.index ?? -1;
   }
+
   let depth = 0;
+
   for (let i = open.index + open[0].length - 1; i < code.length; i++) {
     const c = code[i];
+
     if (c === "{") {
       depth++;
     } else if (c === "}" && --depth === 0) {
@@ -65,6 +76,7 @@ export function deckThemeKey(source: string): number {
       return i;
     }
   }
+
   return -1;
 }
 
@@ -73,6 +85,7 @@ function blank(s: string): string {
   if (s.startsWith('"')) {
     return s;
   }
+
   return s.startsWith("`") ? `\`${" ".repeat(s.length - 2)}\`` : " ".repeat(s.length);
 }
 
@@ -81,21 +94,26 @@ export function deckTheme(deckFile: string, libraryDir: string): string {
   // One pass, so a // inside a string is not a comment. Blanked, not removed, so offsets still match.
   const source = readFileSync(deckFile, "utf8").replaceAll(/"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|\/\*[\s\S]*?\*\/|\/\/.*$/gmu, blank);
   const at = deckThemeKey(source);
+
   if (at < 0) {
     return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
   }
+
   const literal = /^\s*:\s*["'](?<name>[\w-]+)["']/u.exec(source.slice(at + "theme".length))?.groups?.name;
+
   if (literal === undefined) {
     throw new Error(
       `${relative(process.cwd(), deckFile)}: write the theme as a string literal, e.g. theme: "editorial". ` +
         "The build reads it from the file to include only that theme's fonts and logo, so a variable or expression can't be followed.",
     );
   }
+
   return literal;
 }
 
 export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string; deckFile: string; libraryDir: string }): Plugin {
   let serve = false;
+
   return {
     name: "slides:themes",
     configResolved(config) {
@@ -110,29 +128,39 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
       if (id !== "\0virtual:themes") {
         return;
       }
+
       const all = listThemes(themesDir);
       let names = all;
+
       if (!serve) {
         const wanted = deckTheme(deckFile, libraryDir);
+
         if (!all.includes(wanted)) {
           this.error(
             `${relative(process.cwd(), deckFile)} uses theme "${wanted}", but there is no src/themes/${wanted}/theme.css. Themes: ${all.join(", ")}`,
           );
         }
+
         names = [...new Set(["default", wanted])];
       }
+
       const lines: Array<string> = [];
       const entries: Array<string> = [];
       names.forEach((name, i) => {
         const dir = resolve(themesDir, name).replaceAll("\\", "/");
+
         if (name !== "default") {
           lines.push(`import ${JSON.stringify(`${dir}/theme.css`)};`);
         }
+
         const logos = LOGOS.filter((f) => existsSync(resolve(themesDir, name, f)));
+
         if (logos.length > 1) {
           this.error(`src/themes/${name} has more than one logo (${logos.join(", ")}). Keep one.`);
         }
+
         const [logo] = logos;
+
         if (logo?.endsWith(".svg")) {
           lines.push(`import logo${i} from ${JSON.stringify(`${dir}/${logo}?raw`)};`);
           entries.push(`${JSON.stringify(name)}: { svg: logo${i} }`);
@@ -143,6 +171,7 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
           entries.push(`${JSON.stringify(name)}: {}`);
         }
       });
+
       return `${lines.join("\n")}\nexport const themes = { ${entries.join(", ")} };\n`;
     },
   };

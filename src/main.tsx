@@ -16,7 +16,9 @@ async function pick() {
   if (!import.meta.env.DEV) {
     return { deck: defaultDeck, name: __DECK__ };
   }
+
   const { devPick } = await import("./gallery.tsx");
+
   return devPick(new URLSearchParams(location.search));
 }
 
@@ -24,9 +26,11 @@ async function pick() {
 function withThemeLogo(input: DeckDefinition): DeckDefinition {
   // A deck without a theme gets the team's default (src/library/settings.json).
   const deck = { ...input, theme: input.theme ?? settings.defaultTheme };
+
   if (deck.logo !== undefined) {
     return deck;
   }
+
   return { ...deck, logo: themeLogo(themes[deck.theme]) };
 }
 
@@ -37,11 +41,13 @@ function themeLogo(file: { svg?: string; url?: string } | undefined) {
       <span role="img" aria-label="Logo" className="[&>svg]:h-full [&>svg]:w-auto" dangerouslySetInnerHTML={{ __html: file.svg }} />
     );
   }
+
   return file?.url ? <img src={file.url} alt="Logo" /> : null;
 }
 
 async function loadGallery() {
   const { Gallery } = await import("./gallery.tsx");
+
   return Gallery;
 }
 
@@ -53,11 +59,14 @@ function view() {
   if (!picked) {
     return Gallery && <Gallery />;
   }
+
   return isPresenter() ? <Presenter deck={picked.deck} name={picked.name} /> : <Deck deck={picked.deck} name={picked.name} />;
 }
 
 const root = document.querySelector("#root");
+
 if (!root) {
   throw new Error("index.html has no #root element.");
 }
+
 createRoot(root).render(<StrictMode>{view()}</StrictMode>);

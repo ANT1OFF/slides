@@ -33,6 +33,7 @@ export function Build({
       register(at);
     }
   }, [at, register, enabled]);
+
   if (!enabled) {
     return (
       <Tag className={className} style={style}>
@@ -40,6 +41,7 @@ export function Build({
       </Tag>
     );
   }
+
   if (effect) {
     return (
       <Tag className={`${step >= at ? effect : "build-wait"} ${className}`} style={style}>
@@ -47,6 +49,7 @@ export function Build({
       </Tag>
     );
   }
+
   return (
     <Tag className={`build ${step >= at ? "build-on" : ""} ${className}`} style={style}>
       {children}
@@ -66,5 +69,6 @@ export function useBuildStep(steps: number): number {
       register(steps);
     }
   }, [steps, register]);
+
   return step;
 }

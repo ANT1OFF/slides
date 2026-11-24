@@ -19,5 +19,6 @@ export interface DataFile<T = unknown> {
 /** "As of 24 Nov 2026", optionally with a source note, for a slide footer or caption. */
 export function asOf(data: Pick<DataFile, "updated">, note?: string): string {
   const date = new Date(`${data.updated}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
   return note ? `As of ${date} · ${note}` : `As of ${date}`;
 }

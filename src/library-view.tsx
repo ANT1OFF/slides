@@ -18,6 +18,7 @@ const blockFiles = import.meta.glob<{ example?: SlideInput }>("@library/blocks/*
 
 const fileOf = (path: string) => path.slice(path.lastIndexOf("/") + 1);
 const isEntry = (s: SlideInput): s is SlideEntry => typeof s === "object" && s !== null && !isValidElement(s) && "content" in s;
+
 // By the library's convention, a capitalised export is a component and an export ending in
 // "Slides" returns slides. Only that it's a function is checked: Guard and the try below catch the rest.
 const isComponent = (value: unknown): value is () => ReactNode => typeof value === "function";
@@ -25,8 +26,10 @@ const isSlideSet = (value: unknown): value is () => Array<SlideInput> => typeof 
 
 function librarySlides(): Array<SlideEntry> {
   const out: Array<SlideEntry> = [];
+
   for (const [path, mod] of Object.entries(slideFiles)) {
     const file = fileOf(path);
+
     for (const [name, value] of Object.entries(mod)) {
       if (/^[A-Z]/u.test(name) && isComponent(value)) {
         const LibrarySlide = value;
@@ -41,11 +44,13 @@ function librarySlides(): Array<SlideEntry> {
       } else if (name.endsWith("Slides") && isSlideSet(value)) {
         // A set may return plain JSX or slide() entries; keep an entry's own notes and options.
         let set: Array<SlideInput>;
+
         try {
           set = value();
         } catch (error) {
           set = [<Broken name={`${file}: ${name}()`} hint={SLIDE_HINT} error={error} />];
         }
+
         set.forEach((s, i) => {
           const entry = isEntry(s) ? s : slide(s);
           out.push({ ...entry, id: `${file}/${name}[${i}]`, notes: entry.notes ?? `src/library/slides/${file}: ...${name}()` });
@@ -53,6 +58,7 @@ function librarySlides(): Array<SlideEntry> {
       }
     }
   }
+
   return out;
 }
 
@@ -65,15 +71,19 @@ interface LibraryBlocks {
 function libraryBlocks(): LibraryBlocks {
   const slides: Array<SlideEntry> = [];
   const without: Array<string> = [];
+
   for (const [path, mod] of Object.entries(blockFiles)) {
     const file = fileOf(path);
     const { example } = mod;
+
     if (example === undefined) {
       without.push(file);
       continue;
     }
+
     const name = `blocks/${file}`;
     const whole = isEntry(example);
+
     const own = {
       id: name,
       notes: `src/library/blocks/${file}: its \`example\``,
@@ -89,8 +99,10 @@ function libraryBlocks(): LibraryBlocks {
         </Guard>
       ),
     };
+
     slides.push(whole ? { ...example, ...own } : own);
   }
+
   return { slides, without };
 }
 
@@ -131,6 +143,7 @@ const BLOCK_HINT = "A block file's `example` must render on its own: give the bl
 /** What a thrown value says: its `message` if it has one, else the value itself. */
 function errorText(error: unknown): string {
   const message = typeof error === "object" && error !== null && "message" in error ? error.message : undefined;
+
   return String(message ?? error);
 }
 
@@ -163,6 +176,7 @@ class Guard extends Component<{ name: string; hint: string; children: ReactNode 
 }
 
 const blocks = libraryBlocks();
+
 /** The view's slides by kind, for the dev gallery; the deck below shows them in this order. */
 export const library = {
   slides: librarySlides(),
@@ -173,6 +187,7 @@ export const library = {
 };
 
 const all = [...library.slides, ...library.blocks, ...library.motion];
+
 const deck: DeckDefinition = {
   title: "Library",
   footer: "src/library",
@@ -185,4 +200,5 @@ const deck: DeckDefinition = {
           </Frame>,
         ],
 };
+
 export default deck;

@@ -54,6 +54,7 @@ export function useDeckKey(key: string, does: string, run: () => void): void {
     if (still) {
       return;
     }
+
     return add({ key: key.length === 1 ? key.toLowerCase() : key, does, run: () => latest.current() });
   }, [add, still, key, does]);
 }

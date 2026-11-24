@@ -24,6 +24,7 @@ export function Columns({
 }) {
   const cols = Children.toArray(children);
   const template = (ratio ?? cols.map(() => 1)).map((r) => `minmax(0, ${r}fr)`).join(" ");
+
   return (
     <div className="grid gap-(--gap-column)" style={{ gridTemplateColumns: template, alignItems: align }}>
       {cols.map((col, i) => (
@@ -67,6 +68,7 @@ export function Cards({
   start?: number;
 }) {
   const n = columns ?? Math.min(items.length, 4);
+
   return (
     <div className="grid gap-(--gap-item)" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
       {items.map((c, i) => (

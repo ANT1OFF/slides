@@ -17,6 +17,7 @@ import type { DeckDefinition } from "./types.ts";
 
 function indexFromHash(count: number): number {
   const n = Number.parseInt(window.location.hash.slice(1), 10);
+
   return Number.isFinite(n) ? Math.min(Math.max(n - 1, 0), count - 1) : 0;
 }
 
@@ -36,21 +37,29 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const count = slides.length;
   const [pos, setPos] = useState<Position>(() => ({ index: indexFromHash(count), step: 0 }));
   const [mode, setMode] = useState<"present" | "overview" | "print">("present");
+
   const [display, setDisplay] = useState<Display>(() => {
     const asked = new URLSearchParams(location.search).get("display");
+
     return asked === "relative" || asked === "absolute" ? asked : (deck.display ?? "absolute");
   });
+
   const [toast, setToast] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
   const [blank, setBlank] = useState(false);
+
   // Keys that components added with useDeckKey(); the built-in ones are the switch below.
   const [extraKeys, setExtraKeys] = useState<Array<DeckKey>>([]);
+
   const addKey = useCallback((key: DeckKey) => {
     setExtraKeys((keys) => [...keys, key]);
+
     return () => setExtraKeys((keys) => keys.filter((k) => k !== key));
   }, []);
+
   const typed = useRef("");
   const steps = useRef(0);
+
   // The same count as `steps`, for the page-review tags, which render once the Builds register.
   const [built, setBuilt] = useState({ index: -1, count: 0 });
   const presenter = useRef<Window | null>(null);
@@ -76,17 +85,22 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       const i = Math.min(Math.max(index, 0), count - 1);
       const from = target.current.index;
       target.current = { index: i, step };
+
       const apply = () =>
         setPos((p) => {
           if (p.index !== target.current.index) {
             steps.current = 0;
           }
+
           return target.current;
         });
+
       if (i === from) {
         apply();
+
         return;
       }
+
       // Going back plays the transition the slide being left arrived with, reversed.
       const back = i < from;
       const transition = (back ? slides[from] : slides[i]).transition ?? deck.transition;
@@ -102,6 +116,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           return i;
         }
       }
+
       return from;
     },
     [count, slides],
@@ -110,15 +125,21 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const nav = useCallback(
     (dir: 1 | -1) => {
       const step = Math.min(pos.step, steps.current);
+
       if (dir === 1 && step < steps.current) {
         goto(pos.index, step + 1);
+
         return;
       }
+
       if (dir === -1 && step > 0) {
         goto(pos.index, step - 1);
+
         return;
       }
+
       const next = neighbour(pos.index, dir);
+
       if (next !== pos.index) {
         goto(next, dir === -1 ? Number.POSITIVE_INFINITY : 0);
       }
@@ -139,13 +160,16 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     if (!toast) {
       return;
     }
+
     const t = setTimeout(() => setToast(null), 1600);
+
     return () => clearTimeout(t);
   }, [toast]);
 
   useEffect(() => {
     const onHashChange = () => goto(indexFromHash(count));
     window.addEventListener("hashchange", onHashChange);
+
     return () => window.removeEventListener("hashchange", onHashChange);
   }, [count, goto]);
 
@@ -155,14 +179,18 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       if (!presenter.current || e.source !== presenter.current || !sameOrigin(e) || !isMessage(e.data)) {
         return;
       }
+
       const m = e.data;
+
       if (m.type === "slides:hello") {
         presenter.current.postMessage({ type: "slides:state", position: pos, display } satisfies Message, postTarget());
       } else if (m.type === "slides:nav") {
         nav(m.dir);
       }
     };
+
     window.addEventListener("message", onMessage);
+
     return () => window.removeEventListener("message", onMessage);
   }, [pos, display, nav]);
 
@@ -172,11 +200,14 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       if (e.target !== document.documentElement || !document.documentElement.dataset.transition) {
         return;
       }
+
       if (mode === "present" && !help && !blank) {
         nav(e.clientX > window.innerWidth / 3 ? 1 : -1);
       }
     };
+
     window.addEventListener("click", onClick);
+
     return () => window.removeEventListener("click", onClick);
   }, [mode, help, blank, nav]);
 
@@ -185,37 +216,50 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       if (e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
+
       // Letter keys work with Shift or Caps Lock too.
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+
       if (mode === "overview") {
         if (key === "Escape" || key === "g") {
           setMode("present");
         }
+
         return;
       }
+
       if (help) {
         if (e.key === "Escape" || e.key === "?") {
           setHelp(false);
         }
+
         return;
       }
+
       if (blank) {
         setBlank(false);
+
         return;
       }
+
       if (/^[0-9]$/u.test(e.key)) {
         typed.current = (typed.current + e.key).slice(-4);
         setToast(`Go to ${typed.current} ⏎`);
+
         return;
       }
+
       if (e.key === "Enter" && typed.current) {
         const n = Number(typed.current);
         typed.current = "";
         setToast(null);
         goto(n - 1);
+
         return;
       }
+
       typed.current = "";
+
       switch (key) {
         case "ArrowRight":
         case "ArrowDown":
@@ -246,6 +290,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           } else {
             void document.documentElement.requestFullscreen();
           }
+
           break;
         }
         case "n": {
@@ -284,24 +329,31 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         }
       }
     };
+
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, [mode, help, blank, display, nav, goto, neighbour, count, extraKeys]);
 
   const slideInfo = useMemo(() => slides.map(({ id, hidden }) => ({ id, hidden: Boolean(hidden) })), [slides]);
+
   const jump = useCallback<DeckNav["goto"]>(
     (slide) => {
       if (typeof slide === "number") {
         goto(slide);
+
         return;
       }
+
       const index = slideInfo.findIndex(({ id }) => id === slide);
+
       if (index !== -1) {
         goto(index);
       }
     },
     [goto, slideInfo],
   );
+
   const deckNav = useMemo<DeckNav>(
     () => ({
       index: pos.index,
@@ -313,6 +365,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     }),
     [pos, built, count, slideInfo, nav, jump],
   );
+
   const provide = (children: ReactNode) => (
     <DeckContext.Provider value={look}>
       <DisplayContext.Provider value={display}>

@@ -22,6 +22,7 @@ export function Help({ onClose, extra = [] }: { onClose: () => void; extra?: Arr
     k.key.length === 1 ? k.key.toUpperCase() : k.key,
     k.does,
   ]);
+
   return (
     <div className="fixed inset-0 grid place-items-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div

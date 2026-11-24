@@ -13,6 +13,7 @@ function Extras() {
   useDeckKey("j", "Fixture: one step on", () => nav(1));
   useDeckKey("k", "Fixture: jump to the first backup", () => {
     const backup = slides.find((s) => s.hidden);
+
     if (backup) {
       goto(backup.id);
     }
@@ -20,6 +21,7 @@ function Extras() {
   useDeckKey("u", "Fixture: jump to an unknown id", () => goto("missing-slide"));
   // B is a built-in key (blank the screen), which must win.
   useDeckKey("b", "Fixture: never runs", () => setTaken((n) => n + 1));
+
   return (
     <div id="extras" data-taken={taken} className="absolute top-2 left-2 font-mono text-xs">
       {`slide ${index + 1} of ${count}, step ${step}`}

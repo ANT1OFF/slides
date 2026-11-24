@@ -10,6 +10,7 @@ const KEYWORDS = new Set(
     "package func go defer select chan map range"
   ).split(" "),
 );
+
 const RULES: Array<[RegExp, string]> = [
   [/^(?:\/\/.*|#(?!\[).*|\/\*[\s\S]*?\*\/)/u, "tok-comment"],
   [/^(?:`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/u, "tok-string"],
@@ -27,6 +28,7 @@ function wordKind(word: string, keywords: ReadonlySet<string>): string {
   if (keywords.has(word)) {
     return "tok-kw";
   }
+
   return /^[A-Z]/u.test(word) ? "tok-type" : "";
 }
 
@@ -38,12 +40,15 @@ function wordKind(word: string, keywords: ReadonlySet<string>): string {
 export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS): Array<ReactNode> {
   const out: Array<ReactNode> = [];
   let rest = line;
+
   while (rest) {
     for (const [re, cls] of RULES) {
       const m = re.exec(rest);
+
       if (!m) {
         continue;
       }
+
       const [text] = m;
       const kind = cls === "word" ? wordKind(text, keywords) : cls;
       out.push(
@@ -59,6 +64,7 @@ export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS)
       break;
     }
   }
+
   return out;
 }
 
@@ -66,19 +72,23 @@ export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS)
 function parseSteps(steps: string, count: number): Array<Set<number>> {
   return steps.split("|").map((part) => {
     const set = new Set<number>();
+
     for (const range of part.split(",")) {
       const r = range.trim();
+
       if (r === "all" || r === "*" || r === "") {
         for (let i = 1; i <= count; i++) {
           set.add(i);
         }
       } else {
         const [a, b = a] = r.split("-").map(Number);
+
         for (let i = a; i <= b; i++) {
           set.add(i);
         }
       }
     }
+
     return set;
   });
 }

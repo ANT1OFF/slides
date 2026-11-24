@@ -15,6 +15,7 @@ const CONTROL_FLOW = new Set([
   "TryStatement",
   "WhileStatement",
 ]);
+
 const DECLARATIONS = new Set(["ClassDeclaration", "FunctionDeclaration", "TSInterfaceDeclaration", "TSTypeAliasDeclaration"]);
 
 /** The declaration an `export` wraps, or the statement itself. */

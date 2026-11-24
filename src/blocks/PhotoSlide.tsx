@@ -25,6 +25,7 @@ export function PhotoSlide({
 }) {
   const gradient =
     side === "left" ? "bg-gradient-to-r from-black/85 via-black/60 to-black/0" : "bg-gradient-to-t from-black/85 via-black/50 to-black/0";
+
   return (
     <section className="relative h-full overflow-hidden bg-black text-white">
       <div className="fade absolute inset-0" style={delay(0)}>
