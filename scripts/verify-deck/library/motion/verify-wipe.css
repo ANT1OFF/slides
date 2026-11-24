@@ -1,0 +1,11 @@
+/* The fixture library's slide transition. */
+@keyframes verify-wipe-in {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+@keyframes verify-wipe-out {
+  to {
+    transform: translateX(-4%);
+  }
+}

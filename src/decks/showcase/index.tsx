@@ -2,7 +2,7 @@
 // Each slide's `id` is the block it shows, so you can find it in the overview (G).
 // In `npm run dev`, add &theme=editorial (or signal, acme) and &scheme=dark to the URL to see
 // every block in another theme.
-import { Build, slide, type DeckDefinition } from "@core";
+import { Build, Reveal, slide, type DeckDefinition } from "@core";
 import {
   Agenda,
   Arrow,
@@ -54,6 +54,8 @@ const SECTIONS = 6;
 const deck: DeckDefinition = {
   title: "Building blocks",
   footer: "Showcase · every block",
+  // Every slide fades in; the section dividers push instead, and the Motion slide zooms.
+  transition: "fade",
   slides: [
     slide(
       <TitleSlide
@@ -81,6 +83,7 @@ const deck: DeckDefinition = {
     // ── Slides ────────────────────────────────────────────────────────────────
     slide(<SectionSlide number={1} of={SECTIONS} title="Slides" subtitle="Whole-slide layouts: title, section, statement, quote, end." />, {
       id: "SectionSlide",
+      transition: "push",
     }),
     slide(
       <StatementSlide kicker="StatementSlide">
@@ -117,7 +120,7 @@ const deck: DeckDefinition = {
     ),
 
     // ── Text ──────────────────────────────────────────────────────────────────
-    slide(<SectionSlide number={2} of={SECTIONS} title="Text and code" />, { id: "section-text" }),
+    slide(<SectionSlide number={2} of={SECTIONS} title="Text and code" />, { id: "section-text", transition: "push" }),
     slide(
       <Frame section="Bullets" title="Rows that build, one press at a time">
         <Bullets
@@ -164,7 +167,7 @@ const deck: DeckDefinition = {
     ),
 
     // ── Layout ────────────────────────────────────────────────────────────────
-    slide(<SectionSlide number={3} of={SECTIONS} title="Layout" />, { id: "section-layout" }),
+    slide(<SectionSlide number={3} of={SECTIONS} title="Layout" />, { id: "section-layout", transition: "push" }),
     slide(
       <Frame section="Columns · Lead · Figure" title="Text beside an image">
         <Columns ratio={[5, 6]}>
@@ -225,6 +228,7 @@ const deck: DeckDefinition = {
     // ── Numbers ───────────────────────────────────────────────────────────────
     slide(<SectionSlide number={4} of={SECTIONS} title="Numbers" subtitle="Press M to switch between raw numbers and growth." />, {
       id: "section-numbers",
+      transition: "push",
     }),
     slide(
       <Frame section="Stat" title="One hero number per slide">
@@ -251,7 +255,7 @@ const deck: DeckDefinition = {
     ),
 
     // ── Diagrams ──────────────────────────────────────────────────────────────
-    slide(<SectionSlide number={5} of={SECTIONS} title="Diagrams" />, { id: "section-diagrams" }),
+    slide(<SectionSlide number={5} of={SECTIONS} title="Diagrams" />, { id: "section-diagrams", transition: "push" }),
     slide(
       <Frame section="Flow" title="Boxes and arrows">
         <Flow
@@ -353,6 +357,7 @@ const deck: DeckDefinition = {
       />,
       {
         id: "section-charts",
+        transition: "push",
       },
     ),
     slide(
@@ -495,6 +500,26 @@ const deck: DeckDefinition = {
         </div>
       </Frame>,
       { id: "Build" },
+    ),
+    slide(
+      <Frame section="Motion" title="Entrances, build effects and transitions, by name">
+        <div className="grid grid-cols-3 gap-(--gap-item)">
+          {(["rise", "fade", "pop"] as const).map((effect, i) => (
+            <Reveal key={effect} effect={effect} delay={400} order={i * 3} className="rule-top-strong bg-surface p-(--pad-box)">
+              <p className="type-label text-accent-text">{`effect="${effect}"`}</p>
+              <p className="type-strong mt-6">{["Rises into place", "Fades in", "Pops"][i]}</p>
+            </Reveal>
+          ))}
+        </div>
+        <Build at={1} effect="pop" className="type-lead mt-(--gap-title)">
+          A build step can play one too: <code className="font-mono text-accent-text">{`<Build effect="pop">`}</code>
+        </Build>
+        <p className="type-small mt-(--gap-item) text-ink-2">
+          This slide arrived with <code className="font-mono">transition: "zoom"</code>. The deck's is "fade", and its section slides
+          "push". Your own effects and transitions are CSS files in src/library/motion.
+        </p>
+      </Frame>,
+      { id: "Motion", transition: "zoom", notes: "Press ← and the zoom plays the other way round." },
     ),
     slide(
       <Frame section="Backup" title="A hidden slide">

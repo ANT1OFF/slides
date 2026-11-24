@@ -6,6 +6,11 @@ declare module "virtual:deck" {
   export default deck;
 }
 
+declare module "virtual:library" {
+  /** The entrance effects and slide transitions found in src/library/motion, by name. */
+  export const motion: { effects: string[]; transitions: string[] };
+}
+
 declare module "virtual:themes" {
   /** Theme folders in src/themes and their logos (an SVG's markup, or an image URL). */
   export const themes: Record<string, { svg?: string; url?: string }>;

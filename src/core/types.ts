@@ -7,6 +7,11 @@ export interface SlideOptions {
   notes?: string;
   /** Backup slide: skipped when presenting and printing, shown greyed in the overview (G). */
   hidden?: boolean;
+  /**
+   * How this slide arrives, instead of the deck's `transition`: "fade", "push", "zoom", "none", or
+   * the name of one of your own (src/library/motion).
+   */
+  transition?: string;
 }
 
 export interface SlideEntry extends SlideOptions {
@@ -36,6 +41,11 @@ export interface DeckDefinition {
   vars?: Record<string, string>;
   /** How numbers show by default: raw counts, or growth and shares. M switches while presenting. */
   display?: "absolute" | "relative";
+  /**
+   * The transition between slides: "fade", "push", "zoom", or the name of one of your own
+   * (src/library/motion). A slide can name another with `slide(…, { transition })`. Leave out for none.
+   */
+  transition?: string;
 }
 
 export function slide(content: ReactNode, options: SlideOptions = {}): SlideEntry {

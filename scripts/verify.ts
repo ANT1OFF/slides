@@ -1,6 +1,8 @@
 // npm run verify  →  opens every built deck in dist/ in headless Chrome, from disk, with the network
 // blocked, and checks that it is self-contained. Then it builds its own fixture deck
 // (scripts/verify-deck) and checks every key and presenting feature on it, so decks can change freely.
+// Last, a second fixture (verify-deck/motion.tsx, with verify-deck/library as the team library) checks
+// effects, slide transitions and team CSS in three modes: motion, reduced motion, no View Transitions.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
 // (`npx playwright-core install chromium`).
 import { existsSync, readdirSync, rmSync } from "node:fs";
@@ -34,8 +36,11 @@ let deckName = "";
 const check = (name: string, ok: unknown, detail = "") => results.push({ deck: deckName, name, ok: !!ok, detail });
 
 /** A context that refuses every request that isn't the file itself or inline data. */
-async function offline(browser: Browser): Promise<{ ctx: BrowserContext; blocked: string[] }> {
-  const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: BrowserContext; blocked: string[] }> {
+  const ctx = await browser.newContext({
+    viewport: { width: 1600, height: 900 },
+    reducedMotion: reducedMotion ? "reduce" : "no-preference",
+  });
   const blocked: string[] = [];
   await ctx.route("**/*", (route) => {
     const url = route.request().url();
@@ -310,6 +315,176 @@ async function features(browser: Browser, file: string) {
   await ctx.close();
 }
 
+const MODES = ["motion", "reduced motion", "no View Transitions API"] as const;
+
+/**
+ * Effects, slide transitions and team CSS on the motion fixture. With motion, a transition runs as
+ * a view transition; with reduced motion, or in a browser without the API, the slide just changes.
+ */
+async function motion(browser: Browser, file: string, mode: (typeof MODES)[number]) {
+  const animated = mode === "motion";
+  const { ctx } = await offline(browser, mode === "reduced motion");
+  const page = await ctx.newPage();
+  if (mode === "no View Transitions API")
+    await page.addInitScript(() => delete (Document.prototype as { startViewTransition?: unknown }).startViewTransition);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  const test = (name: string, ok: unknown, detail: unknown = "") =>
+    check(`${mode}: ${name}`, ok, typeof detail === "string" ? detail : JSON.stringify(detail));
+  /** Where the deck is, and the view transition running right now, if any. */
+  const state = () =>
+    page.evaluate(() => {
+      const current = document.querySelector("[data-deck-mode=present] [data-slide]");
+      const root = document.documentElement;
+      return {
+        slide: current?.getAttribute("data-slide-id"),
+        build: current?.getAttribute("data-build"),
+        transition: root.dataset.transition ?? null,
+        back: root.hasAttribute("data-transition-back"),
+        leftover: root.getAttribute("style") ?? "",
+        // An element with the same view-transition-name on both slides gets a group of its own.
+        carried: document.getAnimations().some((a) => (a.effect as KeyframeEffect).pseudoElement === "::view-transition-group(hero)"),
+        // "fade-in new reverse 1500": the keyframes on each of the slide's two snapshots.
+        running: document.getAnimations().flatMap((a) => {
+          const effect = a.effect as KeyframeEffect;
+          const part = /^::view-transition-(old|new)\(slide\)$/.exec(effect.pseudoElement ?? "")?.[1];
+          const timing = effect.getComputedTiming();
+          return part ? [`${(a as CSSAnimation).animationName} ${part} ${timing.direction} ${timing.duration}`] : [];
+        }),
+      };
+    });
+  /** A computed style of the element that wraps `#id` (the Reveal or Build around it), or of `#id` itself. */
+  const style = (selector: string, prop: string, parent = true) =>
+    page.evaluate(
+      ([selector, prop, parent]) => {
+        const el = document.querySelector(selector as string)!;
+        return getComputedStyle(parent ? el.parentElement! : el).getPropertyValue(prop as string);
+      },
+      [selector, prop, parent] as const,
+    );
+  const key = async (k: string, wait: number) => {
+    await page.keyboard.press(k);
+    await page.waitForTimeout(wait);
+  };
+  /** Several keys in the same frame: faster than a transition can apply its move. */
+  const burst = (keys: string[]) =>
+    page.evaluate((keys) => keys.forEach((key) => dispatchEvent(new KeyboardEvent("keydown", { key }))), keys);
+  const go = async (n: number) => {
+    await page.evaluate((n) => (location.hash = `#${n}`), n);
+    await page.waitForTimeout(settle);
+  };
+  const DURING = 250; // into a transition (the fixture's last 1500 ms)
+  const settle = animated ? 1900 : 250; // after it
+
+  await page.goto(`file://${file}`);
+  await page.waitForTimeout(600);
+  const subtitle = (await page.textContent("[data-deck-mode=present] [data-slide]")) ?? "";
+  test("motion files in the team library are found by name", /effects: verify-swoop · transitions: verify-wipe/.test(subtitle), subtitle);
+
+  await key("ArrowRight", DURING);
+  let s = await state();
+  if (animated) {
+    test(
+      "the deck's transition runs the team's keyframes on the two slides",
+      s.transition === "verify-wipe" &&
+        s.running.some((r) => r.startsWith("verify-wipe-in new normal")) &&
+        s.running.some((r) => r.startsWith("verify-wipe-out old normal")),
+      s,
+    );
+    test(
+      "the deck's motion tokens set the transition's duration",
+      s.running.length === 2 && s.running.every((r) => r.endsWith(" 1500")),
+      s.running,
+    );
+  } else test("no view transition starts; the slide just changes", s.slide === "two" && s.transition === null && !s.running.length, s);
+  test("<Reveal effect> uses the team's effect", (await style("#revealed", "animation-name")) === "verify-swoop");
+  await page.waitForTimeout(settle);
+  s = await state();
+  test("on the next slide, with nothing left on <html>", s.slide === "two" && s.transition === null && !s.back && !s.leftover, s);
+
+  test("<Build effect> is hidden before its step", (await style("#built", "visibility")) === "hidden");
+  await key("ArrowRight", 200);
+  test(
+    "<Build effect> plays the team's effect on its step",
+    (await style("#built", "visibility")) === "visible" && (await style("#built", "animation-name")) === "verify-swoop",
+  );
+  const brand = "rgb(122, 60, 255)";
+  test("a token in the team's styles.css becomes a utility", (await style("#token", "background-color", false)) === brand);
+  test(
+    "a utility in the team's styles.css applies, built from the kit's",
+    (await style("#badge", "outline-color", false)) === brand && (await style("#badge", "font-size", false)) === "26px",
+  );
+
+  await key("ArrowRight", DURING);
+  s = await state();
+  if (animated) {
+    test(
+      "a slide's own transition replaces the deck's",
+      s.transition === "fade" && s.running.some((r) => r.startsWith("fade-in new normal")),
+      s,
+    );
+    test("an element with the same viewTransitionName on both slides moves between them", s.carried, s);
+  }
+  await page.waitForTimeout(settle);
+  await key("ArrowLeft", DURING);
+  s = await state();
+  if (animated)
+    test(
+      "going back plays the same transition the other way round",
+      s.transition === "fade" &&
+        s.back &&
+        s.running.some((r) => r.startsWith("fade-out new reverse")) &&
+        s.running.some((r) => r.startsWith("fade-in old reverse")),
+      s,
+    );
+  await page.waitForTimeout(settle);
+  test("← lands on the slide before, every step shown", (await state()).slide === "two" && (await state()).build === "1", await state());
+
+  await go(3);
+  await key("ArrowRight", 150);
+  s = await state();
+  test('transition: "none" changes the slide at once', s.slide === "four" && s.transition === null && !s.running.length, s);
+
+  // Rapid keys: a move made while a transition is still waiting to apply must win.
+  await burst(["End", "Home", "End"]);
+  await page.waitForTimeout(settle);
+  s = await state();
+  test("End, Home, End in one frame lands on the last slide", s.slide === "five" && s.transition === null, s);
+  await burst(["Home", "4", "Enter"]);
+  await page.waitForTimeout(settle);
+  s = await state();
+  test("a jump without a transition, made during one, is where the deck ends up", s.slide === "four" && s.transition === null, s);
+
+  if (animated) {
+    await go(1);
+    await key("ArrowRight", DURING);
+    await page.mouse.click(1400, 450);
+    await page.waitForTimeout(settle);
+    s = await state();
+    test("a click during a transition still reaches the deck", s.slide === "two" && s.build === "1", s);
+  }
+
+  await go(2);
+  await key("g", 500);
+  const overview = await page.evaluate(() => {
+    const view = document.querySelector("[data-deck-mode=overview]")!;
+    return {
+      running: document.getAnimations().filter((a) => view.contains((a.effect as KeyframeEffect).target)).length,
+      built: getComputedStyle(view.querySelector("#built")!.parentElement!).visibility,
+    };
+  });
+  test("the overview shows the final state, nothing moving", overview.running === 0 && overview.built === "visible", overview);
+  await key("Escape", 200);
+  await key("p", 200);
+  const print = await page.evaluate(() => {
+    const of = (id: string) => getComputedStyle(document.querySelector(`.print-page ${id}`)!.parentElement!);
+    return { built: of("#built").visibility, opacity: of("#revealed").opacity, transform: of("#revealed").transform };
+  });
+  test("print shows the final state", print.built === "visible" && print.opacity === "1" && print.transform === "none", print);
+  test("no page errors", errors.length === 0, errors.join(" | "));
+  await ctx.close();
+}
+
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 for (const file of files) {
   deckName = file;
@@ -332,6 +507,17 @@ deckName = "verify-deck (fixture)";
 await selfContained(browser, fixture);
 await features(browser, fixture);
 rmSync(resolve(dist, ".verify"), { recursive: true, force: true });
+
+// The motion fixture, with the fixture library standing in for src/library.
+process.env.DECK = "verify-motion";
+process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/motion.tsx");
+process.env.LIBRARY_DIR = resolve(import.meta.dirname, "verify-deck/library");
+await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+const motionFixture = resolve(dist, ".verify-motion/index.html");
+deckName = "verify-deck/motion (fixture: effects, transitions and team CSS by name)";
+await selfContained(browser, motionFixture);
+for (const mode of MODES) await motion(browser, motionFixture, mode);
+rmSync(resolve(dist, ".verify-motion"), { recursive: true, force: true });
 await browser.close();
 
 let deck = "";

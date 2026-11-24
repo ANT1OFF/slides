@@ -119,7 +119,8 @@ title line), `--radius-box` 0, `--radius-mark` 2, `--rule` 2 (hairlines), `--rul
 
 `--ease-out` (the existing `--ease-out-expo` curve), `--ease-in-out`, `--duration-fast` 300 ms,
 `--duration-base` 600 ms, `--duration-slow` 900 ms, `--stagger` 90 ms, `--rise` 24 px. They are
-all zero under `prefers-reduced-motion`. Rules:
+all zero under `prefers-reduced-motion`. The built-in entrances, build steps and slide transitions
+read them, so a theme (or a deck's `vars`) changes a deck's pace by setting them. Rules:
 
 - One entrance per slide: blocks fade and rise by `--rise` in reading order, `--stagger` apart.
 - Data draws once, slowly: bars grow from the baseline, lines draw left to right, numbers count up.

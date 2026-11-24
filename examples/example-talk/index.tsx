@@ -21,6 +21,7 @@ const deck: DeckDefinition = {
   title: "Small PRs, fast teams",
   theme: "default", // examples pin their theme, so a team default doesn't change them
   scheme: "dark",
+  transition: "fade", // between slides; the three section dividers push in instead
   slides: [
     slide(
       <TitleSlide
@@ -63,7 +64,9 @@ const deck: DeckDefinition = {
       </Frame>,
       { notes: "Lines changed on the x axis. Past 200 lines, review time more than doubles." },
     ),
-    <SectionSlide number={1} of={3} title="The rule" subtitle="One line in the contributing guide, enforced by CI." />,
+    slide(<SectionSlide number={1} of={3} title="The rule" subtitle="One line in the contributing guide, enforced by CI." />, {
+      transition: "push",
+    }),
     slide(
       <Frame section="The rule" title="A check that fails above 200 lines">
         <Code title=".github/workflows/size.yml" highlight="1-3|5-9|all">{`
@@ -92,7 +95,7 @@ const deck: DeckDefinition = {
         ]}
       />
     </Frame>,
-    <SectionSlide number={2} of={3} title="What changed" />,
+    slide(<SectionSlide number={2} of={3} title="What changed" />, { transition: "push" }),
     <Frame section="What changed" title="One quarter later">
       <div className="my-auto">
         <StatRow
@@ -116,10 +119,13 @@ const deck: DeckDefinition = {
         ]}
       />
     </Frame>,
-    <QuoteSlide author="A senior engineer" role="in the retro">
-      I stopped dreading review requests. They take ten minutes now.
-    </QuoteSlide>,
-    <SectionSlide number={3} of={3} title="What we'd do differently" />,
+    slide(
+      <QuoteSlide author="A senior engineer" role="in the retro">
+        I stopped dreading review requests. They take ten minutes now.
+      </QuoteSlide>,
+      { transition: "zoom" },
+    ),
+    slide(<SectionSlide number={3} of={3} title="What we'd do differently" />, { transition: "push" }),
     <Frame section="Lessons" title="Three things we'd change">
       <Columns ratio={[3, 2]}>
         <ul className="flex flex-col gap-10 text-4xl leading-snug">

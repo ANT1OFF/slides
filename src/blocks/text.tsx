@@ -26,7 +26,7 @@ export function Bullets({
     <ul className="rule-bottom flex max-h-[620px] flex-1 flex-col">
       {items.map((item, i) => (
         <Build key={i} at={stepOf(build, i)} enabled={!!build} as="li" className="rule-top flex flex-1 flex-col justify-center">
-          <Reveal delay={build ? 0 : start + i * 90} className="grid grid-cols-[140px_1fr] items-baseline py-6">
+          <Reveal delay={build ? 0 : start} order={build ? 0 : i} className="grid grid-cols-[140px_1fr] items-baseline py-6">
             {marker === "number" ? (
               <span className="type-label text-[30px] tracking-[0.06em] text-accent-text">{String(i + 1).padStart(2, "0")}</span>
             ) : (
@@ -50,7 +50,7 @@ export function Agenda({ items, active, start = 200 }: { items: ReactNode[]; act
       {items.map((item, i) => {
         const dim = active !== undefined && active !== i;
         return (
-          <Reveal key={i} as="li" delay={start + i * 70} className="rule-top grid flex-1 grid-cols-[140px_1fr] items-center">
+          <Reveal key={i} as="li" delay={start} order={i} className="rule-top grid flex-1 grid-cols-[140px_1fr] items-center">
             <span className={`type-label text-[30px] tracking-[0.06em] ${dim ? "text-ink-2" : "text-accent-text"}`}>
               {String(i + 1).padStart(2, "0")}
             </span>

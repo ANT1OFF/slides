@@ -9,11 +9,11 @@ New decks borrow what fits, add what's missing, and give the reusable parts back
 The folders split into what you own and what comes from this repo upstream. Upstream never changes
 your folders, so pulling its updates doesn't conflict with your work.
 
-| Owned by                 | Paths                                                                                                                                                                                                                       | Rule                                                                                               |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **You** (your team)      | `src/decks/` (except `showcase/`), `src/library/` (slides, blocks, data, assets, `settings.json`, `AGENTS.md`), `src/themes/<yours>/`                                                                                       | Change freely. Upstream never touches these.                                                       |
-| **Upstream** (this repo) | `src/core/`, `src/blocks/`, `src/decks/showcase/`, `src/themes/{default,editorial,signal,acme}/`, `examples/`, `scripts/`, `vite/`, `docs/`, `.claude/skills/`, `.agents/skills/`, `AGENTS.md`, `README.md`, `CHANGELOG.md` | Don't edit; `npm run upgrade` replaces them. Fix things for everyone with a pull request upstream. |
-| Shared                   | `package.json`, `tsconfig.json`, `vite.config.ts`                                                                                                                                                                           | Edit only when you must (e.g. adding a dependency); expect small merges.                           |
+| Owned by                 | Paths                                                                                                                                                                                                                                                                                                                                                                                                  | Rule                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| **You** (your team)      | `src/decks/` (except `showcase/`; `_starter/` is the deck `npm run new` copies), `src/library/` (slides, blocks, `motion/`, `styles.css`, data, assets, `settings.json`, `AGENTS.md`), `src/themes/<yours>/`                                                                                                                                                                                           | Change freely. Upstream ships a few starters there and never touches them again.                   |
+| **Upstream** (this repo) | `src/core/`, `src/blocks/`, `src/decks/showcase/`, `src/themes/{default,editorial,signal,acme}/`, `src/main.tsx`, `src/styles.css`, `src/gallery.tsx`, `src/library-view.tsx`, `src/virtual-deck.d.ts`, `index.html`, `examples/`, `scripts/`, `vite/`, `docs/`, `.github/`, `.claude/skills/`, `.agents/skills/`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE` | Don't edit; `npm run upgrade` replaces them. Fix things for everyone with a pull request upstream. |
+| Shared                   | `package.json`, `package-lock.json`, `tsconfig.json`, `vite.config.ts`, `.gitignore`, `.prettierrc`, `.prettierignore`                                                                                                                                                                                                                                                                                 | Edit only when you must (e.g. adding a dependency); expect small merges.                           |
 
 ## The lifecycle
 
@@ -43,6 +43,10 @@ upstream's.
 
 Write your house rules for agents (tone, naming, which theme, where data comes from) in
 `src/library/AGENTS.md`; agents read it after the root `AGENTS.md`.
+
+Then make new decks start your way: edit `src/decks/_starter/`, the deck `npm run new` copies. Give
+it your theme, your opening and closing slides (`...openingSlides()`), and a `transition` if your
+decks use one.
 
 ### 3. Build decks from the library
 
@@ -83,7 +87,12 @@ weekly metrics slide), move it into the library and make its content props:
 | A slide set   | same file                           | Export a function whose name ends in `Slides` (`openingSlides(opts)`) returning an array of slides; decks spread it. |
 | A block       | `src/library/blocks/<Name>.tsx`     | Follow [making-a-block.md](making-a-block.md): tokens only, `type-*` roles, `start` and `build` props.               |
 | Data          | `src/library/data/<name>.data.json` | With its provenance; see "Data that can be refreshed" below.                                                         |
+| An animation  | `src/library/motion/<name>.css`     | One file per entrance effect or slide transition, used by name. See [extending.md](extending.md).                    |
+| A CSS utility | `src/library/styles.css`            | Team-wide tokens (`@theme`) and utility classes (`@utility`).                                                        |
 | Images, logos | `src/library/assets/`               | Imported where they're used, so the build inlines them.                                                              |
+
+A whole-slide layout is a block too (`src/library/blocks/SplitFrame.tsx` is an example).
+[extending.md](extending.md) lists every kind of thing you can add and where it goes.
 
 The dev front page finds them from these folders: every component in `src/library/slides/` appears in
 the library view with its default props, so give every prop a sensible default.

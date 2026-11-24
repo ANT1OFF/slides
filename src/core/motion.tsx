@@ -1,12 +1,20 @@
 import { useEffect, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { useStatic } from "./context.ts";
 
-type Effect = "rise" | "fade" | "pop";
+/**
+ * An entrance effect by name: a built-in one, or the class of one of your own, from a file in
+ * src/library/motion or any CSS the deck imports.
+ */
+export type Effect = "rise" | "fade" | "pop" | (string & {});
 
-/** Plays an entrance effect when the slide mounts, after `delay` ms. */
+/**
+ * Plays an entrance effect when the slide mounts, after `delay` ms. In a list, give each item its
+ * `order` (0, 1, 2 …) to start it one `--stagger` after the item before.
+ */
 export function Reveal({
   children,
   delay = 0,
+  order = 0,
   effect = "rise",
   as: Tag = "div",
   className = "",
@@ -14,13 +22,14 @@ export function Reveal({
 }: {
   children: ReactNode;
   delay?: number;
+  order?: number;
   effect?: Effect;
   as?: ElementType;
   className?: string;
   style?: CSSProperties;
 }) {
   return (
-    <Tag className={`${effect} ${className}`} style={{ ...style, "--d": `${delay}ms` } as CSSProperties}>
+    <Tag className={`${effect} ${className}`} style={{ ...style, ...stagger(order, delay) }}>
       {children}
     </Tag>
   );
@@ -29,6 +38,11 @@ export function Reveal({
 /** Style helper for staggering SVG elements and other animated classes. */
 export function delay(ms: number): CSSProperties {
   return { "--d": `${ms}ms` } as CSSProperties;
+}
+
+/** Like `delay`, for item `i` of a list: `start` ms, then one `--stagger` (a theme token) per item. */
+export function stagger(i: number, start = 0): CSSProperties {
+  return { "--d": i ? `calc(${start}ms + ${i} * var(--stagger))` : `${start}ms` } as CSSProperties;
 }
 
 /** Style for a steady-state loop class: starts after `ms`, repeats every `period` seconds. */

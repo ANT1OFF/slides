@@ -1,6 +1,10 @@
-// npm run new <name>  →  creates src/decks/<name>/index.tsx from a short starter deck.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+// npm run new <name>  →  creates src/decks/<name>/ as a copy of the starter deck, src/decks/_starter/,
+// with the new deck's title in place of "New deck". The starter is the team's to change.
+import { cpSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { format, resolveConfig } from "prettier";
+
+const STARTER = "src/decks/_starter";
+const PLACEHOLDER = "New deck";
 
 const name = process.argv[2];
 if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) {
@@ -13,41 +17,23 @@ if (existsSync(dir)) {
   console.error(`${dir} already exists`);
   process.exit(1);
 }
+if (!existsSync(`${STARTER}/index.tsx`)) {
+  console.error(
+    `${STARTER}/index.tsx is missing: it is the deck new decks are copied from. Restore it (git checkout -- ${STARTER}) or write one.`,
+  );
+  process.exit(1);
+}
 
 const title = name.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
 
-mkdirSync(dir, { recursive: true });
-writeFileSync(
-  `${dir}/index.tsx`,
-  `import { slide, type DeckDefinition } from "@core";
-import { Bullets, EndSlide, Frame, SectionSlide, StatementSlide, TitleSlide } from "@blocks";
-
-// A deck is a title and a list of slides. Each slide is JSX; wrap it in slide() to add notes.
-// Every block is in src/blocks; see them all with: npm run dev, then open the showcase deck.
-const deck: DeckDefinition = {
-  title: "${title}",
-  // theme: "editorial",   ← a folder in src/themes; scheme: "dark" for its dark colours
-  slides: [
-    slide(<TitleSlide kicker="Kicker" title="${title}" subtitle="A one-line promise for the talk." byline="Your name · Event" date="Date" />, {
-      notes: "Speaker notes show in the presenter window: press N.",
-    }),
-    <SectionSlide number={1} of={2} title="The first part" />,
-    <Frame section="The first part" title="A title that states the point">
-      <Bullets build items={["Each item appears on the next press of →", "Use any block from @blocks", "Or plain JSX with Tailwind classes"]} />
-    </Frame>,
-    <StatementSlide>
-      One idea per slide. <em>Make it big.</em>
-    </StatementSlide>,
-    <EndSlide subtitle="Questions?" />,
-  ],
-};
-
-export default deck;
-`,
-);
-// Format it like the rest of the repo, so `npm run check` passes on a fresh deck.
+cpSync(STARTER, dir, { recursive: true });
 const file = `${dir}/index.tsx`;
-writeFileSync(file, await format(readFileSync(file, "utf8"), { ...(await resolveConfig(file)), filepath: file }));
+// Drop the starter's own header comment (everything above the first import), then set the title.
+const source = readFileSync(file, "utf8")
+  .replace(/^(?:\/\/.*\n)+(?=import )/, "")
+  .replaceAll(PLACEHOLDER, title);
+// Format it like the rest of the repo, so `npm run check` passes on a fresh deck.
+writeFileSync(file, await format(source, { ...(await resolveConfig(file)), filepath: file }));
 
 console.log(`Created ${file}
 

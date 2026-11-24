@@ -1,0 +1,16 @@
+/*
+ * An entrance effect of your own. The file is found by the build; the class is the effect's name:
+ *   <Reveal effect="swoop">   <Build at={1} effect="swoop">   <g className="swoop" style={delay(300)}>
+ * The keyframes only say where it comes from: the element's own style is the final state, which is
+ * what print, the overview and reduced motion show. Use the motion tokens so themes can tune it.
+ */
+@keyframes swoop {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--rise) * -5)) rotate(-3deg);
+  }
+}
+.swoop {
+  animation: swoop var(--duration-slow) var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+}

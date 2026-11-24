@@ -1,0 +1,18 @@
+/*
+ * Your team's own CSS: tokens, utilities and rules for every deck. This file is yours.
+ * It is part of the kit's stylesheet (src/styles.css imports it last), so Tailwind's @theme,
+ * @utility and @apply work here and anything above can be overridden. Keep the file, even if empty.
+ *
+ * - A token of your own, which also gives you its utilities (bg-brand-2, text-brand-2 …):
+ *     @theme {
+ *       --color-brand-2: #7a3cff;
+ *     }
+ * - A utility of your own, built from the kit's: the example below.
+ * - CSS for one deck only goes in a file in that deck's folder instead: import "./deck.css".
+ * - Animations go in src/library/motion/, one file per effect or transition.
+ */
+
+/* An example, used by blocks/SplitFrame.tsx: a small filled label. Change or delete it. */
+@utility team-badge {
+  @apply type-label rounded-box bg-accent px-4 py-2 text-on-accent;
+}
