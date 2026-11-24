@@ -1,4 +1,4 @@
-// Example: a 20-minute conference talk, in the default theme, dark scheme. All content is invented.
+// Example: a 20-minute conference talk, in the signal theme, dark scheme. All content is invented.
 import { slide, type DeckDefinition } from "@core";
 import {
   Agenda,
@@ -19,7 +19,7 @@ import {
 
 const deck: DeckDefinition = {
   title: "Small PRs, fast teams",
-  theme: "default", // examples pin their theme, so a team default doesn't change them
+  theme: "signal", // examples pin their theme, so a team default doesn't change them
   scheme: "dark",
   transition: "fade", // between slides; the three section dividers push in instead
   slides: [
