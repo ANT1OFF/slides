@@ -1,0 +1,31 @@
+{
+  // Bug-catching rules only; Prettier owns formatting. Rules adapted from cloudflare/oxlint-config
+  // and dmmulroy/anti-slop (both need no type information). `npm run lint`, part of `npm run check`.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "import"],
+  "categories": { "correctness": "error" },
+  "env": { "browser": true, "node": true, "es2024": true },
+  // Team-owned paths are skipped so an upgrade never fails on a team's own code (the showcase is upstream's).
+  "ignorePatterns": ["dist/**", "examples/html/**", "src/library/**", "src/decks/**", "!src/decks/showcase/**"],
+  "rules": {
+    // React 17+ JSX transform: no React import needed.
+    "react/react-in-jsx-scope": "off",
+    // A deck's `slides: [<A />, <B />]` is data the engine keys itself, not rendered children.
+    "react/jsx-key": "off",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "eqeqeq": ["error", "smart"],
+    "no-eval": "error",
+    "no-promise-executor-return": "error",
+    "import/no-self-import": "error",
+    "import/no-cycle": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-empty-interface": "error",
+    // `import("…")` types are how an ambient module declaration (virtual-deck.d.ts) names a type.
+    "typescript/consistent-type-imports": ["error", { "disallowTypeAnnotations": false }],
+    "typescript/no-confusing-non-null-assertion": "error",
+    "unicorn/prefer-set-has": "error",
+    "oxc/no-accumulating-spread": "error"
+  }
+}

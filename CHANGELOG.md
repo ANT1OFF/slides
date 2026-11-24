@@ -27,11 +27,12 @@ First public version.
   you'll add most. See [docs/extending.md](docs/extending.md).
 - **Refreshable data:** `*.data.json` files with their source, `asOf()` for the footer, and
   `npm run refresh`.
-- **Checks:** `npm run check` (format, layer boundaries, types, every deck builds, examples up to
+- **Checks:** `npm run check` (format, lint, layer boundaries, types, every deck builds, examples up to
   date), `npm run verify` (every deck offline in Chrome, every key), and `npm run upgrade` (merge
   upstream on a branch, then both).
 - The showcase gives DotGrid more room and uses taller Node cards.
 - Verify checks that the build refuses a remote image and a missing font file.
+- `npm run lint` runs oxlint (bug-catching rules only; formatting stays with Prettier) on upstream's code, and `npm run check` runs it. It skips `src/library/` and your decks, so it never fails on team code.
 - Spectrum accepts a build offset. With `build={0}`, the first tier starts visible.
 - View Transition sequencing lives in its own module, with the same slide navigation.
 - The README is shorter and keeps the sharing warning in one place.

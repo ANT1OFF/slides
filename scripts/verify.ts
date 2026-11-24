@@ -97,7 +97,12 @@ async function selfContained(browser: Browser, file: string) {
     const media = [...document.querySelectorAll<HTMLMediaElement>("video, audio")];
     await Promise.all(
       media.map((m) =>
-        m.readyState >= 2 ? null : new Promise((r) => (m.addEventListener("loadeddata", r, { once: true }), setTimeout(r, 3000))),
+        m.readyState >= 2
+          ? null
+          : new Promise((r) => {
+              m.addEventListener("loadeddata", r, { once: true });
+              setTimeout(r, 3000);
+            }),
       ),
     );
     return {

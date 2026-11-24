@@ -120,7 +120,7 @@ Commit the deck and the promoted pieces on a branch and open a pull request to y
 Before you do:
 
 ```bash
-npm run check    # formatting, types, every deck builds
+npm run check    # formatting, lint, types, every deck builds
 npm run verify   # every deck offline in Chrome: fonts, media, notices, every key
 ```
 
