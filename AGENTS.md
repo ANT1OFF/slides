@@ -65,7 +65,8 @@ team-wide CSS in `src/library/styles.css`, never into `src/styles.css`; animatio
 7. **Check before committing:** `npm run format`, then `npm run check` (format, types, every deck builds; the build fails on
    remote or un-inlined assets, so fix the import rather than the check), then `npm run verify` (every
    deck offline in Chrome: fonts, media, licence notices, overflow, every key). Both must pass. Then
-   look at the slides: `npm run dev`, open the deck, press G.
+   look at the slides: `npm run dev`, open the deck, press G. To hand someone a PDF: `npm run pdf <deck>`
+   writes `dist/<deck>.pdf` (one page per visible slide, final state; offline, needs Chrome or `CHROME_PATH`).
 
 ## Data: provenance and refresh
 
@@ -126,4 +127,5 @@ Give every image and video a meaningful `alt` or caption.
   the library view); every new built-in block has a showcase slide and a row in the README's table.
 - No upstream file changed for a team's own need: check `git status` against "Who owns what".
 - Every real-world number has a `*.data.json` with its `source`, `how` and `updated`.
+- If a PDF was asked for, `npm run pdf <deck>` ran and you looked at a page or two of `dist/<deck>.pdf`.
 - You looked at every slide you changed, in the overview (G), in the deck's theme and scheme.

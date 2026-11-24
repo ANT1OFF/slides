@@ -1,6 +1,6 @@
 ---
 name: slides
-description: Make, change or refresh presentations in this repo (React slides built into one self-contained HTML file per deck). Use for "make a deck/slides/presentation", reusing or promoting slides and blocks in the team library, making a team theme, layout, style, animation or slide transition, refreshing a deck's data, or checking a deck before committing.
+description: Make, change or refresh presentations in this repo (React slides built into one self-contained HTML file per deck). Use for "make a deck/slides/presentation", reusing or promoting slides and blocks in the team library, making a team theme, layout, style, animation or slide transition, refreshing a deck's data, exporting a deck to PDF, or checking a deck before committing.
 ---
 
 # Slides
@@ -56,6 +56,15 @@ Each is a file in a team folder, used by name or import; never edit `src/core/`,
 
 Follow AGENTS.md "Data: provenance and refresh": `npm run refresh <deck>` (plus `--shared` for library data), follow `how` for agent
 sources, ask the user for manual ones, update `updated`, rebuild.
+
+## Export a PDF
+
+1. `npm run check` and `npm run verify` first, so the deck is sound.
+2. `npm run pdf <deck>` (no name: every deck). It builds the deck if needed and writes
+   `dist/<deck>.pdf`: one 1920×1080 page per visible slide, final state, no animation, offline.
+3. Look at a page or two (e.g. `pdftoppm -png -r 50 -f 1 -l 1 dist/<deck>.pdf /tmp/page`, or open it).
+   Hidden slides and speaker notes aren't included. No Chrome found: set `CHROME_PATH`.
+   `dist/` is gitignored; don't commit the PDF.
 
 ## Check and verify (before every commit)
 
