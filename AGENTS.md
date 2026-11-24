@@ -94,7 +94,9 @@ Give every image and video a meaningful `alt` or caption.
   (`text-ink`, `text-ink-2`, `bg-accent`, `text-accent-text` …), or the deck won't follow its theme.
 - **No looping animation on content slides**; loops only on diagrams where motion is the point.
 - Don't edit `src/core/` to change how one deck looks; use a block, a theme or deck `vars`.
-- Don't commit `dist/`.
+- Don't commit `dist/`. The one exception is `examples/html/` (the built example decks and the
+  showcase): after changing a block, a theme, `src/styles.css` or an example, run
+  `npm run build:examples` and commit the result. `npm run check` fails if it is stale.
 
 ## Before you finish
 

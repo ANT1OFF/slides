@@ -2,6 +2,9 @@
 @import "./themes/default/theme.css";
 @import "./core/motion.css";
 
+/* The committed example HTML is build output: scanning it would feed old classes back into new builds. */
+@source not "../examples/html";
+
 /*
  * Register the tokens with Tailwind so it generates utilities (bg-canvas, text-ink-2, font-display,
  * text-title, rounded-box …). `reference` emits no CSS: the values above, which change per scheme
