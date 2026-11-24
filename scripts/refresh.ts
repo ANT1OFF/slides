@@ -7,7 +7,7 @@
 // and flags anything older than its `staleAfter` days (default 180). Nothing here runs at deck time:
 // the build bakes the values into the HTML. `how` is run as a shell command, so review it like code.
 import { execSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import type { DataFile } from "../src/core/data.ts";
 import { deckDir, listDecks } from "../vite.config.ts";

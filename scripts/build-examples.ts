@@ -8,7 +8,7 @@
 // library, Tailwind reading only the engine, the blocks and the deck). So the check holds in a team's
 // copy too: nothing in src/library, the team's decks or its themes changes these bytes.
 // Team decks are not touched: they build to dist/, which stays untracked.
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";

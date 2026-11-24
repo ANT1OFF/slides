@@ -1,4 +1,5 @@
-import { useContext, useEffect, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { useContext, useEffect } from "react";
+import type { CSSProperties, ElementType, ReactNode } from "react";
 import { StepContext } from "./context.ts";
 import type { Effect } from "./motion.tsx";
 

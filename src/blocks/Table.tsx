@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Build, Reveal } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 /**
  * A clean data table. Numeric columns are right-aligned; `highlight` emphasises a row (0-based);

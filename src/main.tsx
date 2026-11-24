@@ -6,7 +6,8 @@ import "virtual:library";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import defaultDeck from "virtual:deck";
-import { Deck, Presenter, isPresenter, type DeckDefinition } from "@core";
+import { Deck, Presenter, isPresenter } from "@core";
+import type { DeckDefinition } from "@core";
 import settings from "@library/settings.json";
 
 // A build contains only the one deck `virtual:deck` points at, and only its theme (virtual:themes).

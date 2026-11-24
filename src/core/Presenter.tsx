@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { DisplayContext, StepContext, type Display } from "./context.ts";
+import { DisplayContext, StepContext } from "./context.ts";
+import type { Display } from "./context.ts";
 import { Stage, fitScale, useWindowSize } from "./Stage.tsx";
-import { isMessage, postTarget, sameOrigin, type Message, type Position } from "./sync.ts";
+import { isMessage, postTarget, sameOrigin } from "./sync.ts";
+import type { Message, Position } from "./sync.ts";
 import { DeckContext, deckLook } from "./theme.ts";
-import { entries, slideLabel, slideNumber, slideTags, type DeckDefinition } from "./types.ts";
+import { entries, slideLabel, slideNumber, slideTags } from "./types.ts";
+import type { DeckDefinition } from "./types.ts";
 
 // The deck window that opened us; a parent page also works, e.g. when embedded for testing.
 const peer = (): Window | null => window.opener ?? (window.parent !== window ? window.parent : null);

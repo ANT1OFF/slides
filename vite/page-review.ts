@@ -3,7 +3,8 @@
 import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import MagicString from "magic-string";
-import { parseSync, Visitor, type Plugin } from "vite";
+import { Visitor, parseSync } from "vite";
+import type { Plugin } from "vite";
 
 const root = fileURLToPath(new URL("..", import.meta.url)).replaceAll("\\", "/");
 const own = (id: string) =>

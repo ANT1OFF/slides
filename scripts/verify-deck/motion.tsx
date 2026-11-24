@@ -1,6 +1,7 @@
 // The deck `npm run verify` checks motion on, built with scripts/verify-deck/library as the team
 // library: its effect, its transition and its styles.css must be picked up by name.
-import { Build, Reveal, slide, type DeckDefinition } from "@core";
+import { Build, Reveal, slide } from "@core";
+import type { DeckDefinition } from "@core";
 import { Frame, TitleSlide } from "@blocks";
 import { motion } from "virtual:library";
 

@@ -1,4 +1,5 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
 import type { DeckDefinition } from "./types.ts";
 
 /** How a deck looks: its theme folder, scheme and the per-deck overrides. Read by Stage and the blocks. */

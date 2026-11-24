@@ -1,7 +1,8 @@
 // Text blocks for inside a Frame.
 import type { ReactNode } from "react";
 import { Build, Reveal } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 type Item = ReactNode | { title: ReactNode; detail?: ReactNode };
 const isRich = (item: Item): item is { title: ReactNode; detail?: ReactNode } =>

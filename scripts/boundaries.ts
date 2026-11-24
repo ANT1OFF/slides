@@ -5,7 +5,7 @@
 // Also checks the two copies of the project skill match, and, in upstream's own repo, that a change
 // leaves the team-owned paths alone. Part of `npm run check`.
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
 import { teamPaths } from "./team-paths.ts";

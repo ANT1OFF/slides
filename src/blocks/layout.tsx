@@ -1,7 +1,9 @@
 // Layout blocks for inside a Frame: columns, card grids and side-by-side comparisons.
-import { Children, type ReactNode } from "react";
+import { Children } from "react";
+import type { ReactNode } from "react";
 import { Build, Reveal } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 /**
  * Two or more columns side by side, centred against each other. `ratio` sets their widths, e.g.

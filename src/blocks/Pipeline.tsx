@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Build, Pulse, Reveal, Traveller, delay } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 export interface Step {
   title: ReactNode;

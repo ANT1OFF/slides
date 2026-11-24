@@ -2,7 +2,7 @@
 // A build includes only the theme its deck names (plus the default), so one theme's fonts never
 // end up in another theme's deck. The dev server includes them all; their rules are scoped by
 // [data-theme], so only the chosen one applies.
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import type { Plugin } from "vite";
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Build, CountUp, Reveal, useDisplay } from "@core";
-import { stepOf, type BuildProp } from "./steps.ts";
+import { stepOf } from "./steps.ts";
+import type { BuildProp } from "./steps.ts";
 
 function formatLike(target: number) {
   const digits = Number.isInteger(target) ? 0 : (String(target).split(".")[1]?.length ?? 0);

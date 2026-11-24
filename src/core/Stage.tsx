@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { StaticContext } from "./context.ts";
 import { SlideNumberContext, useDeck } from "./theme.ts";
 

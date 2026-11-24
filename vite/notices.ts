@@ -2,7 +2,7 @@
 // (their licence files sit next to them: src/themes/<name>/fonts/*LICENSE*, or in the deck folder).
 // They go into the HTML as a text block at the top of <head> (<script type="text/plain" id="third-party-notices">),
 // so the single file carries them and no minifier strips them.
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 

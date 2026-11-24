@@ -3,7 +3,7 @@
 // if dist/<deck>.html is missing or older than the source; runs offline. Uses your Chrome (or
 // CHROME_PATH), else Playwright's Chromium (`npx playwright-core install chromium`).
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
 import { listDecks } from "../vite.config.ts";

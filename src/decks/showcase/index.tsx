@@ -2,7 +2,8 @@
 // Each slide's `id` is the block it shows, so you can find it in the overview (G).
 // In `npm run dev`, add &theme=editorial (or signal, acme) and &scheme=dark to the URL to see
 // every block in another theme.
-import { Build, Reveal, slide, type DeckDefinition } from "@core";
+import { Build, Reveal, slide } from "@core";
+import type { DeckDefinition } from "@core";
 import {
   Agenda,
   Arrow,

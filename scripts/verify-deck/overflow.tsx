@@ -1,6 +1,7 @@
 // The deck `npm run verify` checks its overflow check on: some slides fit, three don't, in the three
 // ways a slide can be too tall. It must report exactly those three, by id and slide number.
-import { slide, type DeckDefinition } from "@core";
+import { slide } from "@core";
+import type { DeckDefinition } from "@core";
 import { Footer, Frame, FrameBody, Slide, SlideHeader } from "@blocks";
 
 /** Too much for one slide: a block taller than any body. */

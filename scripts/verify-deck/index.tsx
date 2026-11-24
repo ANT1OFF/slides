@@ -1,7 +1,8 @@
 // The deck `npm run verify` presses keys on. It is not a deck of its own (it lives outside src/decks)
 // so the showcase and the examples can change freely. Each slide has an id the checks look up.
 import { useState } from "react";
-import { slide, useDeckKey, useDeckNav, type DeckDefinition } from "@core";
+import { slide, useDeckKey, useDeckNav } from "@core";
+import type { DeckDefinition } from "@core";
 import { Bullets, Code, EndSlide, Flow, Frame, Spectrum, Stat, TitleSlide, tokenize } from "@blocks";
 
 /** A presenter extra as a team would write one: it reads the deck's position and adds two keys. */

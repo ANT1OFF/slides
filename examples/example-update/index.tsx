@@ -1,5 +1,6 @@
 // Example: a quarterly team update, in the editorial theme. All content is invented.
-import { asOf, slide, type DeckDefinition } from "@core";
+import { asOf, slide } from "@core";
+import type { DeckDefinition } from "@core";
 import {
   Bullets,
   Callout,

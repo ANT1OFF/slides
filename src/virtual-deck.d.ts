@@ -2,7 +2,9 @@
 declare const __DECK__: string;
 
 declare module "virtual:deck" {
-  const deck: import("./core/types.ts").DeckDefinition;
+  import type { DeckDefinition } from "./core/types.ts";
+
+  const deck: DeckDefinition;
   export default deck;
 }
 

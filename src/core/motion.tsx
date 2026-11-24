@@ -1,4 +1,5 @@
-import { useEffect, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties, ElementType, ReactNode } from "react";
 import { useStatic } from "./context.ts";
 
 /**

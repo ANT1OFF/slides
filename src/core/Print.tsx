@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Stage } from "./Stage.tsx";
-import { slideNumber, slideTags, type DeckSlide } from "./types.ts";
+import { slideNumber, slideTags } from "./types.ts";
+import type { DeckSlide } from "./types.ts";
 
 /**
  * Every visible slide on its own 1920×1080 page in its final state, then the print dialog.

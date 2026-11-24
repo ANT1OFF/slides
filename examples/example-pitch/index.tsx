@@ -1,5 +1,6 @@
 // Example: a short product pitch, in the acme example theme. The product and all numbers are invented.
-import { asOf, slide, type DeckDefinition } from "@core";
+import { asOf, slide } from "@core";
+import type { DeckDefinition } from "@core";
 import {
   Cards,
   Columns,
@@ -9,8 +10,8 @@ import {
   Frame,
   Pipeline,
   QuoteSlide,
-  Stat,
   StackedArea,
+  Stat,
   StatementSlide,
   Table,
   Timeline,

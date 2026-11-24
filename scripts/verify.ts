@@ -7,10 +7,11 @@
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
 // (`npx playwright-core install chromium`).
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
+import { chromium } from "playwright-core";
+import type { Browser, BrowserContext, Page } from "playwright-core";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";
 import { deckTheme } from "../vite/themes.ts";

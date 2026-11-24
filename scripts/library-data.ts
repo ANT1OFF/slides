@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
-import { parseSync, resolveConfig, Visitor } from "vite";
+import { Visitor, parseSync, resolveConfig } from "vite";
 
 /** Find library data referred to by the deck's local module graph, without loading its code. */
 export async function libraryData(entry: string, root: string, library: string): Promise<Array<string>> {

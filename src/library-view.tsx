@@ -5,8 +5,10 @@
 //   src/library/blocks/*.tsx   a file's `example` export: an element, shown inside a Frame, or a
 //                              slide() for a block that fills the slide itself (a layout)
 //   src/library/motion/*.css   one slide per entrance effect and per slide transition
-import { Component, isValidElement, type ReactNode } from "react";
-import { Build, Reveal, slide, type DeckDefinition, type SlideEntry, type SlideInput } from "@core";
+import { Component, isValidElement } from "react";
+import type { ReactNode } from "react";
+import { Build, Reveal, slide } from "@core";
+import type { DeckDefinition, SlideEntry, SlideInput } from "@core";
 import { Frame, Lead } from "@blocks";
 import { motion } from "virtual:library";
 

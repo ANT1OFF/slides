@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Stage, STAGE_WIDTH, useWindowSize } from "./Stage.tsx";
-import { slideLabel, slideNumber, slideTags, type DeckSlide } from "./types.ts";
+import { STAGE_WIDTH, Stage, useWindowSize } from "./Stage.tsx";
+import { slideLabel, slideNumber, slideTags } from "./types.ts";
+import type { DeckSlide } from "./types.ts";
 
 const COLUMNS = 5;
 const GAP = 24;

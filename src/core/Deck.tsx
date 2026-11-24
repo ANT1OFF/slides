@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { DisplayContext, StepContext, type Display } from "./context.ts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { DisplayContext, StepContext } from "./context.ts";
+import type { Display } from "./context.ts";
 import { Overview } from "./Overview.tsx";
 import { Print } from "./Print.tsx";
 import { Stage, fitScale, useWindowSize } from "./Stage.tsx";
-import { isMessage, postTarget, presenterUrl, sameOrigin, type Message, type Position } from "./sync.ts";
+import { isMessage, postTarget, presenterUrl, sameOrigin } from "./sync.ts";
+import type { Message, Position } from "./sync.ts";
 import { Help } from "./Help.tsx";
-import { KeysContext, NavContext, type DeckKey, type DeckNav } from "./nav.ts";
+import { KeysContext, NavContext } from "./nav.ts";
+import type { DeckKey, DeckNav } from "./nav.ts";
 import { DeckContext, deckLook } from "./theme.ts";
 import { useSlideTransition } from "./transition.ts";
-import { entries, slideLabel, slideNumber, slideTags, type DeckDefinition } from "./types.ts";
+import { entries, slideLabel, slideNumber, slideTags } from "./types.ts";
+import type { DeckDefinition } from "./types.ts";
 
 function indexFromHash(count: number): number {
   const n = Number.parseInt(window.location.hash.slice(1), 10);

@@ -1,4 +1,5 @@
-import { isValidElement, type ReactNode } from "react";
+import { isValidElement } from "react";
+import type { ReactNode } from "react";
 
 export interface SlideOptions {
   /** Stable name for the slide, kept when slides move; defaults to its component's name. */

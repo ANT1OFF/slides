@@ -1,5 +1,6 @@
 // Example: a 20-minute conference talk, in the signal theme, dark scheme. All content is invented.
-import { slide, type DeckDefinition } from "@core";
+import { slide } from "@core";
+import type { DeckDefinition } from "@core";
 import {
   Agenda,
   BarSeries,
@@ -12,8 +13,8 @@ import {
   Frame,
   QuoteSlide,
   SectionSlide,
-  StatementSlide,
   StatRow,
+  StatementSlide,
   TitleSlide,
 } from "@blocks";
 
