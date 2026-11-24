@@ -2,7 +2,7 @@
 // so the showcase and the examples can change freely. Each slide has an id the checks look up.
 import { useState } from "react";
 import { slide, useDeckKey, useDeckNav, type DeckDefinition } from "@core";
-import { Bullets, Code, EndSlide, Flow, Frame, Stat, TitleSlide, tokenize } from "@blocks";
+import { Bullets, Code, EndSlide, Flow, Frame, Spectrum, Stat, TitleSlide, tokenize } from "@blocks";
 
 /** A presenter extra as a team would write one: it reads the deck's position and adds two keys. */
 function Extras() {
@@ -71,6 +71,23 @@ const deck: DeckDefinition = {
         <Flow nodes={[{ title: "A" }, { title: "B" }, { title: "C" }]} />
       </Frame>,
       { id: "Flow" },
+    ),
+    ...[0, 3].map((build) =>
+      slide(
+        <Frame title="A spectrum with a build offset">
+          <Spectrum
+            build={build}
+            left="Manual"
+            right="Automatic"
+            tiers={[
+              { name: "A", rule: "First tier" },
+              { name: "B", rule: "Second tier" },
+            ]}
+            floor="Both tiers"
+          />
+        </Frame>,
+        { id: `Spectrum-${build}` },
+      ),
     ),
     slide(<Frame title="Before the hidden slide" />, { id: "before-hidden" }),
     slide(<Frame title="Hidden" />, { id: "hidden", hidden: true }),

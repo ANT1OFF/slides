@@ -178,6 +178,8 @@ async function features(browser: Browser, file: string) {
     code: await slideOf("Code"),
     tokenize: await slideOf("Tokenize"),
     stat: await slideOf("Stat"),
+    spectrumZero: await slideOf("Spectrum-0"),
+    spectrumDelayed: await slideOf("Spectrum-3"),
     hidden: await slideOf("hidden"),
     end: await slideOf("EndSlide"),
     total: await page.locator("[data-deck-mode=overview] [data-slide]").count(),
@@ -223,6 +225,27 @@ async function features(browser: Browser, file: string) {
   check("after the last step → next slide", (await slideNo()) === at.bullets + 1);
   await key("ArrowLeft");
   check("← back lands with every step shown", (await slideNo()) === at.bullets && (await build()) === 3);
+
+  for (const [start, slide] of [
+    [0, at.spectrumZero],
+    [3, at.spectrumDelayed],
+  ] as const) {
+    await go(slide);
+    const total = await builds();
+    const visible = () => page.locator(`${sel} .build-on`).count();
+    const seen = [await visible()];
+    for (let i = 1; i <= start + 2; i++) {
+      await key("ArrowRight");
+      seen.push(await visible());
+    }
+    // Each tier has a dot and a label on the same step, then the floor gets its own step.
+    const expected = [...Array<number>(start).fill(0), 2, 4, 5];
+    check(
+      `Spectrum build={${start}} sequences tiers and floor`,
+      total === start + 2 && (await slideNo()) === slide && seen.join() === expected.join(),
+      `build count ${total}; revealed elements by step: ${seen.join(", ")}`,
+    );
+  }
 
   await go(at.code);
   check("the URL hash opens a slide", (await slideNo()) === at.code);
