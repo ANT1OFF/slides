@@ -70,6 +70,7 @@ const deck: DeckDefinition = {
       <Columns ratio={[3, 2]}>
         <Pie
           size={460}
+          highlight={0}
           slices={[
             { name: "Chat", value: 58 },
             { name: "Email", value: 31 },

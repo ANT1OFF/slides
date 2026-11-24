@@ -22,7 +22,8 @@ function sector(c: number, r: number, inner: number, a0: number, a1: number): st
 
 /**
  * A pie (or a ring, with `ring`) revealed by one clockwise sweep from twelve o'clock, with the
- * values listed beside it in large type. Values are percentages of the whole.
+ * values listed beside it in large type. Values are percentages of the whole. With `highlight`,
+ * that slice takes the key colour and the rest are muted, the way `BarSeries` marks its key bar.
  */
 export function Pie({
   slices,
@@ -31,6 +32,7 @@ export function Pie({
   start = 300,
   legend = true,
   center,
+  highlight,
 }: {
   slices: Slice[];
   size?: number;
@@ -39,6 +41,8 @@ export function Pie({
   legend?: boolean;
   /** Shown in the hole of a ring. */
   center?: React.ReactNode;
+  /** The slice (0-based) to show in the key colour, with every other slice muted. */
+  highlight?: number;
 }) {
   const mask = useId();
   const c = size / 2;
@@ -47,6 +51,13 @@ export function Pie({
   const total = slices.reduce((s, x) => s + x.value, 0);
   const gap = slices.length > 1 ? 0.006 : 0;
   let angle = -Math.PI / 2;
+  // The muted slices step down in strength, so neighbours stay apart.
+  const look = (s: Slice, i: number) => {
+    if (highlight === undefined) return { fill: s.fill ?? series(i).fill, swatch: s.swatch ?? series(i).bg };
+    if (i === highlight) return { fill: "fill-chart-key", swatch: "bg-chart-key" };
+    const rest = i < highlight ? i : i - 1;
+    return { fill: "fill-muted", swatch: "bg-muted", opacity: 1 - (rest % 3) * 0.3 };
+  };
 
   return (
     <div className="flex items-center gap-20">
@@ -71,7 +82,8 @@ export function Pie({
               const sweep = (s.value / total) * Math.PI * 2;
               const path = sector(c, r, inner, angle + gap, angle + sweep - gap);
               angle += sweep;
-              return <path key={s.name} d={path} className={s.fill ?? series(i).fill} />;
+              const { fill, opacity } = look(s, i);
+              return <path key={s.name} d={path} className={fill} style={{ opacity }} />;
             })}
           </g>
         </svg>
@@ -85,7 +97,7 @@ export function Pie({
         <div className="flex flex-col gap-8">
           {slices.map((s, i) => (
             <Reveal key={s.name} delay={start + 400 + i * 220} className="flex items-start gap-5">
-              <span className={`mt-5 size-5 shrink-0 ${s.swatch ?? series(i).bg}`} />
+              <span className={`mt-5 size-5 shrink-0 ${look(s, i).swatch}`} style={{ opacity: look(s, i).opacity }} />
               <span>
                 <span className="type-stat block text-stat-sm">{s.value}%</span>
                 <span className="type-small block text-ink-2">{s.name}</span>
