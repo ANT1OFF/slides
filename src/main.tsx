@@ -7,7 +7,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import defaultDeck from "virtual:deck";
 import { Deck, Presenter, isPresenter, type DeckDefinition } from "@core";
-import settings from "./library/settings.json";
+import settings from "@library/settings.json";
 
 // A build contains only the one deck `virtual:deck` points at, and only its theme (virtual:themes).
 // The dev server shows a gallery of every deck, theme, block and library slide instead (gallery.tsx).

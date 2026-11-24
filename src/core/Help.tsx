@@ -1,4 +1,6 @@
-/** Every key the deck window understands. The ? overlay and the README both list these. */
+import type { DeckKey } from "./nav.ts";
+
+/** Every built-in key of the deck window. The ? overlay and the README both list these. */
 export const KEYS: [keys: string, does: string][] = [
   ["→  Space  ↓  PgDn  click right", "Next build step, then next slide"],
   ["←  ↑  PgUp  click left", "Previous build step, then previous slide"],
@@ -13,7 +15,13 @@ export const KEYS: [keys: string, does: string][] = [
   ["?", "This list"],
 ];
 
-export function Help({ onClose }: { onClose: () => void }) {
+/** The list of keys: the built-in ones, then the ones components added with useDeckKey(). */
+export function Help({ onClose, extra = [] }: { onClose: () => void; extra?: DeckKey[] }) {
+  // A key added twice (the same component on screen twice) is listed once.
+  const added = [...new Map(extra.map((k) => [k.key, k])).values()].map((k): [string, string] => [
+    k.key.length === 1 ? k.key.toUpperCase() : k.key,
+    k.does,
+  ]);
   return (
     <div className="fixed inset-0 grid place-items-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -22,7 +30,7 @@ export function Help({ onClose }: { onClose: () => void }) {
       >
         <div className="mb-5 font-mono text-xs tracking-[0.2em] text-neutral-400 uppercase">Keyboard</div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 text-base">
-          {KEYS.map(([keys, does]) => (
+          {[...KEYS, ...added].map(([keys, does]) => (
             <div key={keys} className="contents">
               <dt className="font-mono whitespace-pre text-neutral-300">{keys}</dt>
               <dd className="text-neutral-100">{does}</dd>

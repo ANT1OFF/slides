@@ -8,7 +8,7 @@ export { Audio, Video } from "./Media.tsx";
 
 // Text
 export { Agenda, Bullets, Callout, Quote } from "./text.tsx";
-export { Code } from "./Code.tsx";
+export { Code, tokenize } from "./Code.tsx";
 
 // Layout
 export { Cards, Columns, Compare, Lead, type CardItem, type CompareSide } from "./layout.tsx";

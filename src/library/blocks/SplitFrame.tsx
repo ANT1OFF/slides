@@ -1,8 +1,8 @@
 // src/library/blocks/SplitFrame.tsx: a layout of the team's own. A layout is a block that fills the
 // slide, built from the pieces Frame is made of (see docs/making-a-block.md, "Make your own layout").
 import type { ReactNode } from "react";
-import { Reveal } from "@core";
-import { Footer, Slide, SlideHeader } from "@blocks";
+import { Reveal, slide } from "@core";
+import { Footer, Lead, Slide, SlideHeader, Stat } from "@blocks";
 
 /** A slide with a fixed panel down the right side, on the theme's other scheme: the point on the left, the evidence on the right. */
 export function SplitFrame({
@@ -40,3 +40,15 @@ export function SplitFrame({
     </Slide>
   );
 }
+
+/** What the library view shows. A layout fills the slide itself, so its example is a `slide()`, shown as it is. */
+export const example = slide(
+  <SplitFrame
+    section="Layout"
+    title="The point on the left, the proof on the right"
+    badge="Side panel"
+    side={<Stat size="sm" to={42} suffix="%" label="a number" />}
+  >
+    <Lead>A layout is a block that fills the slide.</Lead>
+  </SplitFrame>,
+);

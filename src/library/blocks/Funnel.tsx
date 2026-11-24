@@ -29,3 +29,17 @@ export function Funnel({ stages, build, start = 200 }: { stages: FunnelStage[]; 
     </div>
   );
 }
+
+/**
+ * What the library view shows for this block (npm run dev → Library), and what `npm run verify`
+ * renders. Export an `example` from every block file: an element, shown inside a Frame.
+ */
+export const example = (
+  <Funnel
+    stages={[
+      { label: "Visited", value: 1200 },
+      { label: "Signed up", value: 640 },
+      { label: "Paid", value: 310 },
+    ]}
+  />
+);

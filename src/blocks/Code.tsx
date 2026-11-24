@@ -20,7 +20,12 @@ const RULES: [RegExp, string][] = [
   [/^[^\w\s]/, "tok-punct"],
 ];
 
-function tokenize(line: string): ReactNode[] {
+/**
+ * The built-in tokenizer: one line of source as coloured spans. The classes are the contract, and
+ * the theme colours them: `tok-kw`, `tok-string`, `tok-number`, `tok-type`, `tok-fn`, `tok-comment`,
+ * `tok-punct`. Pass your own `keywords` to reuse it for another language.
+ */
+export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS): ReactNode[] {
   const out: ReactNode[] = [];
   let rest = line;
   while (rest) {
@@ -28,7 +33,7 @@ function tokenize(line: string): ReactNode[] {
       const m = re.exec(rest);
       if (!m) continue;
       const text = m[0];
-      const kind = cls === "word" ? (KEYWORDS.has(text) ? "tok-kw" : /^[A-Z]/.test(text) ? "tok-type" : "") : cls;
+      const kind = cls === "word" ? (keywords.has(text) ? "tok-kw" : /^[A-Z]/.test(text) ? "tok-type" : "") : cls;
       out.push(
         kind ? (
           <span key={out.length} className={kind}>
@@ -65,6 +70,7 @@ function parseSteps(steps: string, count: number): Set<number>[] {
  * A code block on a surface panel, coloured from the theme's tokens (keywords, strings, comments,
  * function names). `highlight="2|5-6|all"` marks line ranges, one per press of → (as in reveal.js
  * and Slidev); the first range shows when the slide opens. Keep it under about 10 lines of 64 characters.
+ * `tokenize` swaps the highlighter: a function from a line to its spans (see `tokenize` above).
  */
 export function Code({
   children,
@@ -73,6 +79,7 @@ export function Code({
   highlight,
   numbers = true,
   start = 200,
+  tokenize: tokens = tokenize,
 }: {
   /** The source, usually a template literal. Common indentation and blank edge lines are removed. */
   children: string;
@@ -83,6 +90,8 @@ export function Code({
   highlight?: string;
   numbers?: boolean;
   start?: number;
+  /** Your own highlighter: one line in, its nodes out (spans with the `tok-*` classes). Defaults to the built-in one. */
+  tokenize?: (line: string) => ReactNode[];
 }) {
   const lines = children.replace(/^\s*\n|\n\s*$/g, "").split("\n");
   const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => l.match(/^ */)![0].length));
@@ -106,7 +115,7 @@ export function Code({
             ) : (
               <span className="w-(--pad-box) shrink-0" />
             )}
-            <code className="whitespace-pre">{line ? tokenize(line) : " "}</code>
+            <code className="whitespace-pre">{line ? tokens(line) : " "}</code>
           </div>
         ))}
       </pre>

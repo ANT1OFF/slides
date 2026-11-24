@@ -1,8 +1,10 @@
 // npm run verify  →  opens every built deck in dist/ in headless Chrome, from disk, with the network
 // blocked, and checks that it is self-contained. Then it builds its own fixture deck
 // (scripts/verify-deck) and checks every key and presenting feature on it, so decks can change freely.
-// Last, a second fixture (verify-deck/motion.tsx, with verify-deck/library as the team library) checks
+// A second fixture (verify-deck/motion.tsx, with verify-deck/library as the team library) checks
 // effects, slide transitions and team CSS in three modes: motion, reduced motion, no View Transitions.
+// The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
+// blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
 // (`npx playwright-core install chromium`).
 import { existsSync, readdirSync, rmSync } from "node:fs";
@@ -118,8 +120,12 @@ async function selfContained(browser: Browser, file: string) {
       .filter((b) => b.scrollHeight > b.clientHeight + 2)
       .map((b) => b.closest("[data-slide]")?.getAttribute("data-slide-id") ?? "?"),
   );
-  const broken = await page.locator("[data-deck-mode=overview] [data-broken]").count();
-  check("no broken library slides (every prop needs a default)", broken === 0, `${broken} broken`);
+  const broken = await page.$$eval("[data-deck-mode=overview] [data-broken]", (els) => els.map((e) => e.getAttribute("data-broken")));
+  check(
+    "nothing in the library is broken (slides need a default for every prop; a block's example must render)",
+    !broken.length,
+    broken.join(", "),
+  );
   check("every slide's content fits its Frame", overflowing.length === 0, `too tall: ${overflowing.join(", ")}`);
   // React's licence and a licence for every font file the deck can embed (the build lists them).
   const notices = (await page.locator("#third-party-notices").textContent()) ?? "";
@@ -161,6 +167,7 @@ async function features(browser: Browser, file: string) {
   const at = {
     bullets: await slideOf("Bullets"),
     code: await slideOf("Code"),
+    tokenize: await slideOf("Tokenize"),
     stat: await slideOf("Stat"),
     hidden: await slideOf("hidden"),
     end: await slideOf("EndSlide"),
@@ -169,6 +176,8 @@ async function features(browser: Browser, file: string) {
   await key("Escape", 200);
 
   check("opens on slide 1", (await slideNo()) === 1);
+  const extras = () => page.textContent("[data-deck-overlay] #extras");
+  check("the deck's overlay is drawn once, over the stage", (await page.locator("#extras").count()) === 1 && !!(await extras()));
   await key("ArrowRight");
   check("→ next slide", (await slideNo()) === 2);
   await key("ArrowLeft");
@@ -210,6 +219,42 @@ async function features(browser: Browser, file: string) {
   check("the URL hash opens a slide", (await slideNo()) === at.code);
   check("the URL hash follows the slide", (await page.evaluate(() => location.hash)) === `#${at.code}`);
   check("Code's highlight steps are counted", (await builds()) === 3);
+  await go(at.tokenize);
+  const kw = (id: string) => page.$$eval(`${sel} #${id} .tok-kw`, (els) => els.map((e) => e.textContent));
+  check("Code's tokenize prop replaces the highlighter", (await kw("own-tokens")).join() === "SHOUT", (await kw("own-tokens")).join());
+  check("the built-in tokenizer takes other keywords", (await kw("own-keywords")).join() === "select", (await kw("own-keywords")).join());
+
+  // Keys and extras of one's own: the fixture's overlay uses useDeckNav() and useDeckKey().
+  await go(at.bullets);
+  await key("ArrowRight");
+  check(
+    "useDeckNav() follows the slide and the build step",
+    (await extras()) === `slide ${at.bullets} of ${at.total}, step 1`,
+    String(await extras()),
+  );
+  await key("x", 300);
+  check("a key added with useDeckKey() runs (goto)", (await slideNo()) === 3);
+  await key("Shift+J", 300);
+  check("its letter works with Shift too, and nav() steps on", (await slideNo()) === 4);
+  await key("?", 200);
+  check(
+    "? lists the added keys after the built-in ones",
+    (await page.getByText("Fixture: jump to the third slide").isVisible()) && (await page.getByText("Blank the screen").isVisible()),
+  );
+  await key("x", 200);
+  check("an added key doesn't run while the list is open", (await slideNo()) === 4);
+  await key("Escape", 200);
+  await key("g", 300);
+  await key("x", 200);
+  await key("Escape", 200);
+  check("nor in the overview", (await slideNo()) === 4);
+  await key("b", 200);
+  check(
+    "a built-in key wins over an added one",
+    (await blanks()) === 1 && (await page.getAttribute("#extras", "data-taken")) === "0",
+    String(await page.getAttribute("#extras", "data-taken")),
+  );
+  await key("b", 200);
 
   await go(at.hidden - 1);
   for (let k = 0; k < 6 && (await slideNo()) === at.hidden - 1; k++) await key("ArrowRight");
@@ -292,6 +337,7 @@ async function features(browser: Browser, file: string) {
   await key("p", 100);
   const pages = await page.locator(".print-page").count();
   check("P puts every visible slide on its own page", pages === at.total - 1, `${pages} pages`);
+  check("the overlay is not printed", (await page.locator("[data-deck-overlay]").count()) === 0);
   await page.waitForTimeout(1500);
   check("P opens the print dialog", (await page.evaluate(() => (window as unknown as { __printed: number }).__printed)) === 1);
   check("back to the deck after printing", (await page.locator("[data-deck-mode=present]").count()) === 1);
@@ -485,6 +531,63 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await ctx.close();
 }
 
+/**
+ * The library view of the fixture library: block examples and motion get a slide each, and a block
+ * whose example can't render is reported by name.
+ */
+async function libraryView(browser: Browser, file: string) {
+  const { ctx } = await offline(browser);
+  const page = await ctx.newPage();
+  await page.goto(`file://${file}`);
+  await page.waitForTimeout(600);
+  await page.keyboard.press("g");
+  await page.waitForTimeout(600);
+  const view = await page.evaluate(() => {
+    const overview = document.querySelector("[data-deck-mode=overview]")!;
+    const slide = (id: string) => overview.querySelector(`[data-slide-id="${id}"]`);
+    return {
+      ids: [...overview.querySelectorAll("[data-slide-id]")].map((s) => s.getAttribute("data-slide-id")!),
+      broken: [...overview.querySelectorAll("[data-broken]")].map((b) => b.getAttribute("data-broken")),
+      good: !!slide("blocks/Good.tsx")?.querySelector("[data-frame-body] #good-block"),
+      whole: !!slide("blocks/Whole.tsx")?.querySelector("#whole-block") && !slide("blocks/Whole.tsx")?.querySelector("[data-frame-body]"),
+    };
+  });
+  const numberOf = (id: string) => view.ids.indexOf(id) + 1;
+  check("a block's `example` is a slide in the library view, inside a Frame", view.good, view.ids.join(" "));
+  check("an `example` made with slide() (a layout) is shown as it is", view.whole);
+  check("a block file without an `example` is left out", !view.ids.some((id) => id.includes("NoExample")), view.ids.join(" "));
+  check(
+    "a block whose example can't render is reported by name (and fails the check above on a real library)",
+    view.broken.join() === "blocks/Throws.tsx",
+    view.broken.join(),
+  );
+  check(
+    "every effect and transition in the library's motion folder has a slide",
+    numberOf("motion/effect/verify-swoop") > 0 && numberOf("motion/transition/verify-wipe") > 0,
+    view.ids.join(" "),
+  );
+  await page.keyboard.press("Escape");
+  await page.evaluate((n) => (location.hash = `#${n}`), numberOf("motion/effect/verify-swoop"));
+  await page.waitForTimeout(300);
+  const present = "[data-deck-mode=present] [data-effect]";
+  const names = () =>
+    page.$$eval(`${present} > *`, (els) => els.map((e) => `${getComputedStyle(e).animationName} ${getComputedStyle(e).visibility}`));
+  const before = await names();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(200);
+  const after = await names();
+  check(
+    "an effect's slide plays it when it opens, and again on →",
+    before.join() === "verify-swoop visible,verify-swoop visible,none hidden" && after[2] === "verify-swoop visible",
+    `${before.join()} | ${after.join()}`,
+  );
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(150);
+  const running = await page.evaluate(() => document.documentElement.dataset.transition ?? null);
+  check("a transition's slide arrives with it", running === "verify-wipe", String(running));
+  await ctx.close();
+}
+
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 for (const file of files) {
   deckName = file;
@@ -494,7 +597,7 @@ for (const file of files) {
 process.env.DECK = "library";
 process.env.DECK_FILE = resolve(import.meta.dirname, "../src/library-view.tsx");
 await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
-deckName = "library view (src/library/slides)";
+deckName = "library view (src/library: slides, block examples, motion)";
 await selfContained(browser, resolve(dist, ".library/index.html"));
 rmSync(resolve(dist, ".library"), { recursive: true, force: true });
 
@@ -508,10 +611,17 @@ await selfContained(browser, fixture);
 await features(browser, fixture);
 rmSync(resolve(dist, ".verify"), { recursive: true, force: true });
 
-// The motion fixture, with the fixture library standing in for src/library.
+// The fixture library standing in for src/library: first its library view, then the motion fixture.
+process.env.LIBRARY_DIR = resolve(import.meta.dirname, "verify-deck/library");
+process.env.DECK = "verify-library";
+process.env.DECK_FILE = resolve(import.meta.dirname, "../src/library-view.tsx");
+await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+deckName = "library view of the fixture library (verify-deck/library)";
+await libraryView(browser, resolve(dist, ".verify-library/index.html"));
+rmSync(resolve(dist, ".verify-library"), { recursive: true, force: true });
+
 process.env.DECK = "verify-motion";
 process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/motion.tsx");
-process.env.LIBRARY_DIR = resolve(import.meta.dirname, "verify-deck/library");
 await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
 const motionFixture = resolve(dist, ".verify-motion/index.html");
 deckName = "verify-deck/motion (fixture: effects, transitions and team CSS by name)";
