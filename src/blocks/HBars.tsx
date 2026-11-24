@@ -7,7 +7,7 @@ export function HBars({
   start = 300,
   barClass = "fill-muted",
   highlight = 0,
-  width = 1260,
+  width = 1680,
 }: {
   rows: { label: string; value: number }[];
   max?: number;
@@ -15,13 +15,15 @@ export function HBars({
   barClass?: string;
   /** The row that matters (0-based), drawn in the chart-key colour; -1 for none. */
   highlight?: number;
-  /** Total width in px, labels included. */
+  /** Total width in px, labels included; the default is the full content width. */
   width?: number;
 }) {
   const top = max ?? Math.max(...rows.map((r) => r.value));
-  const labelW = Math.min(420, Math.round(width * 0.32));
-  const barMax = width - labelW - 110;
-  const rowH = 64;
+  // The label column is as wide as the longest label (about 0.55em a character at 30px), so the bars start close to it.
+  const longest = Math.max(...rows.map((r) => r.label.length));
+  const labelW = Math.min(Math.round(width * 0.32), Math.round(longest * 17) + 48);
+  const barMax = width - labelW - 140;
+  const rowH = 80;
   return (
     <svg width={width} height={rows.length * rowH} className="overflow-visible">
       {rows.map((r, i) => {
@@ -41,9 +43,9 @@ export function HBars({
             </text>
             <rect
               x={labelW}
-              y={yy + 10}
+              y={yy + 12}
               width={w}
-              height={rowH - 20}
+              height={rowH - 24}
               rx={4}
               className={`grow-x ${i === highlight ? "fill-chart-key" : barClass}`}
               style={delay(start + 100 + i * 60)}

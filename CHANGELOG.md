@@ -8,6 +8,13 @@ decks, library or themes is listed under **Upgrade notes**.
 
 First public version.
 
+Charts, diagrams and examples:
+
+- `HBars` fills the content width (1680px) by default, with a label column sized to the longest
+  label and taller bars. Pass `width` for the old size.
+- `Timeline`'s line runs from the first node to the last instead of to the slide's edge; nodes and
+  milestone titles are a step larger.
+
 From dogfooding a team copy:
 
 - **Dense slides:** `<Frame density="compact">` (or the `.compact` class) steps body text, small

@@ -16,19 +16,23 @@ export function Timeline({ items, build, start = 300 }: { items: Milestone[]; bu
   const current = items.findIndex((m) => !m.done);
   return (
     <div className="relative">
-      <div className="grow-x absolute inset-x-0 top-[calc(var(--text-label)*1.2+44px)] h-(--rule) bg-ink" style={delay(start)} />
+      {/* The line runs from the first node to the last one, through their centres. */}
+      <div
+        className="grow-x absolute left-0 top-[calc(var(--text-label)*1.2+48px)] h-(--rule) bg-ink"
+        style={{ ...delay(start), right: `calc(${100 / items.length}% - 14px)` }}
+      />
       <div className="relative grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((m, i) => (
           <Build key={i} at={stepOf(build, i)} enabled={!!build} className="pr-10">
             <div className="type-label text-ink-2">{m.when}</div>
             <span
-              className={`pop mt-8 block size-5 rounded-full ${
+              className={`pop mt-8 block size-7 rounded-full ${
                 i === current ? "bg-accent" : m.done ? "bg-ink" : "border-(length:--rule) border-ink bg-canvas"
               }`}
               style={delay(start + 300 + i * 120)}
             />
             <Reveal delay={build ? 0 : start + 400 + i * 120} className="mt-8">
-              <div className="type-small weight-strong">{m.title}</div>
+              <div className="type-body weight-strong leading-tight">{m.title}</div>
               {m.detail && <div className="type-small mt-2 text-ink-2">{m.detail}</div>}
             </Reveal>
           </Build>
