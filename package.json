@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Presentations as React code, built into one self-contained HTML file per deck.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ANT1OFF/slides.git"
+  },
+  "homepage": "https://github.com/ANT1OFF/slides#readme",
   "private": true,
   "type": "module",
   "engines": {

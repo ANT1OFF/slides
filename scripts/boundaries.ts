@@ -35,7 +35,7 @@ for (const [dir, banned] of rules)
 const skill = (dir: string) => resolve(root, dir, "skills/slides/SKILL.md");
 if (readFileSync(skill(".claude"), "utf8") !== readFileSync(skill(".agents"), "utf8"))
   problems.push(".agents/skills/slides/SKILL.md differs from .claude/skills/slides/SKILL.md: copy it over.");
-// Normal worktrees identify the upstream repo by its remotes. Gram's isolated local check has no
+// Normal worktrees identify the upstream repo by its remotes. An isolated local merge gate has no
 // remotes and checks a synthetic merge whose first parent is the PR base.
 const git = (...args: string[]) => execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 let remotes: string | undefined;
