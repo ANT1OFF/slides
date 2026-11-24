@@ -4,7 +4,8 @@
 // They show up in the library gallery (npm run dev → Library) with their default props.
 import type { ReactNode } from "react";
 import { slide, type SlideInput } from "@core";
-import { Cards, EndSlide, Frame, TitleSlide } from "@blocks";
+import { Bullets, Cards, EndSlide, Frame, Stat, TitleSlide } from "@blocks";
+import { SplitFrame } from "../blocks/SplitFrame.tsx";
 import team from "../data/team.data.json";
 
 /** Who the team is: one card per person, from src/library/data/team.data.json. */
@@ -13,6 +14,28 @@ export function TeamIntro({ title = `${team.values.team}: who we are`, section =
     <Frame section={section} title={title}>
       <Cards items={team.values.people.map((p) => ({ icon: p.role, title: p.name, body: p.line }))} />
     </Frame>
+  );
+}
+
+/** A claim with its evidence beside it, on the team's own layout (blocks/SplitFrame.tsx). */
+export function Evidence({
+  section = "Evidence",
+  title = "The point on the left, the proof on the right",
+  points = ["A layout is a block", "This one is the team's own", "The panel's content swoops in"],
+  badge = "Measured",
+  children = <Stat size="sm" to={42} suffix="%" label="replace with your number" />,
+}: {
+  section?: ReactNode;
+  title?: ReactNode;
+  points?: ReactNode[];
+  badge?: ReactNode;
+  /** The side panel. */
+  children?: ReactNode;
+}) {
+  return (
+    <SplitFrame section={section} title={title} badge={badge} side={children}>
+      <Bullets marker="square" items={points} />
+    </SplitFrame>
   );
 }
 
@@ -30,6 +53,7 @@ export function openingSlides({
 }: { title?: ReactNode; subtitle?: ReactNode; presenter?: ReactNode; date?: ReactNode } = {}): SlideInput[] {
   return [
     slide(<TitleSlide kicker={team.values.team} title={title} subtitle={subtitle} byline={presenter} date={date} />, { id: "team-title" }),
-    slide(<TeamIntro />, { id: "team-intro" }),
+    // The intro arrives with the team's own transition (src/library/motion/wipe.css).
+    slide(<TeamIntro />, { id: "team-intro", transition: "wipe" }),
   ];
 }

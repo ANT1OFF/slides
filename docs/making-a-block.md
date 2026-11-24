@@ -34,7 +34,8 @@ export function Funnel({ stages, build, start = 200 }: { stages: FunnelStage[]; 
       {stages.map((s, i) => (
         <Build key={i} at={stepOf(build, i)} enabled={!!build}>
           <Reveal
-            delay={build ? 0 : start + i * 90}
+            delay={build ? 0 : start}
+            order={build ? 0 : i}
             className={`type-strong flex h-24 items-center justify-between rounded-box px-10 ${i === stages.length - 1 ? "bg-accent text-on-accent" : "bg-surface"}`}
             style={{ width: `${(s.value / top) * 100}%` }}
           >
@@ -98,7 +99,13 @@ Nothing goes below `type-label` (26 px). Use `tabular-nums` for numbers that lin
 
 - Entrance, once when the slide opens: `<Reveal effect="rise|fade|pop" delay={ms}>`, or a class on
   an SVG element: `rise`, `fade`, `pop`, `draw` (paths with `pathLength={1}`), `grow`, `grow-x`, with
-  `style={delay(ms)}`. Stagger by about 90 ms; keep the whole entrance under ~1.5 s.
+  `style={delay(ms)}`. In a list, `<Reveal order={i}>` (or `style={stagger(i, ms)}`) starts each
+  item one `--stagger` after the one before; keep the whole entrance under ~1.5 s.
+- An effect of your own is a CSS file in `src/library/motion/`, used by the same names:
+  `effect="swoop"`. Take durations and distances from the motion tokens (`--duration-*`, `--rise`,
+  `--ease-out`) so a theme can tune them. See [extending.md](extending.md).
+- If a block lets its caller choose the entrance, take `effect?: Effect` (the type is in `@core`)
+  and pass it to `Reveal` or `Build`.
 - Loops (`<Traveller>`, `<Pulse>`, `glow`, `spin`) only on diagrams where the motion is the point.
   Nothing loops on a content slide.
 - Thumbnails, print and reduced motion render the final state automatically. Don't use JS timers
@@ -107,6 +114,7 @@ Nothing goes below `type-label` (26 px). Use `tabular-nums` for numbers that lin
 **Build steps**
 
 - Per-item reveals: `<Build at={n}>`; the deck counts a slide's steps from the Builds it contains.
+  `<Build at={n} effect="pop">` plays an entrance effect on the step instead of the plain fade.
 - A block that changes state on each press (like `Code` stepping through highlights) calls
   `const step = useBuildStep(count)` from `@core`: 0 when the slide opens, `Infinity` in thumbnails
   and print.
@@ -116,6 +124,60 @@ from `@core` and accept the relative values as a prop, as `Stat` does.
 
 **Media**: take `src` as a prop and let the deck import the file, so the build inlines it. Never
 hard-code a URL; the build fails on remote URLs.
+
+## Make your own layout
+
+A layout is a block that fills the whole slide. There is no separate concept and no registry: write
+a component from the pieces `Frame` is made of, all exported by `@blocks`.
+
+| Piece         | What it is                                                                         |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `Slide`       | The shell: fills the stage with the theme's slide padding, as a column; `inverted` |
+| `SlideHeader` | The top row: `kicker` on the left, the logo (or `aside`) on the right              |
+| `Footer`      | The bottom row: the deck's footer text (or `note`) and the slide number            |
+| `Kicker`      | A small label with the accent bar                                                  |
+| `Logo`        | The theme's or deck's logo                                                         |
+
+```tsx
+// src/library/blocks/SplitFrame.tsx
+import type { ReactNode } from "react";
+import { Reveal } from "@core";
+import { Footer, Slide, SlideHeader } from "@blocks";
+
+/** A slide with a fixed panel down the right side, on the theme's other scheme. */
+export function SplitFrame({
+  section,
+  title,
+  children,
+  side,
+}: {
+  section?: ReactNode;
+  title: ReactNode;
+  children?: ReactNode;
+  side: ReactNode;
+}) {
+  return (
+    <Slide className="grid grid-cols-[1fr_640px] gap-(--gap-column)">
+      <div className="flex min-h-0 flex-col">
+        <SlideHeader kicker={section} aside={null} />
+        <Reveal delay={80} as="h2" className="type-title mt-9 max-w-(--measure)">
+          {title}
+        </Reveal>
+        <div className="mt-(--gap-title) mb-12 flex min-h-0 flex-1 flex-col justify-center">{children}</div>
+        <Footer />
+      </div>
+      <aside className="inverted -mt-(--slide-pad-top) -mr-(--slide-pad-x) -mb-(--slide-pad-bottom) flex flex-col justify-center p-(--pad-box)">
+        {side}
+      </aside>
+    </Slide>
+  );
+}
+```
+
+The file in the repo also shows a team effect and a team utility class. To use the layout in a
+deck: `<SplitFrame title="…" side={<Stat … />}>…</SplitFrame>`. To show it in the library view, use
+it in a slide in `src/library/slides/` (see `Evidence` in `team.tsx`). For a small variation on the
+standard slide, `Frame` takes a `className` instead.
 
 ## Check it
 

@@ -16,7 +16,8 @@ export function Funnel({ stages, build, start = 200 }: { stages: FunnelStage[]; 
       {stages.map((s, i) => (
         <Build key={i} at={stepOf(build, i)} enabled={!!build}>
           <Reveal
-            delay={build ? 0 : start + i * 90}
+            delay={build ? 0 : start}
+            order={build ? 0 : i}
             className={`type-strong flex h-24 items-center justify-between rounded-box px-10 ${i === stages.length - 1 ? "bg-accent text-on-accent" : "bg-surface"}`}
             style={{ width: `${(s.value / top) * 100}%` }}
           >

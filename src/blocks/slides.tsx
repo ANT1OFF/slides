@@ -1,10 +1,19 @@
 // Whole-slide layouts. Each fills the 1920×1080 stage; put content blocks inside Frame.
 // Sizes, fonts and colours all come from the theme's tokens (src/themes/default/tokens.css).
+// A layout of your own is a block built from the same pieces: Slide, SlideHeader, Footer, Kicker, Logo.
 import type { ReactNode } from "react";
 import { Reveal, useDeck, useSlideNumber } from "@core";
 import { Logo } from "./Logo.tsx";
 
-const scope = (inverted?: boolean) => (inverted ? "inverted" : "bg-canvas text-ink");
+/**
+ * The shell every whole-slide layout starts from: fills the stage with the theme's slide padding,
+ * as a column. `inverted` uses the theme's other scheme. Lay out the inside with `className`.
+ */
+export function Slide({ children, inverted = false, className = "" }: { children?: ReactNode; inverted?: boolean; className?: string }) {
+  return (
+    <section className={`slide-pad flex h-full flex-col ${inverted ? "inverted" : "bg-canvas text-ink"} ${className}`}>{children}</section>
+  );
+}
 
 /** A small label with an accent bar before it: the section name above a slide title. */
 export function Kicker({ children, start = 0, className = "" }: { children: ReactNode; start?: number; className?: string }) {
@@ -17,7 +26,7 @@ export function Kicker({ children, start = 0, className = "" }: { children: Reac
 }
 
 /** The top row of a slide: kicker on the left, `aside` or the logo on the right. */
-function Header({ kicker, aside }: { kicker?: ReactNode; aside?: ReactNode }) {
+export function SlideHeader({ kicker, aside }: { kicker?: ReactNode; aside?: ReactNode }) {
   return (
     <header className="flex min-h-[30px] items-center justify-between">
       {kicker ? <Kicker>{kicker}</Kicker> : <span />}
@@ -60,8 +69,8 @@ export function TitleSlide({
   inverted?: boolean;
 }) {
   return (
-    <section className={`slide-pad relative flex h-full flex-col overflow-hidden ${scope(inverted)}`}>
-      <Header kicker={kicker} aside={aside} />
+    <Slide inverted={inverted} className="relative overflow-hidden">
+      <SlideHeader kicker={kicker} aside={aside} />
       <Reveal delay={120} as="h1" className="type-display mt-auto max-w-[14ch]">
         {title}
       </Reveal>
@@ -74,7 +83,7 @@ export function TitleSlide({
         <span>{byline}</span>
         <span>{date}</span>
       </Reveal>
-    </section>
+    </Slide>
   );
 }
 
@@ -91,6 +100,7 @@ export function Frame({
   aside,
   footer,
   align = "center",
+  className = "",
 }: {
   /** The kicker above the title. */
   section?: ReactNode;
@@ -103,10 +113,12 @@ export function Frame({
   footer?: ReactNode;
   /** Where the body sits in the space under the title. */
   align?: "center" | "top";
+  /** Extra classes on the slide itself, e.g. a team utility from src/library/styles.css. */
+  className?: string;
 }) {
   return (
-    <section className={`slide-pad flex h-full flex-col ${scope(inverted)}`}>
-      <Header kicker={section} aside={aside} />
+    <Slide inverted={inverted} className={className}>
+      <SlideHeader kicker={section} aside={aside} />
       {title && (
         <Reveal delay={80} as="h2" className="type-title mt-9 max-w-(--measure)">
           {title}
@@ -119,7 +131,7 @@ export function Frame({
         {children}
       </div>
       <Footer note={footer} />
-    </section>
+    </Slide>
   );
 }
 
@@ -151,7 +163,7 @@ export function SectionSlide({
           .join(" / ")
       : number;
   return (
-    <section className={`slide-pad relative flex h-full flex-col justify-end overflow-hidden pb-24 ${scope(inverted)}`}>
+    <Slide inverted={inverted} className="relative justify-end overflow-hidden pb-24">
       {label && (
         <Reveal effect="fade" className="type-label text-[30px] text-accent-text">
           {label}
@@ -173,22 +185,22 @@ export function SectionSlide({
           ))}
         </Reveal>
       ) : null}
-    </section>
+    </Slide>
   );
 }
 
 /** One sentence, vertically centred. Wrap one phrase in <em> to emphasise it the theme's way. */
 export function StatementSlide({ children, kicker, inverted = false }: { children: ReactNode; kicker?: ReactNode; inverted?: boolean }) {
   return (
-    <section className={`slide-pad flex h-full flex-col ${scope(inverted)}`}>
-      <Header kicker={kicker} />
+    <Slide inverted={inverted}>
+      <SlideHeader kicker={kicker} />
       <div className="flex flex-1 items-center">
         <Reveal delay={100} as="p" className="type-statement max-w-[20ch]">
           {children}
         </Reveal>
       </div>
       <Footer />
-    </section>
+    </Slide>
   );
 }
 
@@ -207,8 +219,8 @@ export function QuoteSlide({
   inverted?: boolean;
 }) {
   return (
-    <section className={`slide-pad flex h-full flex-col ${scope(inverted)}`}>
-      <Header kicker={kicker} />
+    <Slide inverted={inverted}>
+      <SlideHeader kicker={kicker} />
       <div className="flex flex-1 flex-col justify-center">
         <Reveal delay={120} as="blockquote" className="type-quote relative max-w-[22ch]">
           <span className="absolute -translate-x-full pr-[0.04em] text-accent-text">“</span>
@@ -221,7 +233,7 @@ export function QuoteSlide({
         </Reveal>
       </div>
       <Footer />
-    </section>
+    </Slide>
   );
 }
 
@@ -238,7 +250,7 @@ export function EndSlide({
   inverted?: boolean;
 }) {
   return (
-    <section className={`slide-pad relative flex h-full flex-col justify-end overflow-hidden pb-24 ${scope(inverted)}`}>
+    <Slide inverted={inverted} className="relative justify-end overflow-hidden pb-24">
       <div className="absolute top-(--slide-pad-top) right-(--slide-pad-x)">
         <Logo className="h-10" />
       </div>
@@ -257,6 +269,6 @@ export function EndSlide({
           ))}
         </Reveal>
       )}
-    </section>
+    </Slide>
   );
 }

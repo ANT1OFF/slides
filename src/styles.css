@@ -218,3 +218,10 @@ body {
 @utility slide-pad {
   padding: var(--slide-pad-top) var(--slide-pad-x) var(--slide-pad-bottom);
 }
+
+/*
+ * The team's own tokens, utilities and rules: src/library/styles.css, which is yours to edit.
+ * It is imported here, as part of this stylesheet, because Tailwind only reads @theme and @utility
+ * from the main stylesheet. Last, so it can override anything above.
+ */
+@import "@library/styles.css";

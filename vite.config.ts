@@ -8,6 +8,7 @@ import { slideNames, sourceTags } from "./vite/page-review.ts";
 import { selfContained } from "./vite/self-contained.ts";
 import { notices } from "./vite/notices.ts";
 import { deckTheme, themes } from "./vite/themes.ts";
+import { library } from "./vite/library.ts";
 
 const src = resolve(import.meta.dirname, "src");
 // Decks live in src/decks (yours) and examples/ (upstream's examples). A name in src/decks wins.
@@ -30,6 +31,9 @@ export function deckDir(name: string): string {
   return deckDirs.map((dir) => resolve(dir, name)).find((d) => existsSync(resolve(d, "index.tsx"))) ?? resolve(deckDirs[0], name);
 }
 
+// The team's library. LIBRARY_DIR points it elsewhere (npm run verify uses it for its own fixture library).
+const libraryDir = process.env.LIBRARY_DIR ?? resolve(src, "library");
+
 // DECK picks which deck `virtual:deck` resolves to; defaults to the first one.
 const deck = process.env.DECK ?? listDecks()[0] ?? "";
 // DECK_FILE builds a deck from outside src/decks (npm run verify uses it for its fixture).
@@ -41,6 +45,7 @@ export default defineConfig({
     sourceTags(),
     slideNames(),
     themes({ themesDir: resolve(src, "themes"), deckFile }),
+    library({ libraryDir }),
     react(),
     tailwindcss(),
     viteSingleFile(),
@@ -57,7 +62,8 @@ export default defineConfig({
       "@core": resolve(src, "core/index.ts"),
       "@blocks": resolve(src, "blocks/index.ts"),
       // Your team's library: import "@library/slides/team.tsx", "@library/blocks/Funnel.tsx" …
-      "@library": resolve(src, "library"),
+      // Also how src/styles.css finds the team's styles.css.
+      "@library": libraryDir,
     },
   },
   build: {

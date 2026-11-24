@@ -7,7 +7,10 @@ USB stick, open it offline in any browser.
 - **Building blocks** for titles, sections, lists, code, columns, cards, comparisons, tables, numbers,
   timelines, diagrams, charts, photos, video and sound.
 - **Themes** as folders you drop in: colours, fonts and a logo, picked with one line per deck.
-- **Presenting**: build steps, presenter window with notes and timer, overview grid, print to PDF.
+- **Presenting**: build steps, transitions between slides, presenter window with notes and timer,
+  overview grid, print to PDF.
+- **Yours to extend**: your own blocks, layouts, slides, themes, styles, entrance effects and
+  transitions are files in your own folders, used by name. Nothing to register.
 - **A library that grows**: fork it as your team's slide library. Each deck borrows the team's
   slides, blocks and themes, and gives its reusable parts back.
 - **Data that can be refreshed**: numbers carry where they came from, so `npm run refresh` (or your
@@ -21,7 +24,7 @@ copy") and your decks live in `src/decks/`. Needs Node.js 22.18 or newer.
 ```bash
 git clone https://github.com/ANT1OFF/slides.git my-slides && cd my-slides
 npm install
-npm run new my-talk      # creates src/decks/my-talk/index.tsx
+npm run new my-talk      # creates src/decks/my-talk/ from the starter deck
 npm run dev              # opens a list of decks; pick my-talk
 npm run build my-talk    # writes dist/my-talk.html
 ```
@@ -51,6 +54,7 @@ import { Bullets, EndSlide, Frame, TitleSlide } from "@blocks";
 const deck: DeckDefinition = {
   title: "My talk",
   theme: "editorial", // optional: a folder in src/themes
+  transition: "fade", // optional: between slides
   slides: [
     <TitleSlide title="My talk" subtitle="One line on why it matters." byline="Your name" date="June 2026" />,
     slide(
@@ -67,8 +71,8 @@ export default deck;
 ```
 
 That is the whole model: **a deck is a title, an optional theme, and a list of slides. A slide is JSX.**
-Wrap a slide in `slide(…, { notes, hidden, id })` to give it speaker notes, make it a hidden backup
-slide, or give it a stable id. Imports: `@blocks` (the built-in blocks), `@core` (`slide`, `Build`,
+Wrap a slide in `slide(…, { notes, hidden, id, transition })` to give it speaker notes, make it a
+hidden backup slide, give it a stable id, or have it arrive with its own transition. Imports: `@blocks` (the built-in blocks), `@core` (`slide`, `Build`,
 `asOf`, types), and `@library/…` for your team's own slides and blocks.
 
 ## Building blocks
@@ -76,15 +80,15 @@ slide, or give it a stable id. Imports: `@blocks` (the built-in blocks), `@core`
 Open the **showcase** deck (`npm run dev`, then `showcase`) to see every block. It is also the visual
 test: if a block changes, look there.
 
-| Kind         | Blocks                                                                                                                                                                               |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Whole slides | `TitleSlide`, `Frame` (the standard slide), `SectionSlide`, `StatementSlide`, `QuoteSlide`, `EndSlide`, `PhotoSlide` + `PhotoCaption`, `PhotoSplit`; inside them `Footer` and `Logo` |
-| Text         | `Bullets`, `Agenda`, `Lead`, `Callout`, `Quote`, `Code`, `Kicker`                                                                                                                    |
-| Layout       | `Columns`, `Cards`, `Compare`, `Table`, `Figure`                                                                                                                                     |
-| Media        | `Video`, `Audio`                                                                                                                                                                     |
-| Numbers      | `Stat`, `StatRow`                                                                                                                                                                    |
-| Diagrams     | `Flow`, `Node` + `Arrow` (for your own SVG), `Pipeline`, `Cycle`, `Timeline`, `Spectrum`                                                                                             |
-| Charts       | `BarSeries`, `HBars`, `LineChart`, `StackedArea`, `StackedBar`, `Pie`, `DotGrid`                                                                                                     |
+| Kind         | Blocks                                                                                                                                                                                                                                               |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Whole slides | `TitleSlide`, `Frame` (the standard slide), `SectionSlide`, `StatementSlide`, `QuoteSlide`, `EndSlide`, `PhotoSlide` + `PhotoCaption`, `PhotoSplit`; the pieces they are made of, for a layout of your own: `Slide`, `SlideHeader`, `Footer`, `Logo` |
+| Text         | `Bullets`, `Agenda`, `Lead`, `Callout`, `Quote`, `Code`, `Kicker`                                                                                                                                                                                    |
+| Layout       | `Columns`, `Cards`, `Compare`, `Table`, `Figure`                                                                                                                                                                                                     |
+| Media        | `Video`, `Audio`                                                                                                                                                                                                                                     |
+| Numbers      | `Stat`, `StatRow`                                                                                                                                                                                                                                    |
+| Diagrams     | `Flow`, `Node` + `Arrow` (for your own SVG), `Pipeline`, `Cycle`, `Timeline`, `Spectrum`                                                                                                                                                             |
+| Charts       | `BarSeries`, `HBars`, `LineChart`, `StackedArea`, `StackedBar`, `Pie`, `DotGrid`                                                                                                                                                                     |
 
 The same props mean the same thing everywhere: `start` delays a block's entrance (ms); `build`
 reveals a list-like block one item per press of → (`true` starts at step 1, a number starts there;
@@ -92,6 +96,22 @@ on `Bullets`, `Cards`, `Columns`, `Compare`, `Table`, `StatRow`, `Timeline`, `Pi
 `inverted` puts a slide on the theme's other scheme (a dark slide in a light deck). Write a slide's
 title as its point ("Lead time fell by four fifths"), not its topic. Anything else is plain JSX with
 Tailwind classes; wrap any element in `<Build at={1}>` to reveal it on a press of →.
+
+### Animation
+
+Three things, all used by name, all plain CSS underneath:
+
+```tsx
+<Reveal effect="pop" delay={200}>…</Reveal>     // an entrance, when the slide opens: rise, fade, pop
+<Build at={1} effect="pop">…</Build>            // the same effect on a build step
+transition: "fade",                             // on the deck: between slides (fade, push, zoom)
+slide(<SectionSlide … />, { transition: "push" }) // one slide arrives differently ("none" for no transition)
+```
+
+Going back plays a transition the other way round. Your own effects and transitions are CSS files in
+`src/library/motion/`, picked up by the build and used the same way; timing comes from the theme's
+motion tokens. Transitions use the browser's View Transitions API; where it is missing, or the
+viewer prefers reduced motion, the slide simply changes. See [docs/extending.md](docs/extending.md).
 
 ## Themes
 
@@ -230,11 +250,16 @@ Not GitHub's "Use this template" (no shared history, so updates can't merge) and
 remote once (`git remote add upstream https://github.com/ANT1OFF/slides.git`).
 
 - **Your folders:** `src/decks/`, `src/library/` and your theme folders. Upstream never changes
-  them, so `npm run upgrade` (merge upstream on a branch, then check and verify) stays clean. The
-  full ownership table is in [AGENTS.md](AGENTS.md).
+  them, so `npm run upgrade` (merge upstream on a branch, then check and verify) stays clean.
+  Everything else is upstream's, including `src/styles.css` and `src/main.tsx`; the full ownership
+  table, file by file, is in [AGENTS.md](AGENTS.md).
 - **Your library:** reusable slides, slide sets, blocks, data and assets in `src/library/`, imported
   with `@library/…`. `npm run dev` lists them. Team default theme: `src/library/settings.json`.
   House rules for agents: `src/library/AGENTS.md`.
+- **Your styles and motion:** team-wide tokens and utility classes in `src/library/styles.css`;
+  entrance effects and slide transitions in `src/library/motion/`, one CSS file each.
+- **Your starter deck:** `npm run new` copies `src/decks/_starter/`; make it open the way your
+  team's decks do.
 - **Refreshable data:** a slide's numbers live in a `*.data.json` with where they come from (a
   script, an agent's instructions, or who to ask); `npm run refresh [deck]` runs the scripts and
   lists the rest; `asOf(data)` adds an "As of" footer. Values are baked in at build time.
@@ -247,7 +272,10 @@ theme, reusing and promoting library pieces, refreshing data, upgrading.
 - [AGENTS.md](AGENTS.md): the short workflow and media rules for AI coding agents (and people) working here.
 - [Working with decks as a team](docs/working-with-decks.md): yours vs upstream, the fork → reuse →
   contribute-back cycle, refreshable data, keeping decks working.
-- [Making a building block](docs/making-a-block.md): conventions, tokens, type roles, motion and build steps.
+- [Extending](docs/extending.md): one table of everything you can add (blocks, layouts, slides,
+  themes, styles, effects, transitions, the starter deck) and where each goes.
+- [Making a building block](docs/making-a-block.md): conventions, tokens, type roles, motion and build
+  steps, and making your own layout.
 - [Design](docs/design.md): the token set, the type scale and the layout rules.
 - [Inspiration](docs/inspiration.md): which ideas came from which frameworks.
 - [Page-review tags](docs/page-review.md): the data attributes tools use to comment on a slide.

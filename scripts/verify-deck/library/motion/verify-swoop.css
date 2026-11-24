@@ -1,0 +1,11 @@
+/* The fixture library's entrance effect. */
+@keyframes verify-swoop {
+  from {
+    opacity: 0;
+    transform: translateX(-120px);
+  }
+}
+.verify-swoop {
+  animation: verify-swoop var(--duration-slow) var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+}

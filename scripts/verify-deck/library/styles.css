@@ -1,0 +1,8 @@
+/* The fixture library's team stylesheet: `npm run verify` checks a token and a utility from here reach the deck. */
+@theme {
+  --color-verify-brand: #7a3cff;
+}
+@utility verify-badge {
+  @apply type-label bg-accent px-4 py-2 text-on-accent;
+  outline: 4px solid var(--color-verify-brand);
+}

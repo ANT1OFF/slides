@@ -1,12 +1,20 @@
-/* Entrance: elements fade up when a slide mounts; --d staggers them. */
+/*
+ * Motion. Every duration, curve and distance is a token (src/themes/default/tokens.css, section 5),
+ * so a theme or a deck's `vars` can make a deck calmer or snappier.
+ *
+ * Entrance effects: a class named after a from-only @keyframes. The element's own style is its
+ * final state, which is what print, thumbnails and reduced motion show. Used by name:
+ * <Reveal effect="rise">, <Build effect="pop">, or the class on an SVG element. --d delays it.
+ * Your own go in src/library/motion/<name>.css (see docs/extending.md).
+ */
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(var(--rise));
   }
 }
 .rise {
-  animation: rise 900ms var(--ease-out-expo) both;
+  animation: rise var(--duration-slow) var(--ease-out) both;
   animation-delay: var(--d, 0ms);
 }
 
@@ -16,7 +24,7 @@
   }
 }
 .fade {
-  animation: fade 700ms ease-out both;
+  animation: fade var(--duration-base) ease-out both;
   animation-delay: var(--d, 0ms);
 }
 
@@ -27,7 +35,7 @@
   }
 }
 .pop {
-  animation: pop 700ms var(--ease-out-expo) both;
+  animation: pop var(--duration-base) var(--ease-out) both;
   animation-delay: var(--d, 0ms);
   transform-origin: center;
   transform-box: fill-box;
@@ -45,7 +53,7 @@
 .draw {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: draw 1200ms var(--ease-out-expo) forwards;
+  animation: draw calc(var(--duration-slow) * 4 / 3) var(--ease-out) forwards;
   animation-delay: var(--d, 0ms);
 }
 
@@ -58,7 +66,7 @@
 .grow {
   transform-origin: bottom;
   transform-box: fill-box;
-  animation: grow 900ms var(--ease-out-expo) both;
+  animation: grow var(--duration-slow) var(--ease-out) both;
   animation-delay: var(--d, 0ms);
 }
 
@@ -70,18 +78,19 @@
 .grow-x {
   transform-origin: left;
   transform-box: fill-box;
-  animation: grow-x 900ms var(--ease-out-expo) both;
+  animation: grow-x var(--duration-slow) var(--ease-out) both;
   animation-delay: var(--d, 0ms);
 }
 
-@keyframes slide-in {
+/* How a slide arrives when it has no transition (see "Slide transitions" below). */
+@keyframes slide-enter {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.995);
+    transform: translateY(calc(var(--rise) / 2)) scale(0.995);
   }
 }
 .slide-enter {
-  animation: slide-in 600ms var(--ease-out-expo) both;
+  animation: slide-enter var(--duration-base) var(--ease-out) both;
 }
 
 /*
@@ -268,17 +277,90 @@
 /* Builds: hidden until their step, then ease in. */
 .build {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(calc(var(--rise) * 0.75));
   transition:
-    opacity 500ms ease-out,
-    transform 700ms var(--ease-out-expo);
+    opacity var(--duration-fast) ease-out,
+    transform var(--duration-base) var(--ease-out);
 }
 .build-on {
   opacity: 1;
   transform: none;
 }
+/* A Build with an `effect` waits hidden, then plays that effect's class. */
+.build-wait {
+  visibility: hidden;
+}
 
-/* Thumbnails and print: the final state, no motion. */
+/*
+ * Slide transitions, on the browser's View Transitions API. A transition is a pair of @keyframes:
+ * <name>-in for the arriving slide and <name>-out for the leaving one. Going back, the deck plays
+ * the pair the other way round and reversed, so a transition is written in one direction only.
+ * While one runs, <html> carries data-transition="<name>" (and data-transition-back going back)
+ * and the motion tokens of the deck's theme, so your own CSS can restyle one transition:
+ *   html[data-transition="push"]::view-transition-new(slide) { animation-duration: 1s; }
+ * Built in: fade, push, zoom. Your own go in src/library/motion/<name>.css.
+ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes push-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes push-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+@keyframes zoom-out {
+  to {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+/* Only the slide moves; the rest of the page changes at once. */
+html[data-transition]::view-transition-old(root) {
+  display: none;
+}
+html[data-transition]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* The moving slide is clipped to the stage, not drawn over the black bars beside it. */
+::view-transition-group(slide) {
+  overflow: clip;
+}
+html[data-transition]::view-transition-new(slide) {
+  animation: var(--transition-in) var(--duration-base) var(--ease-in-out) both var(--transition-direction, normal);
+  mix-blend-mode: normal;
+}
+html[data-transition]::view-transition-old(slide) {
+  animation: var(--transition-out) var(--duration-base) var(--ease-in-out) both var(--transition-direction, normal);
+  mix-blend-mode: normal;
+}
+/* Going back, the leaving slide is the one on top, as it was when it arrived. */
+html[data-transition-back]::view-transition-old(slide) {
+  z-index: 1;
+}
+
+/*
+ * Thumbnails and print: the final state, no motion. `.static-motion` is a public hook: a loop of
+ * your own that should not show in print needs `.static-motion .my-loop { display: none; }`.
+ */
 .static-motion *,
 .static-motion *::before,
 .static-motion *::after {

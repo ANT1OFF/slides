@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { DisplayContext, StepContext, type Display } from "./context.ts";
 import { Overview } from "./Overview.tsx";
 import { Print } from "./Print.tsx";
@@ -7,6 +8,10 @@ import { isMessage, postTarget, presenterUrl, sameOrigin, type Message, type Pos
 import { Help } from "./Help.tsx";
 import { DeckContext, deckLook } from "./theme.ts";
 import { entries, slideLabel, slideNumber, slideTags, type DeckDefinition } from "./types.ts";
+
+/** The motion tokens a slide transition reads. It runs on <html>, above the stage where a theme sets them. */
+const TRANSITION_TOKENS = ["--duration-base", "--ease-in-out"];
+const TRANSITION_STATE = ["--transition-in", "--transition-out", "--transition-direction", ...TRANSITION_TOKENS];
 
 function indexFromHash(count: number): number {
   const n = Number.parseInt(window.location.hash.slice(1), 10);
@@ -18,6 +23,7 @@ function indexFromHash(count: number): number {
  * 1-based slide number. Keys: → / Space / ← step through builds and slides, Home / End,
  * a number then Enter to jump, F fullscreen, N presenter window, G overview, P print to PDF,
  * B blank screen, M raw numbers or growth, ? the list of keys. See KEYS in Help.tsx.
+ * A deck or a slide can name a `transition`; it runs as a view transition (see motion.css).
  * `name` is the deck's folder, which the page-review tags carry.
  */
 export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
@@ -50,15 +56,53 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     [pos.index],
   );
 
+  // The latest move asked for. A transition applies its move a frame later, and another key may
+  // land in between, so every apply, immediate or delayed, applies this one.
+  const target = useRef(pos);
+  // The newest transition, so an older one finishing doesn't clear its state.
+  const run = useRef(0);
+  // True when the current slide arrived without a transition: it then plays the plain entrance.
+  const plain = useRef(true);
+
   const goto = useCallback(
     (index: number, step = 0) => {
       const i = Math.min(Math.max(index, 0), count - 1);
-      setPos((p) => {
-        if (p.index !== i) steps.current = 0;
-        return { index: i, step };
-      });
+      const from = target.current.index;
+      target.current = { index: i, step };
+      const apply = () =>
+        setPos((p) => {
+          if (p.index !== target.current.index) steps.current = 0;
+          return target.current;
+        });
+      if (i === from) return apply();
+      // Going back plays the transition the slide being left arrived with, reversed.
+      const back = i < from;
+      const name = (back ? slides[from] : slides[i]).transition ?? deck.transition;
+      // Without a transition, without browser support or with reduced motion, the slide just changes.
+      plain.current =
+        !name || name === "none" || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (plain.current) return apply();
+      const root = document.documentElement;
+      const stage = document.querySelector("[data-deck-mode=present] [data-stage]");
+      root.dataset.transition = name;
+      root.toggleAttribute("data-transition-back", back);
+      root.style.setProperty("--transition-in", back ? `${name}-out` : `${name}-in`);
+      root.style.setProperty("--transition-out", back ? `${name}-in` : `${name}-out`);
+      root.style.setProperty("--transition-direction", back ? "reverse" : "normal");
+      if (stage) for (const t of TRANSITION_TOKENS) root.style.setProperty(t, getComputedStyle(stage).getPropertyValue(t));
+      const mine = ++run.current;
+      const done = () => {
+        if (mine !== run.current) return;
+        delete root.dataset.transition;
+        root.removeAttribute("data-transition-back");
+        for (const p of TRANSITION_STATE) root.style.removeProperty(p);
+      };
+      const transition = document.startViewTransition(() => flushSync(apply));
+      // A newer transition skips this one, which rejects `ready`: expected, not an error.
+      transition.ready.catch(() => {});
+      transition.finished.then(done, done);
     },
-    [count],
+    [count, slides, deck.transition],
   );
 
   const neighbour = useCallback(
@@ -113,6 +157,16 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [pos, display, nav]);
+
+  // While a transition runs the browser sends every click to <html>, not to the deck under it.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (e.target !== document.documentElement || !document.documentElement.dataset.transition) return;
+      if (mode === "present" && !help && !blank) nav(e.clientX > window.innerWidth / 3 ? 1 : -1);
+    };
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, [mode, help, blank, nav]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -230,7 +284,8 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
                 {...slideTags(current, pos.index)}
                 data-build={Math.min(pos.step, buildCount)}
                 data-build-count={buildCount}
-                className="slide-enter absolute inset-0"
+                className={`absolute inset-0 ${plain.current ? "slide-enter" : ""}`}
+                style={{ viewTransitionName: "slide" }}
               >
                 {current.content}
               </div>

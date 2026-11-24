@@ -1,6 +1,8 @@
-// Styles first: theme files (virtual:themes) must come after the default tokens to override them.
+// Styles first: theme files (virtual:themes) must come after the default tokens to override them,
+// and the team's motion files (virtual:library) last, so they can restyle a built-in transition.
 import "./styles.css";
 import { themes } from "virtual:themes";
+import "virtual:library";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import defaultDeck from "virtual:deck";

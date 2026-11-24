@@ -8,6 +8,20 @@ decks, library or themes is listed under **Upgrade notes**.
 
 First public version.
 
+- **Animation by name.** `<Reveal effect>` takes any effect name, `<Build effect>` plays one on a
+  build step, and a deck or a slide can name a `transition` between slides (built in: `fade`, `push`,
+  `zoom`; on the View Transitions API, with a plain slide change where it is missing or motion is
+  reduced). A team's own effects and transitions are CSS files in `src/library/motion/`.
+- Built-in motion reads the motion tokens (`--duration-*`, `--ease-*`, `--rise`, `--stagger`), so a
+  theme or a deck's `vars` can tune it. Timings moved slightly: `fade` and `pop` 700 → 600 ms, the
+  rise distance 28 → 24 px, a build step's fade 500 → 300 ms.
+- `src/library/styles.css`: team-wide tokens and utilities, part of the main stylesheet.
+- Layout pieces exported for layouts of your own: `Slide`, `SlideHeader` (next to `Footer`, `Kicker`,
+  `Logo`); `Frame` takes `className`. `src/library/blocks/SplitFrame.tsx` is an example.
+- `npm run new` copies `src/decks/_starter/`, the team's own starter deck.
+- [docs/extending.md](docs/extending.md): every extension point in one table. The ownership table
+  now lists every file.
+
 - Built example decks and the showcase are committed in `examples/html/`; `npm run build:examples`
   rebuilds them and `npm run check` fails when they are stale.
 

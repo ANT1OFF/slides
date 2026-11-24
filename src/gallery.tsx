@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import type { DeckDefinition } from "@core";
 import libraryDeck, { libraryFiles } from "./library-view.tsx";
 import * as blocks from "@blocks";
+import { motion } from "virtual:library";
 import { themes } from "virtual:themes";
 
 const decks = import.meta.glob<{ default: DeckDefinition }>(["./decks/*/index.tsx", "!./decks/_*/index.tsx"]);
@@ -141,6 +142,21 @@ export function Gallery() {
         {[...blockNames, ...Object.keys(libraryBlocks).map((p) => `library/${fileName(p)}`)].map((b) => (
           <span key={b} className="rounded-lg px-3 py-2 font-mono text-sm text-ink-2">
             {b}
+          </span>
+        ))}
+      </Section>
+      <Section
+        title={`Motion (${motion.effects.length + motion.transitions.length})`}
+        hint={
+          <>
+            Your own entrance effects and slide transitions, <code className="font-mono">src/library/motion/</code>, used by name. Built in:
+            effects <code className="font-mono">rise fade pop</code>, transitions <code className="font-mono">fade push zoom</code>
+          </>
+        }
+      >
+        {[...motion.effects.map((e) => `effect="${e}"`), ...motion.transitions.map((t) => `transition: "${t}"`)].map((m) => (
+          <span key={m} className="rounded-lg px-3 py-2 font-mono text-sm text-ink-2">
+            {m}
           </span>
         ))}
       </Section>

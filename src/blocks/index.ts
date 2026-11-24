@@ -1,7 +1,7 @@
 // Every building block. Whole-slide layouts first, then blocks to put inside a Frame.
 
 // Slides
-export { EndSlide, Footer, Frame, Kicker, QuoteSlide, SectionSlide, StatementSlide, TitleSlide } from "./slides.tsx";
+export { EndSlide, Footer, Frame, Kicker, QuoteSlide, SectionSlide, Slide, SlideHeader, StatementSlide, TitleSlide } from "./slides.tsx";
 export { Logo } from "./Logo.tsx";
 export { PhotoCaption, PhotoSlide, PhotoSplit, Figure } from "./PhotoSlide.tsx";
 export { Audio, Video } from "./Media.tsx";

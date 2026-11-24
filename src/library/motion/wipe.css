@@ -1,0 +1,16 @@
+/*
+ * A slide transition of your own: a pair of keyframes, <name>-in for the arriving slide and
+ * <name>-out for the leaving one. Going back, the deck plays the pair the other way round.
+ *   transition: "wipe"                       on the deck, for every slide
+ *   slide(<Frame … />, { transition: "wipe" })   for one slide
+ */
+@keyframes wipe-in {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+@keyframes wipe-out {
+  to {
+    transform: translateX(-4%);
+  }
+}
