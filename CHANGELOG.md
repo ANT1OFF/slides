@@ -33,25 +33,32 @@ From dogfooding a team copy:
 - **Team-owned paths are frozen upstream.** After the first clone, upstream never changes, adds or
   removes a file in `src/library/` or `src/decks/` (except the showcase), so `npm run upgrade` can't
   conflict there. New examples ship in the docs or `examples/`; in upstream's repo, `npm run check`
-  (and CI) fails a change that touches those paths. (Until now, #5 had changed `Funnel.tsx`, `SplitFrame.tsx` and
+  fails a change that touches those paths. (Until now, #5 had changed `Funnel.tsx`, `SplitFrame.tsx` and
   `src/library/README.md` and added `Sql.tsx` and `TimerBar.tsx`.)
+
+- `npm run refresh <deck>` includes library data found through the deck's imports and re-exports.
+  `--shared` still includes all library data. A successful same-day script rerun reports
+  "already up to date today".
+- `useDeckNav()` exposes the ordered list of slide IDs and hidden flags, and `goto` accepts an ID
+  or a zero-based index.
+- The team-path check runs in Gram's isolated local gate using the pull request base.
+- For `BarSeries` growth with a partial first period, the prop docs show how to set a full-period
+  baseline via `relativeTo.base`.
 
 **Upgrade notes**
 
-- Upgrading across #5 can conflict once on the starters it changed. A starter you deleted (a
-  modify/delete conflict, e.g. `Funnel.tsx`): `git rm src/library/blocks/Funnel.tsx`. One you
-  changed: keep yours, `git checkout --ours <file>`. `Sql.tsx` and `TimerBar.tsx` arrive as new
-  files; delete them if you don't want them.
-
-- If your copy committed rebuilt `examples/html/` files (the old advice when `npm run check` called
-  them stale), take upstream's when the upgrade conflicts on them: `git checkout --theirs examples/html`.
-- Set `upstream` fetch-only once: `git remote set-url --push upstream DISABLED`.
-- The starter `src/library/blocks/SplitFrame.tsx` predates `FrameBody`. In your copy, put its body in
-  `<FrameBody>` so verify checks it.
-
-**Known gaps:** `npm run refresh <deck>` can't yet tell which `src/library` data a deck's slides
-use (add `--shared`); `BarSeries` growth with `relativeTo: { base: "first" }` against a partial
-first period gives a misleading multiple (pass a number instead).
+- The updated `npm run upgrade` preserves your team's `src/library/` and `src/decks/` trees
+  (except `src/decks/showcase/`), including deleted starters, when merging historical changes
+  such as #5. If you're still running the old script when crossing #5, restore those paths from
+  the pre-upgrade commit to resolve the starter conflicts. First remove starters you had deleted
+  with `git rm -- <path>`, such as `src/library/blocks/Funnel.tsx`. Then run
+  `git restore --source=HEAD --staged --worktree -- src/library src/decks ':(exclude)src/decks/showcase'`.
+- If you committed rebuilt examples under the old instructions and the upgrade conflicts on them,
+  take the incoming versions and stage them with
+  `git restore --source=MERGE_HEAD --staged --worktree -- examples/html`.
+- Set `upstream` fetch-only once with `git remote set-url --push upstream DISABLED`.
+- In your copy, wrap the main content of the starter `SplitFrame` in `<FrameBody>` so verify
+  checks it. See the [updated layout example](docs/making-a-block.md#make-your-own-layout).
 
 - **Animation by name.** `<Reveal effect>` takes any effect name, `<Build effect>` plays one on a
   build step, and a deck or a slide can name a `transition` between slides (built in: `fade`, `push`,

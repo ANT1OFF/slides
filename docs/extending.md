@@ -237,8 +237,10 @@ A presenter extra (a timer bar, a laser pointer, a watermark, a listener for a r
 component. Two things connect it to the deck, both from `@core`:
 
 - **`overlay` on the deck** draws it once over the window, for the whole deck, above the slides.
-- **`useDeckNav()`** gives it the position and the controls: `{ index, step, count, nav, goto }`
-  (`index` and `goto` count slides from 0; `nav(1)` and `nav(-1)` do what → and ← do).
+- **`useDeckNav()`** gives it the position and the controls: `{ index, step, count, slides, nav, goto }`.
+  `index` counts from 0. `slides` lists `{ id, hidden }` in deck order, including backups.
+  `goto` accepts a zero-based index or a slide id and ignores unknown ids. Set an explicit `id`
+  on slides you want to jump to by name. `nav(1)` and `nav(-1)` do what → and ← do.
 - **`useDeckKey(key, does, run)`** adds a keyboard shortcut for as long as the component is on
   screen. It runs only while presenting, and it is listed under `?` after the built-in keys.
 
@@ -252,6 +254,16 @@ export function TimerBar({ minutes = 20 }: { minutes?: number }) {
 }
 
 const deck: DeckDefinition = { title: "Q3 review", overlay: <TimerBar minutes={20} />, slides: [...] };
+```
+
+To jump to the first backup with a shortcut:
+
+```tsx
+const { slides, goto } = useDeckNav();
+useDeckKey("k", "Jump to the first backup", () => {
+  const backup = slides.find((slide) => slide.hidden);
+  if (backup) goto(backup.id);
+});
 ```
 
 Rules that keep this simple:
