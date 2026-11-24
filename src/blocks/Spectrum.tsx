@@ -7,13 +7,10 @@ export interface Tier {
   where?: ReactNode;
 }
 
-// From ink through the accent to accent-2, along the axis.
-const stop = (t: number) =>
-  t < 0.5
-    ? `color-mix(in oklab, var(--color-ink) ${Math.round((1 - t * 2) * 100)}%, var(--color-accent))`
-    : `color-mix(in oklab, var(--color-accent) ${Math.round((2 - t * 2) * 100)}%, var(--color-accent-2))`;
+// From ink to the accent, along the axis: one hue family, so the tiers read as one scale.
+const stop = (t: number) => `color-mix(in oklab, var(--color-ink) ${Math.round((1 - t) * 100)}%, var(--color-accent))`;
 
-/** A gradient axis with evenly spaced tiers, labelled at both ends, and an optional floor callout. */
+/** An axis from ink to the accent with evenly spaced tiers, labelled at both ends, and an optional floor callout. */
 export function Spectrum({
   tiers,
   left,
@@ -34,7 +31,7 @@ export function Spectrum({
     <div className="flex flex-col gap-10">
       <div className="relative h-28">
         <div
-          className="grow-x absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-gradient-to-r from-ink via-accent to-accent-2"
+          className="grow-x absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-gradient-to-r from-ink to-accent"
           style={delay(250)}
         />
         {tiers.map((t, i) => (
