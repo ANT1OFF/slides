@@ -46,5 +46,8 @@ First public version.
 - `HBars` fills the content width (1680px) by default; pass `width` to narrow it.
   Built-in motion is a little quicker (`fade` and `pop` 600 ms, build steps 300 ms)
   and reads the theme's motion tokens.
+- `Cycle` draws an arrowhead between each pair of cards, so the direction reads without the
+  moving dot, and its default cards are smaller (280×96), so more of the ring shows. `Flow` is
+  taller by default (400px, nodes up to 260px); pass a smaller `height` for flatter boxes.
 - The README's theme walkthrough is now [docs/themes.md](docs/themes.md), and the private-copy
   steps are in [docs/working-with-decks.md](docs/working-with-decks.md).
