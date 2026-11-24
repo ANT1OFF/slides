@@ -36,7 +36,7 @@ browser, offline, no install needed. Press **F** for fullscreen, **?** for every
 
 - [showcase.html](examples/html/showcase.html): every block, in the default theme.
 - [example-pitch.html](examples/html/example-pitch.html): a seed pitch ("Ledgerly") in the `acme` theme.
-- [example-talk.html](examples/html/example-talk.html): a talk, "Small PRs, fast teams", in dark.
+- [example-talk.html](examples/html/example-talk.html): a talk, "Small PRs, fast teams", in the `signal` theme, dark.
 - [example-update.html](examples/html/example-update.html): a support team update in the `editorial` theme, with refreshable data.
 
 ## A deck

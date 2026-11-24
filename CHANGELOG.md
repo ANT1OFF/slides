@@ -18,8 +18,8 @@ First public version.
   tables, numbers, diagrams, charts, photos, video and sound. The same props (`start`, `build`,
   `inverted`) mean the same thing on each.
 - **Four themes**, each light and dark: `default`, `editorial`, `signal` and the example company
-  theme `acme`. A theme is a folder; a deck picks one by name and can override `scheme`, `logo`,
-  `footer` and any token. See [docs/themes.md](docs/themes.md).
+  theme `acme`; the showcase or an example deck uses each. A theme is a folder; a deck picks
+  one by name and can override `scheme`, `logo`, `footer` and any token. See [docs/themes.md](docs/themes.md).
 - **A team library:** `src/library/` (`@library/…`) for reusable slides, slide sets, blocks,
   layouts, data, assets, team-wide CSS, motion files, a team default theme and house rules for
   agents. Everything a team adds is a file in its own folders, used by name; the dev gallery
