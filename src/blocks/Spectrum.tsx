@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Build, Reveal, delay } from "@core";
+import { stepOf, type BuildProp } from "./steps.ts";
 
 export interface Tier {
   name: string;
@@ -22,10 +23,11 @@ export function Spectrum({
   left: string;
   right: string;
   floor?: ReactNode;
-  /** Reveal one tier per press of →, then the floor. */
-  build?: boolean;
+  /** Reveal one tier per press of →, then the floor. A number sets the first tier's step. */
+  build?: BuildProp;
 }) {
   const n = tiers.length;
+  const stepping = build !== false;
 
   return (
     <div className="flex flex-col gap-10">
@@ -35,7 +37,7 @@ export function Spectrum({
           style={delay(250)}
         />
         {tiers.map((t, i) => (
-          <Build key={t.name} at={i + 1} enabled={build}>
+          <Build key={t.name} at={stepOf(build, i)} enabled={stepping}>
             <div
               className="pop absolute top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-[6px] border-canvas shadow-lg"
               style={{
@@ -55,7 +57,7 @@ export function Spectrum({
       </div>
       <div className="grid gap-10" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
         {tiers.map((t, i) => (
-          <Build key={t.name} at={i + 1} enabled={build}>
+          <Build key={t.name} at={stepOf(build, i)} enabled={stepping}>
             <Reveal delay={850 + i * 160} className="flex flex-col gap-4 text-center">
               <div className="type-small weight-strong">{t.name}</div>
               <div className="mt-2 text-[28px] leading-snug text-ink-2">{t.rule}</div>
@@ -65,7 +67,7 @@ export function Spectrum({
         ))}
       </div>
       {floor && (
-        <Build at={n + 1} enabled={build}>
+        <Build at={stepOf(build, n)} enabled={stepping}>
           <Reveal delay={850 + n * 160 + 200} className="rule-top-strong type-body mt-4 rounded-box bg-surface px-(--pad-box) py-6">
             {floor}
           </Reveal>
