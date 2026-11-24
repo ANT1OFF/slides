@@ -8,6 +8,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Upstream only (a team's copy changes these paths all the time): team-owned paths are frozen,
+      # so an upgrade never conflicts there. See CONTRIBUTING.md.
+      - name: Team-owned paths are untouched
+        if: github.event_name == 'pull_request' && github.repository == 'ANT1OFF/slides'
+        run: |
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- src/library src/decks ':!src/decks/showcase')
+          if [ -n "$changed" ]; then
+            echo "Upstream never changes team-owned paths (src/library, src/decks except showcase):"
+            echo "$changed"
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 24

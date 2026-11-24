@@ -30,7 +30,18 @@ From dogfooding a team copy:
   library pieces may import each other; replace the starters and update `src/library/README.md`
   and `AGENTS.md`.
 
+- **Team-owned paths are frozen upstream.** After the first clone, upstream never changes, adds or
+  removes a file in `src/library/` or `src/decks/` (except the showcase), so `npm run upgrade` can't
+  conflict there. New examples ship in the docs or `examples/`; CI fails an upstream pull request
+  that touches those paths. (Until now, #5 had changed `Funnel.tsx`, `SplitFrame.tsx` and
+  `src/library/README.md` and added `Sql.tsx` and `TimerBar.tsx`.)
+
 **Upgrade notes**
+
+- Upgrading across #5 can conflict once on the starters it changed. A starter you deleted (a
+  modify/delete conflict, e.g. `Funnel.tsx`): `git rm src/library/blocks/Funnel.tsx`. One you
+  changed: keep yours, `git checkout --ours <file>`. `Sql.tsx` and `TimerBar.tsx` arrive as new
+  files; delete them if you don't want them.
 
 - If your copy committed rebuilt `examples/html/` files (the old advice when `npm run check` called
   them stale), take upstream's when the upgrade conflicts on them: `git checkout --theirs examples/html`.
