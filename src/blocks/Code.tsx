@@ -13,7 +13,9 @@ const KEYWORDS = new Set(
 const RULES: [RegExp, string][] = [
   [/^(\/\/.*|#(?!\[).*|\/\*[\s\S]*?\*\/)/, "tok-comment"],
   [/^(`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/, "tok-string"],
-  [/^\b\d[\d_.]*(?:e[+-]?\d+)?\b/i, "tok-number"],
+  // A number with whatever letters follow it (120px, 0x1f, 1e9): every rule must leave nothing
+  // unmatched, or tokenize never ends.
+  [/^\d(?:[eE][+-]\d|[\w.])*/, "tok-number"],
   [/^[A-Za-z_$][\w$]*(?=\s*\()/, "tok-fn"],
   [/^[A-Za-z_$][\w$]*/, "word"],
   [/^\s+/, ""],

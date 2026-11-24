@@ -23,7 +23,8 @@ First public version.
 - **A team library:** `src/library/` (`@library/…`) for reusable slides, slide sets, blocks,
   layouts, data, assets, team-wide CSS, motion files, a team default theme and house rules for
   agents. Everything a team adds is a file in its own folders, used by name; the dev gallery
-  previews it and `npm run verify` renders it. See [docs/extending.md](docs/extending.md).
+  previews it, `npm run verify` renders it, and the showcase's "Your own" slide shows the three
+  you'll add most. See [docs/extending.md](docs/extending.md).
 - **Refreshable data:** `*.data.json` files with their source, `asOf()` for the footer, and
   `npm run refresh`.
 - **Checks:** `npm run check` (format, layer boundaries, types, every deck builds, examples up to
@@ -49,5 +50,7 @@ First public version.
 - `Cycle` draws an arrowhead between each pair of cards, so the direction reads without the
   moving dot, and its default cards are smaller (280×96), so more of the ring shows. `Flow` is
   taller by default (400px, nodes up to 260px); pass a smaller `height` for flatter boxes.
+- `Code` no longer hangs the deck on a number followed by letters (`120px`, `0x1f`, `3d`); they
+  are coloured as numbers.
 - The README's theme walkthrough is now [docs/themes.md](docs/themes.md), and the private-copy
   steps are in [docs/working-with-decks.md](docs/working-with-decks.md).

@@ -522,6 +522,26 @@ const deck: DeckDefinition = {
       { id: "Motion", transition: "zoom", notes: "Press ← and the zoom plays the other way round." },
     ),
     slide(
+      <Frame section="Your own" title="Yours to extend: one file each" density="compact">
+        <div className="flex flex-col gap-(--gap-title)">
+          <Table
+            columns={["To add", "A file in src/library/", "Use it"]}
+            rows={[
+              ["A block", <code className="font-mono">blocks/Funnel.tsx</code>, <code className="font-mono">{"<Funnel />"}</code>],
+              ["A layout", <code className="font-mono">blocks/SplitFrame.tsx</code>, <code className="font-mono">{"<SplitFrame />"}</code>],
+              ["An effect", <code className="font-mono">motion/swoop.css</code>, <code className="font-mono">{'effect="swoop"'}</code>],
+            ]}
+            strong={0}
+          />
+          <Code title="src/library/motion/swoop.css">{`
+            @keyframes swoop { from { opacity: 0; transform: translateX(-120px); } }
+            .swoop { animation: swoop var(--duration-slow) var(--ease-out) both; }
+          `}</Code>
+        </div>
+      </Frame>,
+      { id: "Extending", notes: "Nothing to register and no upstream file to edit. docs/extending.md has the full table." },
+    ),
+    slide(
       <Frame section="Backup" title="A hidden slide">
         <Lead>Skipped when presenting and printing, greyed in the overview. Jump here from the overview (G).</Lead>
       </Frame>,
