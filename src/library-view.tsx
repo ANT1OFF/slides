@@ -32,7 +32,7 @@ function librarySlides(): SlideEntry[] {
             { id: `${file}/${name}`, notes: `src/library/slides/${file}: <${name} />` },
           ),
         );
-      } else if (/Slides$/.test(name)) {
+      } else if (name.endsWith("Slides")) {
         // A set may return plain JSX or slide() entries; keep an entry's own notes and options.
         let set: SlideInput[];
         try {

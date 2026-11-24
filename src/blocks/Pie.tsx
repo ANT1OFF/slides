@@ -81,6 +81,7 @@ export function Pie({
             {slices.map((s, i) => {
               const sweep = (s.value / total) * Math.PI * 2;
               const path = sector(c, r, inner, angle + gap, angle + sweep - gap);
+              // oxlint-disable-next-line react/immutability -- map runs during render; angle is a running total, not state
               angle += sweep;
               const { fill, opacity } = look(s, i);
               return <path key={s.name} d={path} className={fill} style={{ opacity }} />;

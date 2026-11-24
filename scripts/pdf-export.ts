@@ -34,7 +34,12 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
       for (const f of faces) await f.load().catch(() => {});
       await Promise.all(
         [...document.images].map((i) =>
-          i.complete ? null : new Promise((r) => (i.addEventListener("load", r), i.addEventListener("error", r))),
+          i.complete
+            ? null
+            : new Promise((r) => {
+                i.addEventListener("load", r);
+                i.addEventListener("error", r);
+              }),
         ),
       );
       return [...document.fonts].filter((f) => f.status !== "loaded").map((f) => f.family);
