@@ -188,8 +188,7 @@ and `examples/example-pitch` an agent one.
   release asset.
 - To present: open the file, press F. Press N for the presenter window on your laptop and drag the
   deck to the projector. For a PDF: press P, "Save as PDF".
-- The file contains everything, including hidden slides, notes and the data behind every chart.
-  Check before sending it outside your team.
+- See [Before you send a deck](../README.md#before-you-send-a-deck).
 
 ## Versioning
 

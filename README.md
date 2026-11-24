@@ -1,21 +1,12 @@
 # Slides
 
-Presentations as React code. Each deck is one `.tsx` file and builds into **one self-contained HTML
-file**: fonts, images, video and code inlined, nothing fetched when it opens. Email it, put it on a
-USB stick, open it offline in any browser.
-
-- **Building blocks** for text, layout, numbers, diagrams, charts, photos, video and sound.
-- **Themes** as folders: colours, fonts and a logo, picked with one line per deck.
-- **Presenting**: build steps, transitions, presenter window with notes, overview, print to PDF.
-- **A library that grows**: keep a private copy as your team's slide library. Your own blocks,
-  layouts, slides, themes and effects are files in your folders, used by name; nothing to register.
-- **Data that can be refreshed**: numbers carry where they came from, so `npm run refresh` (or your
-  agent) can update them a year later.
+Build React presentations into **one self-contained HTML file per deck**. Fonts, images, video and
+code are inlined for offline presenting. Use the built-in blocks and themes or grow your own
+team library. Record data sources so `npm run refresh` can update your figures.
 
 ## Quick start
 
-This is a template repo, not a package: clone it (for a team, as a private copy; see "Your own
-copy") and your decks live in `src/decks/`. Needs Node.js 22.18 or newer.
+Clone this template repo with Node.js 22.18 or newer. Your decks live in `src/decks/`.
 
 ```bash
 git clone https://github.com/ANT1OFF/slides.git my-slides && cd my-slides
@@ -64,17 +55,13 @@ const deck: DeckDefinition = {
 export default deck;
 ```
 
-That is the whole model: **a deck is a title, an optional theme, and a list of slides. A slide is JSX.**
-`slide(…, { notes, hidden, id, transition })` adds speaker notes, hides a backup slide, gives it a
-stable id or its own transition. Imports: `@blocks` (built-in blocks), `@core` (`slide`, `Build`,
-`asOf`, types) and `@library/…` (your team's own slides and blocks).
+`slide(…, { notes, hidden, id, transition })` sets speaker notes, visibility, a stable id and a
+slide-specific transition. Import team slides and blocks through `@library/…`.
 
 ## Building blocks
 
-About 40 blocks: whole slides (`TitleSlide`, `Frame`, `SectionSlide` …), text, layout, media,
-numbers, diagrams and charts. Open [showcase.html](examples/html/showcase.html) (or `showcase` in
-`npm run dev`) to see every one with its name and an example; press **G** for the overview. The
-source, `src/decks/showcase/index.tsx`, is the code for each.
+Press **G** in the showcase to see all the blocks. The deck source has code for each one.
+[Showcase source](src/decks/showcase/index.tsx)
 
 The same props mean the same thing everywhere: `start` delays a block's entrance (ms); `build`
 reveals a list-like block one item per press of → (`true` starts at step 1, a number starts there,
@@ -85,28 +72,20 @@ on a press of →. Motion is CSS used by name: `<Reveal effect="pop">`, `<Build 
 
 ## Themes
 
-A theme is a folder in `src/themes/`; four come with the repo: `default` (plain, Inter, one
-vermilion accent), `editorial` (a printed page), `signal` (a poster in black and yellow) and `acme`
-(an example company theme, to copy for yours). Pick one, and change the look of one deck:
-
-```tsx
-theme: "editorial",                       // a folder in src/themes
-scheme: "dark",                           // the theme's dark colours
-footer: "Acme · Board meeting",           // bottom left of every slide (false hides it)
-vars: { "--color-accent": "#0a7d5a" },    // any token, for this deck only
-```
-
-[docs/themes.md](docs/themes.md) has every option and the steps to **make your own theme** (colours,
-fonts, logo, a team default).
+Pick a folder from `src/themes/` with `theme: "editorial"`, and use `scheme: "dark"` for its dark
+colours. The themes guide covers overrides, making your own theme and setting a team default.
+[Themes guide](docs/themes.md)
 
 ## Images, video and sound
 
 Import files in the deck and pass them to a block, so the build inlines them:
 
 ```tsx
+import { PhotoCaption, PhotoSlide } from "@blocks";
 import hero from "./hero.jpg";
-<PhotoSlide src={hero} alt="…">
-  <PhotoCaption title="…" />
+
+<PhotoSlide src={hero} alt="Clouds over the ridge">
+  <PhotoCaption title="The ridge at dawn" />
 </PhotoSlide>;
 ```
 
@@ -115,8 +94,6 @@ URL) and says what to import. Inlined files grow by a third, so compress them: p
 200 KB, video a few MB (the build warns above 15 MB); link to anything long.
 
 ## Presenting
-
-Every key works in the built file, offline.
 
 | Key                         | Does                                                                         |
 | --------------------------- | ---------------------------------------------------------------------------- |
@@ -154,11 +131,9 @@ npm run upgrade  # merges upstream updates on a branch, then check and verify
 
 ## Your own copy (for teams)
 
-To keep this repo as your team's slide library, make a **private copy** by cloning (not "Use this
-template", not a public fork) and keep this repo as a fetch-only `upstream` remote. Your decks,
-library and themes live in folders upstream never touches, so `npm run upgrade` merges cleanly.
-[docs/working-with-decks.md](docs/working-with-decks.md) has the commands and the whole cycle:
-team theme, reusing and promoting library pieces, refreshable data, upgrading.
+Clone a **private copy** and configure this repo as a fetch-only `upstream` remote. Keep your
+decks, library and themes in the team-owned folders for clean upgrades.
+[Private copy setup](docs/working-with-decks.md#1-make-your-private-copy)
 
 ## Guides
 
@@ -167,8 +142,6 @@ team theme, reusing and promoting library pieces, refreshable data, upgrading.
 - [Themes](docs/themes.md): the four themes, per-deck options, making your own.
 - [Extending](docs/extending.md): everything you can add (blocks, layouts, effects, keys …) and where.
 - [Making a building block](docs/making-a-block.md): conventions, tokens, build steps, layouts.
-- [Design](docs/design.md): the token set, the type scale and the layout rules.
-- [Inspiration](docs/inspiration.md): which ideas came from which frameworks.
 
 ## Before you send a deck
 

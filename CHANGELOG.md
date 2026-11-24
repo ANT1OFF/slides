@@ -34,6 +34,7 @@ First public version.
 - Verify checks that the build refuses a remote image and a missing font file.
 - Spectrum accepts a build offset. With `build={0}`, the first tier starts visible.
 - View Transition sequencing lives in its own module, with the same slide navigation.
+- The README is shorter and keeps the sharing warning in one place.
 - Built example decks in `examples/html/`, and a project skill for Claude Code and Codex.
 
 **Upgrade notes** (only for copies made before v0.1.0)
