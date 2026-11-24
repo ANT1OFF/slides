@@ -15,9 +15,9 @@ export function listThemes(themesDir: string): string[] {
     .sort();
 }
 
-/** The team's default theme from src/library/settings.json, or "default". */
-export function teamDefaultTheme(themesDir: string): string {
-  const file = resolve(themesDir, "../library/settings.json");
+/** The team's default theme from the library's settings.json (src/library), or "default". */
+export function teamDefaultTheme(themesDir: string, libraryDir: string): string {
+  const file = resolve(libraryDir, "settings.json");
   if (!existsSync(file)) return "default";
   let theme: unknown;
   try {
@@ -33,12 +33,12 @@ export function teamDefaultTheme(themesDir: string): string {
 }
 
 /** The theme a deck names with `theme: "name"`, or the team default. Code in template literals and comments is ignored. */
-export function deckTheme(deckFile: string): string {
+export function deckTheme(deckFile: string, libraryDir: string): string {
   const source = readFileSync(deckFile, "utf8")
     .replace(/`(?:\\.|[^`\\])*`/g, "``")
     .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
   const m = /\btheme\s*:\s*(\S)/.exec(source);
-  if (!m) return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"));
+  if (!m) return teamDefaultTheme(resolve(import.meta.dirname, "../src/themes"), libraryDir);
   const literal = /^\s*:\s*["']([\w-]+)["']/.exec(source.slice(m.index + "theme".length));
   if (!literal)
     throw new Error(
@@ -48,7 +48,7 @@ export function deckTheme(deckFile: string): string {
   return literal[1];
 }
 
-export function themes({ themesDir, deckFile }: { themesDir: string; deckFile: string }): Plugin {
+export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string; deckFile: string; libraryDir: string }): Plugin {
   let serve = false;
   return {
     name: "slides:themes",
@@ -63,7 +63,7 @@ export function themes({ themesDir, deckFile }: { themesDir: string; deckFile: s
       const all = listThemes(themesDir);
       let names = all;
       if (!serve) {
-        const wanted = deckTheme(deckFile);
+        const wanted = deckTheme(deckFile, libraryDir);
         if (!all.includes(wanted)) {
           this.error(
             `${relative(process.cwd(), deckFile)} uses theme "${wanted}", but there is no src/themes/${wanted}/theme.css. Themes: ${all.join(", ")}`,

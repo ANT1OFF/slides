@@ -19,6 +19,17 @@ First public version.
 - Layout pieces exported for layouts of your own: `Slide`, `SlideHeader` (next to `Footer`, `Kicker`,
   `Logo`); `Frame` takes `className`. `src/library/blocks/SplitFrame.tsx` is an example.
 - `npm run new` copies `src/decks/_starter/`, the team's own starter deck.
+- **Previews of the library.** The dev gallery draws every library slide, every library block
+  (a block file's `example` export) and every effect and transition in `src/library/motion/`, and
+  `npm run verify` renders them, so a broken one fails verify by name.
+- `Code` takes `tokenize`, a highlighter of your own; the built-in one is exported as `tokenize`.
+  `src/library/blocks/Sql.tsx` is an example.
+- **Keys and presenter extras as components.** A deck's `overlay` is drawn over the window;
+  `useDeckNav()` and `useDeckKey()` (`@core`) give a component the deck's position and its own
+  shortcut, listed under `?`. `src/library/blocks/TimerBar.tsx` is an example.
+- The examples and the showcase are built from upstream's files only (an empty library, their own
+  class names), so `npm run check` no longer reports `examples/html/` as stale in a team copy that
+  has its own classes, motion, `styles.css` or default theme.
 - [docs/extending.md](docs/extending.md): every extension point in one table. The ownership table
   now lists every file.
 

@@ -4,6 +4,9 @@
 // These HTML files are committed so anyone can download one and open it in a browser without
 // installing anything. Builds are byte-for-byte reproducible, so `--check` (run by `npm run check`)
 // catches a committed file that no longer matches its source. Re-run without `--check` and commit.
+// These decks are upstream's, and vite.config.ts builds them from upstream's files only (an empty
+// library, Tailwind reading only the engine, the blocks and the deck). So the check holds in a team's
+// copy too: nothing in src/library, the team's decks or its themes changes these bytes.
 // Team decks are not touched: they build to dist/, which stays untracked.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";

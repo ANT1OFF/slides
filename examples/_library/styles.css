@@ -1,0 +1,5 @@
+/*
+ * The library upstream's own decks (examples/ and the showcase) are built with: an empty one.
+ * They never use a team's library, so their built HTML is the same in every copy of the repo,
+ * whatever the team puts in src/library. Nothing to edit here.
+ */

@@ -3,7 +3,7 @@
 // A class `.name` with an @keyframes of the same name is an entrance effect (<Reveal effect="name">,
 // <Build effect="name">). A pair of @keyframes `name-in` / `name-out` is a slide transition
 // (`transition: "name"` on the deck, or slide(x, { transition: "name" })).
-// The module also exports the names it found, for the dev gallery. Like a new theme folder, a new
+// The module also exports the names it found, for the library view (a slide per effect and transition). Like a new theme folder, a new
 // file needs `npm run dev` restarted; edits to an existing one reload on their own.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";

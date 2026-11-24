@@ -3,6 +3,7 @@ export { Build, useBuildStep } from "./Build.tsx";
 export { useDisplay, useStatic, type Display } from "./context.ts";
 export { Deck } from "./Deck.tsx";
 export { CountUp, Pulse, Reveal, Traveller, delay, loop, stagger, type Effect } from "./motion.tsx";
+export { useDeckKey, useDeckNav, type DeckNav } from "./nav.ts";
 export { Presenter } from "./Presenter.tsx";
 export { isPresenter } from "./sync.ts";
 export { slide, type DeckDefinition, type SlideEntry, type SlideInput, type SlideOptions } from "./types.ts";

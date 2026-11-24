@@ -1,6 +1,6 @@
 ---
 name: slides
-description: Make, change or refresh presentations in this repo (React slides built into one self-contained HTML file per deck). Use for "make a deck/slides/presentation", reusing or promoting slides and blocks in the team library, making a team theme, layout, style, animation or slide transition, refreshing a deck's data, exporting a deck to PDF, or checking a deck before committing.
+description: Make, change or refresh presentations in this repo (React slides built into one self-contained HTML file per deck). Use for "make a deck/slides/presentation", reusing or promoting slides and blocks in the team library, making a team theme, layout, style, animation, slide transition, code highlighter, keyboard shortcut or presenter extra (timer bar, pointer), refreshing a deck's data, exporting a deck to PDF, or checking a deck before committing.
 ---
 
 # Slides
@@ -18,18 +18,19 @@ HTML: every deck is built by the repo.
 ## Reuse from the library
 
 1. List `src/library/slides/` and `src/library/blocks/`, and skim `src/decks/showcase/index.tsx` for
-   built-in blocks. `npm run dev` → Library shows every library slide.
+   built-in blocks. `npm run dev` shows a preview of every library slide, block and motion file.
 2. Import with `@library/…` / `@blocks`, override props, spread `…Slides()` sets.
    Pattern and examples: `docs/working-with-decks.md` §3.
 
 ## Promote a block or slide
 
 1. Move it from the deck folder into `src/library/blocks/` or `src/library/slides/` (never
-   `src/blocks/`), make its content props with defaults.
+   `src/blocks/`), make its content props with defaults. A block file also exports
+   `example` (an element, or `slide(…)` for a layout): its preview, which `npm run verify` renders.
 2. Conventions: `docs/making-a-block.md`. Ownership: AGENTS.md "Who owns what".
 3. Update the deck's import; check and verify.
 
-## Add a layout, style, animation or transition
+## Add a layout, style, animation, transition, highlighter, key or presenter extra
 
 Each is a file in a team folder, used by name or import; never edit `src/core/`, `src/blocks/` or
 `src/styles.css` for it. `docs/extending.md` has the table and the examples.
@@ -45,6 +46,13 @@ Each is a file in a team folder, used by name or import; never edit `src/core/`,
    `push`, `zoom`, `"none"`.
 5. Use the motion tokens (`--duration-*`, `--ease-*`, `--rise`) in motion CSS; check it in the
    overview (G) and print (P), which must show the final state.
+6. Code in another language: a block in `src/library/blocks/` that passes `tokenize` to `Code`
+   (spans with the `tok-*` classes; `tokenize(line, keywords)` from `@blocks` is the built-in one).
+   Example: `src/library/blocks/Sql.tsx`.
+7. Keyboard shortcut or presenter extra: a component using `useDeckKey(key, does, run)` and
+   `useDeckNav()` from `@core`, put on the deck with `overlay: <TimerBar />`. Never edit
+   `src/core/Deck.tsx`. Built-in keys win; the new key shows under `?`. Example:
+   `src/library/blocks/TimerBar.tsx`.
 
 ## New team theme
 

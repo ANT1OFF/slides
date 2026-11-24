@@ -6,27 +6,31 @@ There is nothing to register and no upstream file to edit. Your folders are `src
 
 ## I want to add …
 
-| A …                                          | Put it in                                                           | Use it like this                                                                              | More                                                   |
-| -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| **Block** (an element inside a slide)        | `src/library/blocks/<Name>.tsx`, or the deck's folder for a one-off | `import { Funnel } from "@library/blocks/Funnel.tsx"`                                         | [making-a-block.md](making-a-block.md)                 |
-| **Layout** (a whole-slide frame)             | The same: a layout is a block that fills the slide                  | Build it from `Slide`, `SlideHeader`, `Footer`, `Kicker`, `Logo` (`@blocks`)                  | [Layouts](#layouts)                                    |
-| **Reusable slide or slide set**              | `src/library/slides/<topic>.tsx`                                    | `<Questions />`, `...openingSlides({ title })`                                                | [working-with-decks.md](working-with-decks.md) §5      |
-| **Theme** (colours, type, fonts, logo)       | `src/themes/<name>/`                                                | `theme: "<name>"` on the deck; team default in `src/library/settings.json`                    | README, "Make your own theme"                          |
-| **Look of one deck**                         | The deck                                                            | `scheme`, `logo`, `footer`, `vars` on the deck                                                | README, "Themes"                                       |
-| **Team-wide CSS** (tokens, utilities, rules) | `src/library/styles.css`                                            | `@theme { --color-brand-2: … }` gives `bg-brand-2`; `@utility team-badge { … }` gives a class | [Styles](#styles)                                      |
-| **CSS for one deck**                         | A `.css` file in the deck's folder                                  | `import "./deck.css"` in the deck                                                             | [Styles](#styles)                                      |
-| **Entrance effect**                          | `src/library/motion/<name>.css`                                     | `<Reveal effect="<name>">`, or the class on an SVG element                                    | [Motion](#motion)                                      |
-| **Build-step effect**                        | The same file: one effect serves both                               | `<Build at={1} effect="<name>">`                                                              | [Motion](#motion)                                      |
-| **Transition between slides**                | `src/library/motion/<name>.css`                                     | `transition: "<name>"` on the deck, or `slide(…, { transition: "<name>" })`                   | [Motion](#motion)                                      |
-| **Motion timing** (calmer, snappier)         | Your theme, or a deck's `vars`                                      | `--duration-fast`, `--duration-base`, `--duration-slow`, `--stagger`, `--rise`, `--ease-*`    | [Motion](#motion)                                      |
-| **Loop** (steady motion on a diagram)        | `src/library/motion/<name>.css`                                     | The class on the element, `style={loop(startMs, periodSeconds)}`                              | [Motion](#motion)                                      |
-| **Starter deck** (what `npm run new` writes) | `src/decks/_starter/`                                               | Edit it; every new deck is a copy of it                                                       | [Starter deck](#starter-deck)                          |
-| **Data with its source**                     | `<name>.data.json` next to the deck, or in `src/library/data/`      | `import data from "./x.data.json"`, `asOf(data)`                                              | [working-with-decks.md](working-with-decks.md), "Data" |
-| **Images and logos**                         | The deck's folder, or `src/library/assets/`                         | Import the file where it is used, so the build inlines it                                     | README, "Images, video and sound"                      |
-| **House rules for agents**                   | `src/library/AGENTS.md`                                             | Agents read it after the root `AGENTS.md`                                                     |                                                        |
+| A …                                          | Put it in                                                           | Use it like this                                                                              | More                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Block** (an element inside a slide)        | `src/library/blocks/<Name>.tsx`, or the deck's folder for a one-off | `import { Funnel } from "@library/blocks/Funnel.tsx"`                                         | [making-a-block.md](making-a-block.md)                  |
+| **Layout** (a whole-slide frame)             | The same: a layout is a block that fills the slide                  | Build it from `Slide`, `SlideHeader`, `Footer`, `Kicker`, `Logo` (`@blocks`)                  | [Layouts](#layouts)                                     |
+| **Reusable slide or slide set**              | `src/library/slides/<topic>.tsx`                                    | `<Questions />`, `...openingSlides({ title })`                                                | [working-with-decks.md](working-with-decks.md) §5       |
+| **Theme** (colours, type, fonts, logo)       | `src/themes/<name>/`                                                | `theme: "<name>"` on the deck; team default in `src/library/settings.json`                    | README, "Make your own theme"                           |
+| **Look of one deck**                         | The deck                                                            | `scheme`, `logo`, `footer`, `vars` on the deck                                                | README, "Themes"                                        |
+| **Team-wide CSS** (tokens, utilities, rules) | `src/library/styles.css`                                            | `@theme { --color-brand-2: … }` gives `bg-brand-2`; `@utility team-badge { … }` gives a class | [Styles](#styles)                                       |
+| **CSS for one deck**                         | A `.css` file in the deck's folder                                  | `import "./deck.css"` in the deck                                                             | [Styles](#styles)                                       |
+| **Entrance effect**                          | `src/library/motion/<name>.css`                                     | `<Reveal effect="<name>">`, or the class on an SVG element                                    | [Motion](#motion)                                       |
+| **Build-step effect**                        | The same file: one effect serves both                               | `<Build at={1} effect="<name>">`                                                              | [Motion](#motion)                                       |
+| **Transition between slides**                | `src/library/motion/<name>.css`                                     | `transition: "<name>"` on the deck, or `slide(…, { transition: "<name>" })`                   | [Motion](#motion)                                       |
+| **Motion timing** (calmer, snappier)         | Your theme, or a deck's `vars`                                      | `--duration-fast`, `--duration-base`, `--duration-slow`, `--stagger`, `--rise`, `--ease-*`    | [Motion](#motion)                                       |
+| **Loop** (steady motion on a diagram)        | `src/library/motion/<name>.css`                                     | The class on the element, `style={loop(startMs, periodSeconds)}`                              | [Motion](#motion)                                       |
+| **Preview of a block** in the dev gallery    | The block's file                                                    | `export const example = <Funnel stages={…} />`                                                | [Previews](#previews)                                   |
+| **Code highlighting** for another language   | A block in `src/library/blocks/` that wraps `Code`                  | `<Code tokenize={sqlTokens}>`                                                                 | [Code highlighting](#code-highlighting)                 |
+| **Presenter extra** (timer bar, pointer …)   | A component in `src/library/blocks/`                                | `overlay: <TimerBar minutes={20} />` on the deck; it reads `useDeckNav()`                     | [Keys and presenter extras](#keys-and-presenter-extras) |
+| **Keyboard shortcut**                        | The same component, or any block                                    | `useDeckKey("t", "Restart the talk timer", restart)`                                          | [Keys and presenter extras](#keys-and-presenter-extras) |
+| **Starter deck** (what `npm run new` writes) | `src/decks/_starter/`                                               | Edit it; every new deck is a copy of it                                                       | [Starter deck](#starter-deck)                           |
+| **Data with its source**                     | `<name>.data.json` next to the deck, or in `src/library/data/`      | `import data from "./x.data.json"`, `asOf(data)`                                              | [working-with-decks.md](working-with-decks.md), "Data"  |
+| **Images and logos**                         | The deck's folder, or `src/library/assets/`                         | Import the file where it is used, so the build inlines it                                     | README, "Images, video and sound"                       |
+| **House rules for agents**                   | `src/library/AGENTS.md`                                             | Agents read it after the root `AGENTS.md`                                                     |                                                         |
 
-`npm run dev` lists what it finds: decks, themes, blocks, library slides, and the effects and
-transitions in `src/library/motion/`.
+`npm run dev` shows what it finds: decks, themes, the built-in blocks, and a small preview of every
+library slide, library block and motion file ([Previews](#previews)).
 
 ## Motion
 
@@ -166,6 +170,101 @@ whole-slide blocks are made of exported pieces, so a layout of your own is short
 slide in `src/library/slides/team.tsx`. For a small variation, `Frame` takes a `className`.
 [making-a-block.md](making-a-block.md) has the walkthrough.
 
+## Previews
+
+The dev gallery (`npm run dev`) draws the library instead of listing file names, and "Open the
+library" shows the same slides full size, as one deck:
+
+| For                             | It shows                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| A file in `src/library/slides/` | Every exported component with its default props, and every `…Slides()` set                  |
+| A file in `src/library/blocks/` | The file's `example` export                                                                 |
+| A file in `src/library/motion/` | One slide per entrance effect (it plays on opening and on →) and one per transition between |
+
+A block usually needs props, so its file says what to show:
+
+```tsx
+// src/library/blocks/Funnel.tsx
+export const example = (
+  <Funnel
+    stages={[
+      { label: "Visited", value: 1200 },
+      { label: "Signed up", value: 640 },
+    ]}
+  />
+);
+```
+
+An element is shown inside a `Frame` titled with the file's name. A block that fills the slide
+itself (a layout) wraps its example in `slide(…)` and is shown as it is:
+`export const example = slide(<SplitFrame … />)`. A block file without an `example` is listed by
+name and not drawn.
+
+`npm run verify` builds this same view and opens it offline, so a library slide, a block's example
+or a motion file that fails to render fails verify, with the file's name.
+
+## Code highlighting
+
+`Code` colours common languages with a small built-in tokenizer. For another language, or a
+highlighter of your choice, pass `tokenize`: a function from one line of source to the nodes to
+show.
+
+```tsx
+<Code tokenize={sqlTokens}>{`select * from decks`}</Code>
+// tokenize: (line: string) => ReactNode[]
+```
+
+The spans' classes are the contract, and the theme colours them: `tok-kw`, `tok-string`,
+`tok-number`, `tok-type`, `tok-fn`, `tok-comment`, `tok-punct`. The built-in tokenizer is exported
+from `@blocks` as `tokenize(line, keywords?)`, so adding a language is often just its keywords:
+
+```tsx
+// src/library/blocks/Sql.tsx (shipped as an example; shortened)
+const KEYWORDS = new Set("select from where group by order".split(" "));
+export const sqlTokens = (line: string) => tokenize(line, KEYWORDS);
+export const Sql = (props: Omit<ComponentProps<typeof Code>, "tokenize">) => <Code tokenize={sqlTokens} {...props} />;
+```
+
+For a full highlighter, import it in your wrapper block and return its output from `tokenize`. Only
+the decks that use that block carry its size; the kit's own tokenizer stays at about 1 kB.
+
+## Keys and presenter extras
+
+A presenter extra (a timer bar, a laser pointer, a watermark, a listener for a remote) is a plain
+component. Two things connect it to the deck, both from `@core`:
+
+- **`overlay` on the deck** draws it once over the window, for the whole deck, above the slides.
+- **`useDeckNav()`** gives it the position and the controls: `{ index, step, count, nav, goto }`
+  (`index` and `goto` count slides from 0; `nav(1)` and `nav(-1)` do what → and ← do).
+- **`useDeckKey(key, does, run)`** adds a keyboard shortcut for as long as the component is on
+  screen. It runs only while presenting, and it is listed under `?` after the built-in keys.
+
+```tsx
+// src/library/blocks/TimerBar.tsx (shipped as an example; shortened)
+export function TimerBar({ minutes = 20 }: { minutes?: number }) {
+  const { index, count } = useDeckNav();
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  useDeckKey("t", "Restart the talk timer", () => setStartedAt(Date.now()));
+  // … a bar whose width is the share of `minutes` used, compared with index / count
+}
+
+const deck: DeckDefinition = { title: "Q3 review", overlay: <TimerBar minutes={20} />, slides: [...] };
+```
+
+Rules that keep this simple:
+
+- The built-in keys always win; pick a free one (`?` shows which are taken). `key` is a
+  `KeyboardEvent.key`: `"t"`, `"Escape"`, `"F9"`. A letter also matches with Shift or Caps Lock.
+- Clicks pass through the overlay to the deck. An element that should take clicks itself needs
+  `pointer-events-auto`, and `onClick={(e) => e.stopPropagation()}` if the click shouldn't also
+  move the deck.
+- The overlay is laid out in window pixels, not on the 1920×1080 stage, and has the deck's theme
+  tokens (`bg-accent`, `text-ink-2` …).
+- It is not drawn in print or the PDF export, in the overview's thumbnails or in the presenter
+  window. Both hooks also work inside a slide, e.g. a "jump to the appendix" button.
+- Several extras: `overlay: <><TimerBar /><LaserPointer /></>`. To give every new deck one, put it
+  in the starter deck.
+
 ## Starter deck
 
 `npm run new <name>` copies `src/decks/_starter/` to `src/decks/<name>/` and replaces the text
@@ -176,10 +275,14 @@ that way. It is type-checked like any deck. A team's defaults live here, not in 
 ## The names you can rely on
 
 - Imports: everything exported by `@core` and `@blocks`, and your own files through `@library/…`.
+- Exports the kit reads from your files: `default` from a deck; components and `…Slides` functions
+  from `src/library/slides/`; `example` from a file in `src/library/blocks/`.
+- On a deck: `overlay`, next to `theme`, `scheme`, `logo`, `footer`, `vars`, `transition`.
 - Folders: `src/library/{slides,blocks,motion,data,assets}/`, `src/library/styles.css`,
   `src/library/settings.json`, `src/themes/<name>/`, `src/decks/<name>/`, `src/decks/_starter/`.
 - CSS: the tokens in `src/themes/default/tokens.css`; the `type-*` and `rule-*` utilities; `--d`
-  (an effect's delay) and `--dur` (a loop's period); `.static-motion`; `.inverted`;
+  (an effect's delay) and `--dur` (a loop's period); `.static-motion`; `.inverted`; the `tok-*`
+  classes of a code token;
   `html[data-transition]`, `html[data-transition-back]` and the `<name>-in` / `<name>-out` keyframe
   pair; `[data-stage]`, `[data-theme]`, `[data-scheme]`.
 
@@ -187,5 +290,7 @@ that way. It is type-checked like any deck. A team's defaults live here, not in 
 
 No plugin registry, no JavaScript animation library, no per-noun folders beyond the ones above, no
 auto-imported components, one stage size (1920×1080). Each would add a second way to do what a
-component, a CSS file or a prop already does. If you need something these don't reach (a new key,
-a different presenter view), that is a change to the engine: open a pull request upstream.
+component, a CSS file or a prop already does. The presenter window and the overview are not
+pluggable either: a deck's `overlay` covers additions to the deck window. If you need something
+these don't reach (a different presenter view, a change to what a built-in key does), that is a
+change to the engine: open a pull request upstream.

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { DisplayContext, StepContext, type Display } from "./context.ts";
 import { Overview } from "./Overview.tsx";
@@ -6,6 +6,7 @@ import { Print } from "./Print.tsx";
 import { Stage, fitScale, useWindowSize } from "./Stage.tsx";
 import { isMessage, postTarget, presenterUrl, sameOrigin, type Message, type Position } from "./sync.ts";
 import { Help } from "./Help.tsx";
+import { KeysContext, NavContext, type DeckKey, type DeckNav } from "./nav.ts";
 import { DeckContext, deckLook } from "./theme.ts";
 import { entries, slideLabel, slideNumber, slideTags, type DeckDefinition } from "./types.ts";
 
@@ -24,6 +25,8 @@ function indexFromHash(count: number): number {
  * a number then Enter to jump, F fullscreen, N presenter window, G overview, P print to PDF,
  * B blank screen, M raw numbers or growth, ? the list of keys. See KEYS in Help.tsx.
  * A deck or a slide can name a `transition`; it runs as a view transition (see motion.css).
+ * A deck's `overlay` is drawn over the window while presenting; it and the slides can read the
+ * position with useDeckNav() and add keys with useDeckKey() (nav.ts).
  * `name` is the deck's folder, which the page-review tags carry.
  */
 export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
@@ -39,6 +42,12 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const [toast, setToast] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
   const [blank, setBlank] = useState(false);
+  // Keys that components added with useDeckKey(); the built-in ones are the switch below.
+  const [extraKeys, setExtraKeys] = useState<DeckKey[]>([]);
+  const addKey = useCallback((key: DeckKey) => {
+    setExtraKeys((keys) => [...keys, key]);
+    return () => setExtraKeys((keys) => keys.filter((k) => k !== key));
+  }, []);
   const typed = useRef("");
   const steps = useRef(0);
   // The same count as `steps`, for the page-review tags, which render once the Builds register.
@@ -247,20 +256,31 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           setToast(next === "relative" ? "Growth and shares" : "Raw numbers");
           break;
         }
+        default:
+          extraKeys.find((k) => k.key === key)?.run();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mode, help, blank, display, nav, goto, neighbour, count]);
+  }, [mode, help, blank, display, nav, goto, neighbour, count, extraKeys]);
+
+  const jump = useCallback((index: number) => goto(index), [goto]);
+  const deckNav = useMemo<DeckNav>(
+    () => ({ index: pos.index, step: Math.min(pos.step, built.index === pos.index ? built.count : 0), count, nav, goto: jump }),
+    [pos, built, count, nav, jump],
+  );
+  const provide = (children: ReactNode) => (
+    <DeckContext.Provider value={look}>
+      <DisplayContext.Provider value={display}>
+        <NavContext.Provider value={deckNav}>
+          <KeysContext.Provider value={addKey}>{children}</KeysContext.Provider>
+        </NavContext.Provider>
+      </DisplayContext.Provider>
+    </DeckContext.Provider>
+  );
 
   if (mode === "print") {
-    return (
-      <DeckContext.Provider value={look}>
-        <DisplayContext.Provider value={display}>
-          <Print slides={slides} name={name} onDone={() => setMode("present")} />
-        </DisplayContext.Provider>
-      </DeckContext.Provider>
-    );
+    return provide(<Print slides={slides} name={name} onDone={() => setMode("present")} />);
   }
 
   const current = slides[pos.index];
@@ -268,53 +288,63 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const { progress } = slideLabel(slides, pos.index);
   const buildCount = built.index === pos.index ? built.count : 0;
 
-  return (
-    <DeckContext.Provider value={look}>
-      <DisplayContext.Provider value={display}>
-        <div
-          data-deck={name}
-          data-deck-mode="present"
-          className="fixed inset-0 grid place-items-center overflow-hidden bg-black"
-          onClick={(e) => nav(e.clientX > window.innerWidth / 3 ? 1 : -1)}
-        >
-          <Stage scale={scale} number={slideNumber(slides, pos.index)}>
-            <StepContext.Provider value={{ step: pos.step, register }}>
-              <div
-                key={pos.index}
-                {...slideTags(current, pos.index)}
-                data-build={Math.min(pos.step, buildCount)}
-                data-build-count={buildCount}
-                className={`absolute inset-0 ${plain.current ? "slide-enter" : ""}`}
-                style={{ viewTransitionName: "slide" }}
-              >
-                {current.content}
-              </div>
-            </StepContext.Provider>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-rule">
-              <div className="h-full bg-accent transition-[width] duration-500 ease-out-expo" style={{ width: `${progress * 100}%` }} />
+  return provide(
+    <>
+      <div
+        data-deck={name}
+        data-deck-mode="present"
+        className="fixed inset-0 grid place-items-center overflow-hidden bg-black"
+        onClick={(e) => nav(e.clientX > window.innerWidth / 3 ? 1 : -1)}
+      >
+        <Stage scale={scale} number={slideNumber(slides, pos.index)}>
+          <StepContext.Provider value={{ step: pos.step, register }}>
+            <div
+              key={pos.index}
+              {...slideTags(current, pos.index)}
+              data-build={Math.min(pos.step, buildCount)}
+              data-build-count={buildCount}
+              className={`absolute inset-0 ${plain.current ? "slide-enter" : ""}`}
+              style={{ viewTransitionName: "slide" }}
+            >
+              {current.content}
             </div>
-          </Stage>
-        </div>
-        {mode === "overview" && (
-          <Overview
-            slides={slides}
-            name={name}
-            current={pos.index}
-            onPick={(i) => {
-              goto(i);
-              setMode("present");
-            }}
-            onClose={() => setMode("present")}
-          />
-        )}
-        {toast && (
-          <div className="pointer-events-none fixed top-6 left-1/2 -translate-x-1/2 rounded-full bg-ink/90 px-6 py-2 font-mono text-sm tracking-widest text-canvas uppercase">
-            {toast}
+          </StepContext.Provider>
+          <div className="absolute inset-x-0 bottom-0 h-1 bg-rule">
+            <div className="h-full bg-accent transition-[width] duration-500 ease-out-expo" style={{ width: `${progress * 100}%` }} />
           </div>
-        )}
-        {blank && <div className="fixed inset-0 bg-black" onClick={() => setBlank(false)} />}
-        {help && <Help onClose={() => setHelp(false)} />}
-      </DisplayContext.Provider>
-    </DeckContext.Provider>
+        </Stage>
+      </div>
+      {deck.overlay != null && (
+        // Over the window, themed like the stage. Clicks pass through unless the overlay asks for them.
+        <div
+          data-deck-overlay=""
+          data-theme={look.theme}
+          data-scheme={look.scheme}
+          className="pointer-events-none fixed inset-0 text-ink"
+          style={look.vars}
+        >
+          {deck.overlay}
+        </div>
+      )}
+      {mode === "overview" && (
+        <Overview
+          slides={slides}
+          name={name}
+          current={pos.index}
+          onPick={(i) => {
+            goto(i);
+            setMode("present");
+          }}
+          onClose={() => setMode("present")}
+        />
+      )}
+      {toast && (
+        <div className="pointer-events-none fixed top-6 left-1/2 -translate-x-1/2 rounded-full bg-ink/90 px-6 py-2 font-mono text-sm tracking-widest text-canvas uppercase">
+          {toast}
+        </div>
+      )}
+      {blank && <div className="fixed inset-0 bg-black" onClick={() => setBlank(false)} />}
+      {help && <Help extra={extraKeys} onClose={() => setHelp(false)} />}
+    </>,
   );
 }

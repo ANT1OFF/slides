@@ -46,6 +46,12 @@ export interface DeckDefinition {
    * (src/library/motion). A slide can name another with `slide(…, { transition })`. Leave out for none.
    */
   transition?: string;
+  /**
+   * Drawn over the window for the whole deck while presenting: a timer bar, a laser pointer, a
+   * watermark. A plain component; it reads the deck with `useDeckNav()` and adds keys with
+   * `useDeckKey()`. Not shown in print, the overview's thumbnails or the presenter window.
+   */
+  overlay?: ReactNode;
 }
 
 export function slide(content: ReactNode, options: SlideOptions = {}): SlideEntry {

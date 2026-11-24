@@ -1,10 +1,29 @@
 // The deck `npm run verify` presses keys on. It is not a deck of its own (it lives outside src/decks)
 // so the showcase and the examples can change freely. Each slide has an id the checks look up.
-import { slide, type DeckDefinition } from "@core";
-import { Bullets, Code, EndSlide, Flow, Frame, Stat, TitleSlide } from "@blocks";
+import { useState } from "react";
+import { slide, useDeckKey, useDeckNav, type DeckDefinition } from "@core";
+import { Bullets, Code, EndSlide, Flow, Frame, Stat, TitleSlide, tokenize } from "@blocks";
+
+/** A presenter extra as a team would write one: it reads the deck's position and adds two keys. */
+function Extras() {
+  const { index, step, count, nav, goto } = useDeckNav();
+  const [taken, setTaken] = useState(0);
+  useDeckKey("x", "Fixture: jump to the third slide", () => goto(2));
+  useDeckKey("j", "Fixture: one step on", () => nav(1));
+  // B is a built-in key (blank the screen), which must win.
+  useDeckKey("b", "Fixture: never runs", () => setTaken((n) => n + 1));
+  return (
+    <div id="extras" data-taken={taken} className="absolute top-2 left-2 font-mono text-xs">
+      {`slide ${index + 1} of ${count}, step ${step}`}
+    </div>
+  );
+}
+
+const SHOUT = new Set(["select"]);
 
 const deck: DeckDefinition = {
   title: "Verify",
+  overlay: <Extras />,
   slides: [
     slide(<TitleSlide title="Verify" subtitle="Fixture for npm run verify" />, { id: "TitleSlide", notes: "Notes are plain strings." }),
     slide(<Frame title="A plain slide" />, { id: "plain" }),
@@ -24,6 +43,17 @@ const deck: DeckDefinition = {
         `}</Code>
       </Frame>,
       { id: "Code" },
+    ),
+    slide(
+      <Frame title="Code with a tokenizer of one's own">
+        <div id="own-tokens">
+          <Code tokenize={(line) => [<span className="tok-kw">{line.toUpperCase()}</span>]}>{`shout`}</Code>
+        </div>
+        <div id="own-keywords">
+          <Code tokenize={(line) => tokenize(line, SHOUT)}>{`select const`}</Code>
+        </div>
+      </Frame>,
+      { id: "Tokenize" },
     ),
     slide(
       <Frame title="A number">
