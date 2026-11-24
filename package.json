@@ -17,6 +17,7 @@
     "format": "prettier --write .",
     "check": "prettier --check . && node scripts/boundaries.ts && npm run build && node scripts/build-examples.ts --check",
     "verify": "node scripts/verify.ts",
+    "pdf": "node scripts/pdf.ts",
     "refresh": "node scripts/refresh.ts",
     "upgrade": "node scripts/upgrade.ts"
   },

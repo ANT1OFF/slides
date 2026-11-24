@@ -221,6 +221,18 @@ Every key works in the built file, offline.
   `display: "relative"` on a deck makes it the default.
 - Animations switch off when the viewer prefers reduced motion.
 
+## Export to PDF
+
+```bash
+npm run pdf <deck>   # dist/<deck>.pdf (builds the deck first if needed)
+npm run pdf          # every deck
+```
+
+One 1920×1080 page per visible slide, in its final state (build steps shown, animations, transitions
+and loops off): the same as pressing P and saving as PDF, but headless and offline. Hidden slides and
+speaker notes are left out. It uses your Chrome (or `CHROME_PATH`), else Playwright's Chromium, and
+fails with a message if neither is found.
+
 ## Checking a deck
 
 ```bash
@@ -231,7 +243,7 @@ npm run refresh  # refreshes the data behind the slides (see "Data that can be r
 npm run upgrade  # merges upstream updates on a branch, then check and verify
 ```
 
-`npm run verify` uses your installed Chrome (or `CHROME_PATH`), else Playwright's Chromium
+`npm run verify` (and `npm run pdf`) use your installed Chrome (or `CHROME_PATH`), else Playwright's Chromium
 (`npx playwright-core install chromium`).
 
 ## For teams

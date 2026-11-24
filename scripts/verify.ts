@@ -5,11 +5,14 @@
 // effects, slide transitions and team CSS in three modes: motion, reduced motion, no View Transitions.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
 // (`npx playwright-core install chromium`).
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";
+import { chromePath } from "./chrome.ts";
+import { exportPdf, inspectPdf } from "./pdf-export.ts";
 
 const dist = resolve(import.meta.dirname, "../dist");
 const decks = listDecks();
@@ -22,14 +25,7 @@ if (!files.length) {
   process.exit(1);
 }
 
-const CHROMES = [
-  process.env.CHROME_PATH,
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  "/usr/bin/google-chrome",
-  "/usr/bin/chromium",
-  "/usr/bin/chromium-browser",
-].filter(Boolean) as string[];
-const executablePath = CHROMES.find((p) => existsSync(p));
+const executablePath = chromePath();
 
 const results: { deck: string; name: string; ok: boolean; detail?: string }[] = [];
 let deckName = "";
@@ -485,6 +481,22 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await ctx.close();
 }
 
+/** npm run pdf's export: one page per visible slide, at the deck's 1920×1080 aspect (1440×810 pt). */
+async function pdf(browser: Browser, file: string) {
+  const dir = mkdtempSync(resolve(tmpdir(), "slides-pdf-"));
+  const out = resolve(dir, "verify.pdf");
+  try {
+    const slides = await exportPdf(browser, file, out);
+    const bytes = readFileSync(out);
+    const { pages, width, height } = inspectPdf(bytes);
+    check("PDF export: a PDF is produced", bytes.subarray(0, 5).toString() === "%PDF-" && slides > 1, `${slides} slides`);
+    check("PDF export: one page per visible slide", pages === slides, `${pages} pages, ${slides} slides`);
+    check("PDF export: pages are 16:9 (1920×1080 px)", width === 1440 && height === 810, `${width}×${height} pt`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 for (const file of files) {
   deckName = file;
@@ -506,6 +518,7 @@ const fixture = resolve(dist, ".verify/index.html");
 deckName = "verify-deck (fixture)";
 await selfContained(browser, fixture);
 await features(browser, fixture);
+await pdf(browser, fixture);
 rmSync(resolve(dist, ".verify"), { recursive: true, force: true });
 
 // The motion fixture, with the fixture library standing in for src/library.
