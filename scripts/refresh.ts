@@ -1,4 +1,4 @@
-// npm run refresh [deck] [--shared]  →  refreshes the data behind the slides.
+// npm run refresh -- [deck] [--shared]  →  refreshes the data behind the slides.
 // With a deck named: the *.data.json files in its folder (add --shared for src/library's too).
 // With none: every deck in src/decks and src/library (upstream's examples only when named).
 //   script  runs its `how` command, which rewrites the file (values and `updated`)
@@ -15,7 +15,8 @@ import { deckDir, listDecks } from "../vite.config.ts";
 const root = resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
 const deck = args.find((a) => !a.startsWith("--"));
-const shared = args.includes("--shared");
+// `npm run refresh <deck> --shared` without the `--`: npm 11 keeps the flag for itself and passes it on only as npm_config_shared.
+const shared = args.includes("--shared") || process.env.npm_config_shared === "true";
 if (deck && !listDecks().includes(deck)) {
   console.error(`No such deck: ${deck}. Decks: ${listDecks().join(", ")}`);
   process.exit(1);
@@ -89,6 +90,6 @@ for (const file of files) {
 }
 
 if (todo.length) console.log(`\nNeeds an agent or a person (follow "how", update the values and "updated"):\n${todo.join("\n")}`);
-if (deck && !shared) console.log(`\nOnly ${deck}'s own data. Data in src/library that its slides use: npm run refresh ${deck} --shared`);
+if (deck && !shared) console.log(`\nOnly ${deck}'s own data. Data in src/library that its slides use: npm run refresh -- ${deck} --shared`);
 console.log(`\nThen: npm run build${deck ? ` ${deck}` : ""} && npm run verify`);
 process.exit(failed ? 1 : 0);

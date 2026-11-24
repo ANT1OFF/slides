@@ -9,7 +9,7 @@ There is nothing to register and no upstream file to edit. Your folders are `src
 | A …                                          | Put it in                                                           | Use it like this                                                                              | More                                                    |
 | -------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | **Block** (an element inside a slide)        | `src/library/blocks/<Name>.tsx`, or the deck's folder for a one-off | `import { Funnel } from "@library/blocks/Funnel.tsx"`                                         | [making-a-block.md](making-a-block.md)                  |
-| **Layout** (a whole-slide frame)             | The same: a layout is a block that fills the slide                  | Build it from `Slide`, `SlideHeader`, `Footer`, `Kicker`, `Logo` (`@blocks`)                  | [Layouts](#layouts)                                     |
+| **Layout** (a whole-slide frame)             | The same: a layout is a block that fills the slide                  | Build it from `Slide`, `SlideHeader`, `FrameBody`, `Footer`, `Kicker`, `Logo` (`@blocks`)     | [Layouts](#layouts)                                     |
 | **Reusable slide or slide set**              | `src/library/slides/<topic>.tsx`                                    | `<Questions />`, `...openingSlides({ title })`                                                | [working-with-decks.md](working-with-decks.md) §5       |
 | **Theme** (colours, type, fonts, logo)       | `src/themes/<name>/`                                                | `theme: "<name>"` on the deck; team default in `src/library/settings.json`                    | README, "Make your own theme"                           |
 | **Look of one deck**                         | The deck                                                            | `scheme`, `logo`, `footer`, `vars` on the deck                                                | README, "Themes"                                        |
@@ -162,12 +162,15 @@ whole-slide blocks are made of exported pieces, so a layout of your own is short
 | ------------- | ---------------------------------------------------------------------------------- |
 | `Slide`       | The shell: fills the stage with the theme's slide padding, as a column; `inverted` |
 | `SlideHeader` | The top row: `kicker` on the left, the logo (or `aside`) on the right              |
+| `FrameBody`   | The space under the title; `npm run verify` checks that what is inside fits        |
 | `Footer`      | The bottom row: the deck's footer text and the slide number                        |
 | `Kicker`      | A small label with the accent bar                                                  |
 | `Logo`        | The theme's or deck's logo                                                         |
 
 `src/library/blocks/SplitFrame.tsx` is a worked example (a fixed side panel), used by the `Evidence`
-slide in `src/library/slides/team.tsx`. For a small variation, `Frame` takes a `className`.
+slide in `src/library/slides/team.tsx`. Put a layout's body in `FrameBody` (or mark your own element
+`data-frame-body`), so verify reports it when it is too tall, as it does for a `Frame`. For a small
+variation, `Frame` takes a `className`, and `density="compact"` for a dense slide.
 [making-a-block.md](making-a-block.md) has the walkthrough.
 
 ## Previews
@@ -281,7 +284,9 @@ that way. It is type-checked like any deck. A team's defaults live here, not in 
 - Folders: `src/library/{slides,blocks,motion,data,assets}/`, `src/library/styles.css`,
   `src/library/settings.json`, `src/themes/<name>/`, `src/decks/<name>/`, `src/decks/_starter/`.
 - CSS: the tokens in `src/themes/default/tokens.css`; the `type-*` and `rule-*` utilities; `--d`
-  (an effect's delay) and `--dur` (a loop's period); `.static-motion`; `.inverted`; the `tok-*`
+  (an effect's delay) and `--dur` (a loop's period); `.static-motion`; `.inverted` (the theme's other scheme); `.accented` (a box or slide filled
+  with the accent, its text in `on-accent`); `.compact` (body text, padding and gaps a notch
+  smaller); `data-frame-body` (a body verify checks for overflow); the `tok-*`
   classes of a code token;
   `html[data-transition]`, `html[data-transition-back]` and the `<name>-in` / `<name>-out` keyframe
   pair; `[data-stage]`, `[data-theme]`, `[data-scheme]`.

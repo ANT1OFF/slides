@@ -84,7 +84,7 @@ who to ask (manual). Use `asOf(data, "source")` from `@core` for the slide's foo
 When asked to update or refresh a deck's data:
 
 1. `npm run refresh <deck>`: runs the deck's script sources and lists its agent and manual ones.
-   Add `--shared` if its slides use data in `src/library/data/`.
+   If its slides use data in `src/library/data/`: `npm run refresh -- <deck> --shared` (the `--` passes the flag through npm).
 2. For each **agent** source, follow its `how` (e.g. query `gh`, read a dashboard), write the new
    values, and set `updated` to today.
 3. For each **manual** source, ask the user for the values; don't guess.

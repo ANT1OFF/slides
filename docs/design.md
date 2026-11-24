@@ -162,6 +162,24 @@ system fallbacks, so a deck still reads without the embedded files.
 - Everything shares the left edge at x = 120. Nothing is centred horizontally.
 - Budgets: a title of 8 words; 3 to 5 list items; 12 words per item; one idea per slide.
 
+### Dense slides
+
+Split a dense slide first: one idea per slide is still the rule. When the content has to stay
+together (a governance matrix, a five-column comparison, a table for reference), in this order:
+
+1. **`<Frame density="compact">`** (or the `.compact` class on a wrapper in a layout of your own).
+   Inside it, `--text-lead` becomes the body size, `--text-body` the small size, `--text-small`
+   steps halfway to `--text-label` (32 px in Plain), and `--pad-box` and `--gap-item` shrink by about
+   a third. Titles, labels and code keep their size. Every block reads these tokens, so cards,
+   tables and lists all tighten together, in every theme.
+2. **A whole deck that is dense** (an internal review read on screens): set the tokens once on the
+   deck, `vars: { "--text-small": "32px", "--pad-box": "32px" }`.
+3. **One block of your own**: size its text with the type utilities (`type-small`, `type-body`),
+   not a pixel class like `text-[28px]`, so compact and the theme still apply to it.
+
+Never go under `--text-label` (26 px): below it, text can't be read from the back of the room.
+`npm run verify` reports a slide that still doesn't fit.
+
 ### Slides
 
 | Block                  | Layout                                                                                                                                                                                                                                                                                                            |

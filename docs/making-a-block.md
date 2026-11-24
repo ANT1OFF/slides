@@ -54,8 +54,10 @@ export function Funnel({ stages, build, start = 200 }: { stages: FunnelStage[]; 
 Follow these and a block works in every theme, in dark and inverted slides, in the overview, in print
 and in the presenter window without extra code. The full design rules are in [design.md](design.md).
 
-**Imports**: a block imports only from `@core` and other blocks. Never from `@library`, a deck, a
-theme or a virtual module; `npm run check` enforces this so the engine and blocks stay portable.
+**Imports**: a block in `src/blocks/` imports only from `@core` and other blocks there. Never from
+`@library`, a deck, a theme or a virtual module; `npm run check` enforces this so the engine and
+blocks stay portable. Your library's own blocks and slides (`src/library/`) may also import each
+other, relatively (`../blocks/SplitFrame.tsx`) or as `@library/…`.
 
 **Props**
 
@@ -114,6 +116,8 @@ Nothing goes below `type-label` (26 px). Use `tabular-nums` for numbers that lin
 **Build steps**
 
 - Per-item reveals: `<Build at={n}>`; the deck counts a slide's steps from the Builds it contains.
+- A list-like block's `build` prop: `true` reveals the first item on the first press, a number `n`
+  on press `n`, and `build={0}` shows the first item at once and builds the rest.
   `<Build at={n} effect="pop">` plays an entrance effect on the step instead of the plain fade.
 - A block that changes state on each press (like `Code` stepping through highlights) calls
   `const step = useBuildStep(count)` from `@core`: 0 when the slide opens, `Infinity` in thumbnails
@@ -130,19 +134,20 @@ hard-code a URL; the build fails on remote URLs.
 A layout is a block that fills the whole slide. There is no separate concept and no registry: write
 a component from the pieces `Frame` is made of, all exported by `@blocks`.
 
-| Piece         | What it is                                                                         |
-| ------------- | ---------------------------------------------------------------------------------- |
-| `Slide`       | The shell: fills the stage with the theme's slide padding, as a column; `inverted` |
-| `SlideHeader` | The top row: `kicker` on the left, the logo (or `aside`) on the right              |
-| `Footer`      | The bottom row: the deck's footer text (or `note`) and the slide number            |
-| `Kicker`      | A small label with the accent bar                                                  |
-| `Logo`        | The theme's or deck's logo                                                         |
+| Piece         | What it is                                                                                |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| `Slide`       | The shell: fills the stage with the theme's slide padding, as a column; `inverted`        |
+| `SlideHeader` | The top row: `kicker` on the left, the logo (or `aside`) on the right                     |
+| `FrameBody`   | The space under the title, down to the footer; `align`. Verify checks what is inside fits |
+| `Footer`      | The bottom row: the deck's footer text (or `note`) and the slide number                   |
+| `Kicker`      | A small label with the accent bar                                                         |
+| `Logo`        | The theme's or deck's logo                                                                |
 
 ```tsx
 // src/library/blocks/SplitFrame.tsx
 import type { ReactNode } from "react";
 import { Reveal } from "@core";
-import { Footer, Slide, SlideHeader } from "@blocks";
+import { Footer, FrameBody, Slide, SlideHeader } from "@blocks";
 
 /** A slide with a fixed panel down the right side, on the theme's other scheme. */
 export function SplitFrame({
@@ -163,7 +168,7 @@ export function SplitFrame({
         <Reveal delay={80} as="h2" className="type-title mt-9 max-w-(--measure)">
           {title}
         </Reveal>
-        <div className="mt-(--gap-title) mb-12 flex min-h-0 flex-1 flex-col justify-center">{children}</div>
+        <FrameBody>{children}</FrameBody>
         <Footer />
       </div>
       <aside className="inverted -mt-(--slide-pad-top) -mr-(--slide-pad-x) -mb-(--slide-pad-bottom) flex flex-col justify-center p-(--pad-box)">
@@ -174,7 +179,10 @@ export function SplitFrame({
 }
 ```
 
-The file in the repo also shows a team effect and a team utility class. To use the layout in a
+Put the body in `FrameBody` (or give your own element `data-frame-body`): `npm run verify` then
+reports a slide whose body is too tall for its space, as it does for `Frame`. Without it, verify
+only catches content taller than the whole slide. The starter file in `src/library/` predates
+`FrameBody` and uses a plain div; it also shows a team effect and a team utility class. To use the layout in a
 deck: `<SplitFrame title="…" side={<Stat … />}>…</SplitFrame>`. To show it in the library view, use
 it in a slide in `src/library/slides/` (see `Evidence` in `team.tsx`). For a small variation on the
 standard slide, `Frame` takes a `className` instead.

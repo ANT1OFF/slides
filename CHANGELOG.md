@@ -8,6 +8,40 @@ decks, library or themes is listed under **Upgrade notes**.
 
 First public version.
 
+From dogfooding a team copy:
+
+- **Dense slides:** `<Frame density="compact">` (or the `.compact` class) steps body text, small
+  text, box padding and item gaps down a notch, from the theme's own sizes. The recipe for dense
+  slides is in [docs/design.md](docs/design.md#dense-slides).
+- **Overflow checks:** `npm run verify` also reports a slide whose content is taller than the stage,
+  and a layout's body when it is in the new `FrameBody` piece (or marked `data-frame-body`). Reports
+  name the slide number: `Frame-3 (slide 13)`.
+- A deck's theme is read only from the deck object's own `theme` key, so data or props with a
+  `theme` field no longer break the build.
+- `npm run refresh <deck> --shared` works without the `--` under npm 11 too; the docs write
+  `npm run refresh -- <deck> --shared`.
+- In the overview (G), the arrow keys move and Enter jumps.
+- `Build` takes `style`.
+- `npm run upgrade` warns when the `upstream` remote can be pushed to. Make it fetch-only:
+  `git remote set-url --push upstream DISABLED`, so a team's private decks can't be pushed to the
+  public kit by mistake.
+- Docs: the README section is "Your own copy (for teams)"; Inter and JetBrains Mono are in every
+  deck; `build={0}`; `.accented`, `.compact` and `data-frame-body` among the names you can rely on;
+  library pieces may import each other; replace the starters and update `src/library/README.md`
+  and `AGENTS.md`.
+
+**Upgrade notes**
+
+- If your copy committed rebuilt `examples/html/` files (the old advice when `npm run check` called
+  them stale), take upstream's when the upgrade conflicts on them: `git checkout --theirs examples/html`.
+- Set `upstream` fetch-only once: `git remote set-url --push upstream DISABLED`.
+- The starter `src/library/blocks/SplitFrame.tsx` predates `FrameBody`. In your copy, put its body in
+  `<FrameBody>` so verify checks it.
+
+**Known gaps:** `npm run refresh <deck>` can't yet tell which `src/library` data a deck's slides
+use (add `--shared`); `BarSeries` growth with `relativeTo: { base: "first" }` against a partial
+first period gives a misleading multiple (pass a number instead).
+
 - **Animation by name.** `<Reveal effect>` takes any effect name, `<Build effect>` plays one on a
   build step, and a deck or a slide can name a `transition` between slides (built in: `fade`, `push`,
   `zoom`; on the View Transitions API, with a plain slide change where it is missing or motion is

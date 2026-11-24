@@ -7,12 +7,13 @@
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
 // (`npx playwright-core install chromium`).
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
 import { build } from "vite";
 import { listDecks } from "../vite.config.ts";
+import { deckTheme } from "../vite/themes.ts";
 import { chromePath } from "./chrome.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
 
@@ -56,6 +57,23 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
     };
   });
   return { ctx, blocked };
+}
+
+/**
+ * The slides in the open overview whose content doesn't fit, as "id (slide n)": a Frame body
+ * (FrameBody, data-frame-body) taller than the space it has, which pushes into the footer or crowds
+ * the title, or anything on the slide taller than the 1920×1080 stage.
+ */
+function tooTall(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("[data-deck-mode=overview] [data-slide]")]
+      .filter(
+        (s) =>
+          [...s.querySelectorAll<HTMLElement>("[data-frame-body]")].some((b) => b.scrollHeight > b.clientHeight + 2) ||
+          [...s.querySelectorAll<HTMLElement>("[data-stage] > *, [data-stage] section")].some((el) => el.scrollHeight > 1080 + 2),
+      )
+      .map((s) => `${s.dataset.slideId} (slide ${s.dataset.slide})`),
+  );
 }
 
 /** Self-contained: no network, every font face loaded, every image and media element loaded. */
@@ -110,19 +128,14 @@ async function selfContained(browser: Browser, file: string) {
     report.media.every((m) => m.ok && m.inline),
     JSON.stringify(report.media),
   );
-  // No slide's content is taller than its Frame body (it would push the footer off or crowd the title).
-  const overflowing = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>("[data-deck-mode=overview] [data-frame-body]")]
-      .filter((b) => b.scrollHeight > b.clientHeight + 2)
-      .map((b) => b.closest("[data-slide]")?.getAttribute("data-slide-id") ?? "?"),
-  );
+  const overflowing = await tooTall(page);
   const broken = await page.$$eval("[data-deck-mode=overview] [data-broken]", (els) => els.map((e) => e.getAttribute("data-broken")));
   check(
     "nothing in the library is broken (slides need a default for every prop; a block's example must render)",
     !broken.length,
     broken.join(", "),
   );
-  check("every slide's content fits its Frame", overflowing.length === 0, `too tall: ${overflowing.join(", ")}`);
+  check("every slide's content fits (its Frame body, and the stage)", overflowing.length === 0, `too tall: ${overflowing.join(", ")}`);
   // React's licence and a licence for every font file the deck can embed (the build lists them).
   const notices = (await page.locator("#third-party-notices").textContent()) ?? "";
   check("React's MIT notice is in the file", /MIT License[\s\S]*Meta Platforms/.test(notices));
@@ -280,6 +293,15 @@ async function features(browser: Browser, file: string) {
   check(
     "clicking a thumbnail jumps there and closes",
     (await page.locator("[data-deck-mode=overview]").count()) === 0 && (await slideNo()) === 5,
+  );
+  await key("g", 300);
+  await key("ArrowRight", 100);
+  await key("ArrowRight", 100);
+  await key("Enter", 300);
+  check(
+    "in the overview, the arrow keys move and Enter jumps there and closes",
+    (await page.locator("[data-deck-mode=overview]").count()) === 0 && (await slideNo()) === 7,
+    String(await slideNo()),
   );
   await key("g", 200);
   await key("Escape", 200);
@@ -584,6 +606,115 @@ async function libraryView(browser: Browser, file: string) {
   await ctx.close();
 }
 
+/** The overflow check itself, on a deck made to overflow: exactly its three slides that don't fit. */
+async function overflow(browser: Browser, file: string) {
+  const { ctx } = await offline(browser);
+  const page = await ctx.newPage();
+  await page.goto(`file://${file}#1`);
+  await page.waitForTimeout(400);
+  await page.keyboard.press("g");
+  await page.waitForTimeout(800);
+  const found = (await tooTall(page)).join(", ");
+  check(
+    "overflow is reported for a Frame body, a layout's FrameBody and a slide taller than the stage, by id and slide number",
+    found === "slide-2 (slide 2), layout-too-tall (slide 3), slide-too-tall (slide 4)",
+    found,
+  );
+  const sizes = await page.evaluate(() =>
+    [".normal-small", ".compact-small", ".compact-plain"].map(
+      (s) => getComputedStyle(document.querySelector(`[data-deck-mode=overview] ${s}`)!).fontSize,
+    ),
+  );
+  check(
+    'density="compact" steps text down a notch (default theme: small 38 → 32 px, body 44 → 38 px)',
+    sizes.join() === "38px,32px,38px",
+    sizes.join(),
+  );
+  await ctx.close();
+}
+
+/** The theme the build reads off a deck file: only the deck object's own `theme` key counts. */
+function themeDetection() {
+  const dir = mkdtempSync(resolve(tmpdir(), "slides-theme-"));
+  const themeOf = (source: string) => {
+    writeFileSync(resolve(dir, "index.tsx"), source);
+    try {
+      return deckTheme(resolve(dir, "index.tsx"), resolve(import.meta.dirname, "../examples/_library"));
+    } catch (e) {
+      return `error: ${(e as Error).message}`;
+    }
+  };
+  const cases: [string, string, string][] = [
+    [
+      "the deck's own theme",
+      `const deck: DeckDefinition = { title: "a", theme: "editorial", slides: [] };\nexport default deck;`,
+      "editorial",
+    ],
+    [
+      "a theme field in the deck's data, before the deck",
+      `const topics = [{ theme: "Culture" }, { theme: pick() }];\nconst deck: DeckDefinition = { title: "a", slides: [] };\nexport default deck;`,
+      "default",
+    ],
+    [
+      "a theme field in a slide's props or options, inside the deck",
+      `const deck: DeckDefinition = {\n  title: "a",\n  slides: [<X data={{ theme: "Culture" }} />, slide(<Y />, { theme: x })],\n  theme: "signal",\n};\nexport default deck;`,
+      "signal",
+    ],
+    ["export default of an object literal", `export default { title: "{", theme: "acme", slides: [] } satisfies DeckDefinition;`, "acme"],
+    [
+      "a theme in a comment or a template literal",
+      `// theme: "acme"\nconst deck = { notes: \`theme: "acme"\`, slides: [] };\nexport default deck;`,
+      "default",
+    ],
+  ];
+  for (const [name, source, want] of cases) {
+    const got = themeOf(source);
+    check(`theme detection: ${name}`, got === want, got);
+  }
+  rmSync(dir, { recursive: true, force: true });
+}
+
+/**
+ * Upstream's decks (examples/ and the showcase) are committed as built HTML, and `npm run check`
+ * compares them in every copy of the repo. So nothing a team adds may change their bytes: build
+ * the showcase (it names no theme) as it is, then again next to a team library with a default theme,
+ * motion, styles.css rules and blocks with classes of their own. The two builds must be identical.
+ */
+async function upstreamDecksAlone() {
+  const leak = resolve(import.meta.dirname, "verify-deck/leak-library");
+  const showcase = resolve(import.meta.dirname, "../src/decks/showcase/index.tsx");
+  const once = async (out: string) => {
+    process.env.DECK = "showcase";
+    process.env.DECK_FILE = showcase;
+    await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts"), build: { outDir: resolve(dist, out) } });
+    return readFileSync(resolve(dist, out, "index.html"));
+  };
+  const files: Record<string, string> = {
+    "settings.json": `{ "defaultTheme": "editorial" }`,
+    "styles.css": `@theme { --color-leak: #123456; }\n@utility leak-row { display: flex; color: var(--color-leak); }\n`,
+    "motion/leak.css": `.leak { animation: leak 1s; }\n@keyframes leak { from { opacity: 0; } }\n@keyframes leak-in { from { opacity: 0; } }\n@keyframes leak-out { to { opacity: 0; } }\n`,
+    "blocks/Leak.tsx": `export const Leak = () => <div className="leak-row bg-[#654321] text-[123px] mt-[77px]" />;\n`,
+  };
+  try {
+    const before = await once(".alone-a");
+    for (const [name, text] of Object.entries(files)) {
+      mkdirSync(resolve(leak, name, ".."), { recursive: true });
+      writeFileSync(resolve(leak, name), text);
+    }
+    process.env.LIBRARY_DIR = leak;
+    const after = await once(".alone-b");
+    check(
+      "upstream's decks build the same whatever the team's library holds (default theme, motion, styles.css, classes)",
+      before.equals(after),
+      `the showcase differs: ${before.length} vs ${after.length} bytes`,
+    );
+  } finally {
+    delete process.env.LIBRARY_DIR;
+    rmSync(leak, { recursive: true, force: true });
+    for (const out of [".alone-a", ".alone-b"]) rmSync(resolve(dist, out), { recursive: true, force: true });
+  }
+}
+
 /** npm run pdf's export: one page per visible slide, at the deck's 1920×1080 aspect (1440×810 pt). */
 async function pdf(browser: Browser, file: string) {
   const dir = mkdtempSync(resolve(tmpdir(), "slides-pdf-"));
@@ -599,6 +730,10 @@ async function pdf(browser: Browser, file: string) {
     rmSync(dir, { recursive: true, force: true });
   }
 }
+
+deckName = "build (no browser)";
+themeDetection();
+await upstreamDecksAlone();
 
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 for (const file of files) {
@@ -623,6 +758,14 @@ await selfContained(browser, fixture);
 await features(browser, fixture);
 await pdf(browser, fixture);
 rmSync(resolve(dist, ".verify"), { recursive: true, force: true });
+
+// The overflow check, on a deck made to overflow.
+process.env.DECK = "verify-overflow";
+process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/overflow.tsx");
+await build({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+deckName = "verify-deck/overflow (fixture: slides too tall in three ways)";
+await overflow(browser, resolve(dist, ".verify-overflow/index.html"));
+rmSync(resolve(dist, ".verify-overflow"), { recursive: true, force: true });
 
 // The fixture library standing in for src/library: first its library view, then the motion fixture.
 process.env.LIBRARY_DIR = resolve(import.meta.dirname, "verify-deck/library");
