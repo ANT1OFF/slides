@@ -6,14 +6,14 @@ New decks borrow what fits, add what's missing, and give the reusable parts back
 
 ## Yours and upstream
 
-The folders split into what you own and what comes from this repo upstream. Upstream never changes
-your folders, so pulling its updates doesn't conflict with your work.
+The folders split into what you own and what comes from this repo upstream:
 
-| Owned by                 | Paths                                                                                                         | Rule                                                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **You** (your team)      | `src/decks/` (not `showcase/`), `src/library/`, `src/themes/<yours>/`                                         | Change freely. Upstream never changes, adds or removes a file there after your first clone, so an upgrade can't conflict there. |
-| **Upstream** (this repo) | Everything else: `src/core/`, `src/blocks/`, the built-in themes, `scripts/`, `docs/`, the root `.md` files … | Don't edit; `npm run upgrade` replaces them. Fix things for everyone with a pull request upstream.                              |
-| Shared                   | `package.json`, its lock file, and the root config files (`tsconfig.json`, `vite.config.ts`, dotfiles)        | Edit only when you must (e.g. adding a dependency); expect small merges.                                                        |
+- **Yours:** `src/decks/` (not `showcase/`), `src/library/` and your theme folders in `src/themes/`.
+  Upstream never changes, adds or removes a file there, so pulling its updates doesn't conflict.
+- **Upstream's:** everything else. Don't edit it; fix things for everyone with a pull request.
+- **Shared:** `package.json`, its lock file and the root config files; edit only when you must.
+
+The ownership table in [AGENTS.md](../AGENTS.md#who-owns-what) has the details.
 
 ## The lifecycle
 
@@ -137,7 +137,7 @@ It fetches `upstream`, merges `upstream/main` into a new `upgrade/<date>` branch
 `src/decks/` trees (except `src/decks/showcase/`), including any starters you deleted. For
 conflicts elsewhere, it stops and prints the commands to finish or abort. When it passes, flip through your decks
 (`npm run dev`, press G) and merge the branch. Upstream's CHANGELOG.md says what changed; merge a
-release tag (`npm run upgrade v0.3.0`) rather than `main` if you prefer to move in steps.
+release tag (`npm run upgrade v0.1.0`) rather than `main` if you prefer to move in steps.
 
 ## Data that can be refreshed
 

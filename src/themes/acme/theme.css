@@ -1,6 +1,6 @@
 /*
- * Example of a custom theme: "Acme", a made-up company. Copy this folder to src/themes/<your-name>/,
- * rename "acme" below, change the values, and put `theme: "<your-name>"` on a deck.
+ * Example of a custom theme for a made-up company. Copy this folder to src/themes/<your-name>/,
+ * put your theme's name in the selectors below, change the values, and name it on a deck.
  *
  *   theme.css   this file: token values (required)
  *   logo.svg    the logo in slide headers (optional; .png, .jpg or .webp work too)
