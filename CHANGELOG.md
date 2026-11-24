@@ -50,6 +50,8 @@ First public version.
 - `Cycle` draws an arrowhead between each pair of cards, so the direction reads without the
   moving dot, and its default cards are smaller (280×96), so more of the ring shows. `Flow` is
   taller by default (400px, nodes up to 260px); pass a smaller `height` for flatter boxes.
+- `Pie` takes `highlight={i}`: that slice in the key colour and the rest muted, like `BarSeries`'
+  key bar. The editorial example uses it.
 - `Code` no longer hangs the deck on a number followed by letters (`120px`, `0x1f`, `3d`); they
   are coloured as numbers.
 - The README's theme walkthrough is now [docs/themes.md](docs/themes.md), and the private-copy
