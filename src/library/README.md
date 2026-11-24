@@ -6,7 +6,9 @@ starters below and leaves the rest of it to you. Decks import from it with `@lib
 - `slides/`: reusable slides. Export a component per slide (every prop with a default), or a
   function ending in `Slides` that returns a set. See `slides/team.tsx`.
 - `blocks/`: your own building blocks, used inside a `Frame`. See `blocks/Funnel.tsx`. A whole-slide
-  layout is a block too: see `blocks/SplitFrame.tsx`.
+  layout is a block too: see `blocks/SplitFrame.tsx`. Each file exports an `example`, which the dev
+  gallery draws and `npm run verify` renders. Two more starters: `blocks/Sql.tsx` (`Code` with your
+  own highlighter) and `blocks/TimerBar.tsx` (a presenter extra with its own key, for a deck's `overlay`).
 - `motion/`: your own animations, one CSS file each, used by name. `motion/swoop.css` is an entrance
   effect (`<Reveal effect="swoop">`, `<Build effect="swoop">`); `motion/wipe.css` is a transition
   between slides (`transition: "wipe"`).

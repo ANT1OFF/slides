@@ -49,7 +49,7 @@ const upstreamDeck = deckFile.startsWith(`${examples}${sep}`) || deckFile === re
 export default defineConfig(({ command }) => {
   const alone = command === "build" && upstreamDeck;
   // The team's library. LIBRARY_DIR points it elsewhere (npm run verify uses it for its own fixture library).
-  const libraryDir = process.env.LIBRARY_DIR ?? resolve(alone ? examples : src, alone ? "_library" : "library");
+  const libraryDir = process.env.LIBRARY_DIR ?? (alone ? resolve(examples, "_library") : resolve(src, "library"));
   return {
     plugins: [
       alone &&
@@ -59,14 +59,16 @@ export default defineConfig(({ command }) => {
         }),
       sourceTags(),
       slideNames(),
-      themes({ themesDir: resolve(src, "themes"), deckFile }),
+      themes({ themesDir: resolve(src, "themes"), deckFile, libraryDir }),
       library({ libraryDir }),
       react(),
       tailwindcss(),
       viteSingleFile(),
       notices({
         root: import.meta.dirname,
-        folders: () => [...new Set([resolve(src, "themes/default"), resolve(src, "themes", deckTheme(deckFile)), resolve(deckFile, "..")])],
+        folders: () => [
+          ...new Set([resolve(src, "themes/default"), resolve(src, "themes", deckTheme(deckFile, libraryDir)), resolve(deckFile, "..")]),
+        ],
       }),
       selfContained(),
     ],

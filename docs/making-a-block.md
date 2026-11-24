@@ -8,7 +8,7 @@ so you design in real pixels at 1920×1080 and never think about screen sizes.
 | It's used by                | Put it in                                                                                                                           |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | One deck only               | The deck's folder, e.g. `src/decks/my-talk/Funnel.tsx`. Import it with `./Funnel.tsx`.                                              |
-| Several of your decks       | `src/library/blocks/Funnel.tsx`, imported with `@library/blocks/Funnel.tsx`. It shows in the dev gallery.                           |
+| Several of your decks       | `src/library/blocks/Funnel.tsx`, imported with `@library/blocks/Funnel.tsx`. Its `example` export is drawn in the dev gallery.      |
 | Everyone who uses this repo | `src/blocks/`, but only as a pull request upstream: that folder is upstream's, and editing it in your copy makes upgrades conflict. |
 
 Start deck-local. Promote a block to `src/library/blocks/` when a second deck wants it.
@@ -181,7 +181,9 @@ standard slide, `Frame` takes a `className` instead.
 
 ## Check it
 
-For a library block: use it in a deck, then `npm run dev` and look at it in every theme and scheme
+For a library block: export an `example` from its file, the block with realistic props
+(`export const example = <Funnel stages={[…]} />`; wrap it in `slide(…)` if the block fills the
+slide itself). The dev gallery draws it, and `npm run verify` fails if it can't render. Then use it in a deck, then `npm run dev` and look at it in every theme and scheme
 (`&theme=editorial`, `&theme=signal`, `&scheme=dark`) and on an inverted Frame; press G and P for
 the final state; then `npm run check` and `npm run verify`.
 

@@ -13,6 +13,9 @@ the user-facing details; this is the short version of how to work here.
 - Animation is CSS used by name: `<Reveal effect>`, `<Build effect>`, and `transition` on a deck or a
   slide. Built in: effects `rise`, `fade`, `pop`; transitions `fade`, `push`, `zoom`. The team's own
   are files in `src/library/motion/`; team-wide CSS is `src/library/styles.css`.
+- A presenter extra (timer bar, pointer) is a component on the deck's `overlay`; it reads the deck
+  with `useDeckNav()` and adds keys with `useDeckKey()` (both from `@core`). Never edit
+  `src/core/Deck.tsx` for a key.
 - Output is one self-contained HTML file per deck. Nothing may be fetched when it opens.
 - `src/core/` imports nothing from blocks or the library, and `src/blocks/` nothing from the
   library; `npm run check` enforces it.
@@ -49,15 +52,18 @@ team-wide CSS in `src/library/styles.css`, never into `src/styles.css`; animatio
    user of this repo would want goes there only as a pull request upstream. Where each kind of
    thing goes ([docs/extending.md](docs/extending.md) has the details):
 
-   | To add                                     | Put it in                                                                     |
-   | ------------------------------------------ | ----------------------------------------------------------------------------- |
-   | A block, or a layout (a whole-slide block) | `src/library/blocks/<Name>.tsx`; layouts start from `Slide` and `SlideHeader` |
-   | A reusable slide or slide set              | `src/library/slides/<topic>.tsx`                                              |
-   | An entrance or build-step effect           | `src/library/motion/<name>.css`: a class named after a from-only `@keyframes` |
-   | A transition between slides                | `src/library/motion/<name>.css`: `@keyframes <name>-in` and `<name>-out`      |
-   | A team-wide token or utility class         | `src/library/styles.css` (`@theme`, `@utility`)                               |
-   | CSS for one deck                           | A `.css` file in the deck's folder, imported by the deck                      |
-   | What every new deck starts with            | `src/decks/_starter/`                                                         |
+   | To add                                     | Put it in                                                                                   |
+   | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+   | A block, or a layout (a whole-slide block) | `src/library/blocks/<Name>.tsx`; layouts start from `Slide` and `SlideHeader`               |
+   | A block's preview in the gallery           | `export const example = <Name … />` in the block's file (`slide(…)` if a layout)            |
+   | Code in another language                   | A block in `src/library/blocks/` passing `tokenize` to `Code` (see `Sql.tsx`)               |
+   | A key, or a presenter extra                | A component using `useDeckKey` / `useDeckNav`, on the deck's `overlay` (see `TimerBar.tsx`) |
+   | A reusable slide or slide set              | `src/library/slides/<topic>.tsx`                                                            |
+   | An entrance or build-step effect           | `src/library/motion/<name>.css`: a class named after a from-only `@keyframes`               |
+   | A transition between slides                | `src/library/motion/<name>.css`: `@keyframes <name>-in` and `<name>-out`                    |
+   | A team-wide token or utility class         | `src/library/styles.css` (`@theme`, `@utility`)                                             |
+   | CSS for one deck                           | A `.css` file in the deck's folder, imported by the deck                                    |
+   | What every new deck starts with            | `src/decks/_starter/`                                                                       |
 
 5. **Theme it:** `theme: "<name>"` (a string literal) on the deck. A new look is a copy of
    `src/themes/acme/` with new values. Per deck: `scheme`, `logo`, `footer`, `vars`.
@@ -118,13 +124,16 @@ Give every image and video a meaningful `alt` or caption.
 - Don't edit `src/core/` to change how one deck looks; use a block, a theme or deck `vars`.
 - Don't commit `dist/`. The one exception is `examples/html/` (the built example decks and the
   showcase): after changing a block, a theme, `src/styles.css` or an example, run
-  `npm run build:examples` and commit the result. `npm run check` fails if it is stale.
+  `npm run build:examples` and commit the result. `npm run check` fails if it is stale. Those decks
+  are built from upstream's files only (no team library, classes or default theme), so a team's own
+  work never makes them stale; don't rebuild them for a change in `src/library/` or `src/decks/`.
 
 ## Before you finish
 
 - `npm run check` and `npm run verify` pass.
-- Every new reusable slide is in `src/library/slides/` with defaults for every prop (so it shows in
-  the library view); every new built-in block has a showcase slide and a row in the README's table.
+- Every new reusable slide is in `src/library/slides/` with defaults for every prop, and every new
+  library block exports an `example` (so both show in the library view and `npm run verify` renders
+  them); every new built-in block has a showcase slide and a row in the README's table.
 - No upstream file changed for a team's own need: check `git status` against "Who owns what".
 - Every real-world number has a `*.data.json` with its `source`, `how` and `updated`.
 - If a PDF was asked for, `npm run pdf <deck>` ran and you looked at a page or two of `dist/<deck>.pdf`.
