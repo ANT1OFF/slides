@@ -21,7 +21,7 @@ export async function libraryData(entry: string, root: string, library: string):
     if (file.endsWith(".data.json") && inside(library, file)) {
       found.push(file);
     }
-    if (!/\.(?:[cm]?[jt]s|[jt]sx)$/.test(file)) {
+    if (!/\.(?:[cm]?[jt]s|[jt]sx)$/u.test(file)) {
       return;
     }
 
@@ -50,11 +50,11 @@ export async function libraryData(entry: string, root: string, library: string):
       },
     }).visit(program);
     for (const id of imports) {
-      if (!/^(?:\.{1,2}\/|\/|@library(?:\/|$))/.test(id)) {
+      if (!/^(?:\.{1,2}\/|\/|@library(?:\/|$))/u.test(id)) {
         continue;
       }
       const resolved = await resolveImport(id, file);
-      const path = resolved?.split(/[?#]/, 1)[0];
+      const path = resolved?.split(/[?#]/u, 1)[0];
       if (path && inside(root, path)) {
         await visit(path);
       }

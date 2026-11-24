@@ -71,7 +71,7 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
 /** Page count and first page size (in PDF points) read from the file itself; no PDF library needed. */
 export function inspectPdf(pdf: Buffer): { pages: number; width: number; height: number } {
   const text = pdf.toString("latin1");
-  const pages = Math.max(0, ...[...text.matchAll(/\/Type\s*\/Pages[^>]*?\/Count\s+(\d+)/g)].map((m) => Number(m[1])));
-  const box = text.match(/\/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]/);
-  return { pages, width: Number(box?.[1] ?? 0), height: Number(box?.[2] ?? 0) };
+  const pages = Math.max(0, ...[...text.matchAll(/\/Type\s*\/Pages[^>]*?\/Count\s+(?<count>\d+)/gu)].map((m) => Number(m.groups?.count)));
+  const box = /\/MediaBox\s*\[\s*0\s+0\s+(?<width>[\d.]+)\s+(?<height>[\d.]+)\s*\]/u.exec(text);
+  return { pages, width: Number(box?.groups?.width ?? 0), height: Number(box?.groups?.height ?? 0) };
 }

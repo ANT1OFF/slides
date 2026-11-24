@@ -11,21 +11,21 @@ function licenceFiles(dir: string): Array<string> {
     return [];
   }
   return readdirSync(dir, { recursive: true, withFileTypes: true })
-    .filter((e) => e.isFile() && /licen[cs]e|^ofl/i.test(e.name) && /\.(txt|md)$|^LICENSE$/i.test(e.name))
+    .filter((e) => e.isFile() && /licen[cs]e|^ofl/iu.test(e.name) && /\.(?:txt|md)$|^LICENSE$/iu.test(e.name))
     .map((e) => resolve(e.parentPath, e.name))
     .sort();
 }
 
-const FONT = /\.(woff2?|ttf|otf)$/i;
+const FONT = /\.(?:woff2?|ttf|otf)$/iu;
 
-const key = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
+const key = (name: string) => name.toLowerCase().replaceAll(/[^a-z0-9]/gu, "");
 /** "JetBrainsMono-LICENSE.txt" → "jetbrainsmono"; a plain "LICENSE.txt" or "OFL.txt" → "". */
 const stem = (licence: string) =>
   key(
     licence
-      .split(/[\\/]/)
+      .split(/[\\/]/u)
       .pop()!
-      .replace(/[-_ ]?(licen[cs]e|ofl)(\.(txt|md))?$/i, ""),
+      .replace(/[-_ ]?(?:licen[cs]e|ofl)(?:\.(?:txt|md))?$/iu, ""),
   );
 
 /**
@@ -92,7 +92,7 @@ export function notices({ root, folders }: { root: string; folders: () => Array<
         const text =
           `Third-party notices for this presentation file.\n\nEmbedded font files and their licences:\n${manifest || "(none)"}\n\n${body}`.replaceAll(
             "</",
-            "<\\/",
+            String.raw`<\/`,
           );
         return [{ tag: "script", attrs: { type: "text/plain", id: "third-party-notices" }, children: text, injectTo: "head-prepend" }];
       },

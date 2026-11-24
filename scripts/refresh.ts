@@ -53,7 +53,7 @@ function read(file: string): DataFile | string {
   if (typeof d.how !== "string" || !d.how.trim()) {
     return `"how" must say how to get the values`;
   }
-  if (typeof d.updated !== "string" || !/^\d{4}-\d\d-\d\d$/.test(d.updated) || Number.isNaN(Date.parse(d.updated))) {
+  if (typeof d.updated !== "string" || !/^\d{4}-\d\d-\d\d$/u.test(d.updated) || Number.isNaN(Date.parse(d.updated))) {
     return `"updated" must be a date like 2026-11-24`;
   }
   return d as DataFile;

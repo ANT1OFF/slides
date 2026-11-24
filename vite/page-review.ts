@@ -34,7 +34,7 @@ export function sourceTags(): Plugin {
       const s = new MagicString(code);
       new Visitor({
         JSXOpeningElement(node) {
-          if (node.name.type !== "JSXIdentifier" || !/^[a-z]/.test(node.name.name)) {
+          if (node.name.type !== "JSXIdentifier" || !/^[a-z]/u.test(node.name.name)) {
             return;
           }
           if (node.attributes.some((a) => a.type === "JSXAttribute" && a.name.type === "JSXIdentifier" && a.name.name === "data-source")) {
@@ -61,7 +61,7 @@ export function slideNames(): Plugin {
     enforce: "pre",
     transform(code, id) {
       const file = id.split("?")[0];
-      if (!/\/(src\/decks|examples)\/[^/]+\/index\.tsx$/.test(file) || !own(file)) {
+      if (!/\/(?:src\/decks|examples)\/[^/]+\/index\.tsx$/u.test(file) || !own(file)) {
         return;
       }
       const { program } = parseSync(file, code, { lang: "tsx" });
@@ -86,7 +86,7 @@ export function slideNames(): Plugin {
       const names = new Set<string>();
       new Visitor({
         JSXOpeningElement(node) {
-          if (node.name.type === "JSXIdentifier" && /^[A-Z]/.test(node.name.name) && bound.has(node.name.name)) {
+          if (node.name.type === "JSXIdentifier" && /^[A-Z]/u.test(node.name.name) && bound.has(node.name.name)) {
             names.add(node.name.name);
           }
         },

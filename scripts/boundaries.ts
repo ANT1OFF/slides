@@ -14,16 +14,16 @@ const root = resolve(import.meta.dirname, "..");
 // `from "x"`, `import "x"` and `import("x")`.
 const IMPORT = `(?:from|import)\\s*\\(?\\s*["'\`]`;
 const rules: Array<[string, RegExp]> = [
-  ["src/core", new RegExp(`${IMPORT}(@blocks|@library|virtual:|\\.\\.\\/(blocks|library|decks|themes))`)],
-  ["src/blocks", new RegExp(`${IMPORT}(@library|virtual:|\\.\\.\\/(library|decks|themes))`)],
+  ["src/core", new RegExp(`${IMPORT}(@blocks|@library|virtual:|\\.\\.\\/(blocks|library|decks|themes))`, "u")],
+  ["src/blocks", new RegExp(`${IMPORT}(@library|virtual:|\\.\\.\\/(library|decks|themes))`, "u")],
   // Upstream's decks can't depend on the team's library, which a team may change or delete.
-  ["examples", new RegExp(`${IMPORT}(@library|[./]*src\\/library)`)],
-  ["src/decks/showcase", new RegExp(`${IMPORT}(@library|\\.\\.\\/\\.\\.\\/library)`)],
+  ["examples", new RegExp(`${IMPORT}(@library|[./]*src\\/library)`, "u")],
+  ["src/decks/showcase", new RegExp(`${IMPORT}(@library|\\.\\.\\/\\.\\.\\/library)`, "u")],
 ];
 const problems: Array<string> = [];
 for (const [dir, banned] of rules) {
   for (const e of readdirSync(resolve(root, dir), { recursive: true, withFileTypes: true })) {
-    if (!e.isFile() || !/\.(ts|tsx)$/.test(e.name)) {
+    if (!e.isFile() || !/\.(?:ts|tsx)$/u.test(e.name)) {
       continue;
     }
     const file = resolve(e.parentPath, e.name);
@@ -51,11 +51,11 @@ try {
 } catch {
   // A downloaded copy has no history to compare.
 }
-const isUpstream = !!remotes && /^origin\s+\S*github\.com[:/]ANT1OFF\/slides(\.git)?\s/m.test(remotes) && !/^upstream\s/m.test(remotes);
+const isUpstream = !!remotes && /^origin\s+\S*github\.com[:/]ANT1OFF\/slides(?:\.git)?\s/mu.test(remotes) && !/^upstream\s/mu.test(remotes);
 const gramMerge =
   remotes === "" &&
   process.env.SLIDES_TEAM_COPY !== "1" &&
-  /^Gram local check of [0-9a-f]{40} on [0-9a-f]{40}$/.test(git("log", "-1", "--format=%s", "--ignore-missing", "HEAD"));
+  /^Gram local check of [0-9a-f]{40} on [0-9a-f]{40}$/u.test(git("log", "-1", "--format=%s", "--ignore-missing", "HEAD"));
 if (isUpstream || gramMerge) {
   let base: string;
   try {

@@ -72,7 +72,7 @@ function Previews({ entries, from }: { entries: Array<SlideEntry>; from: number 
 }
 
 export function Gallery() {
-  const builtIn = Object.keys(blocks).filter((k) => /^[A-Z]/.test(k));
+  const builtIn = Object.keys(blocks).filter((k) => /^[A-Z]/u.test(k));
   return (
     <main className="min-h-screen bg-canvas px-16 py-16 font-sans text-ink">
       <h1 className="text-5xl font-semibold tracking-tight">Slides</h1>

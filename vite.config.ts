@@ -20,7 +20,7 @@ export function listDecks(): Array<string> {
   const names = deckDirs.flatMap((dir) =>
     existsSync(dir)
       ? readdirSync(dir, { withFileTypes: true })
-          .filter((e) => e.isDirectory() && !/^[_.]/.test(e.name) && existsSync(resolve(dir, e.name, "index.tsx")))
+          .filter((e) => e.isDirectory() && !/^[_.]/u.test(e.name) && existsSync(resolve(dir, e.name, "index.tsx")))
           .map((e) => e.name)
       : [],
   );

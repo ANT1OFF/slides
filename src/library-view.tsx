@@ -26,7 +26,7 @@ function librarySlides(): Array<SlideEntry> {
       if (typeof value !== "function") {
         continue;
       }
-      if (/^[A-Z]/.test(name)) {
+      if (/^[A-Z]/u.test(name)) {
         const LibrarySlide = value as () => ReactNode;
         out.push(
           slide(
@@ -76,7 +76,7 @@ function libraryBlocks(): { slides: Array<SlideEntry>; without: Array<string> } 
           {whole ? (
             example.content
           ) : (
-            <Frame section="Library block" title={file.replace(/\.tsx$/, "")}>
+            <Frame section="Library block" title={file.replace(/\.tsx$/u, "")}>
               {example}
             </Frame>
           )}

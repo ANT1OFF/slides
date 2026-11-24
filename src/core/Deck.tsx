@@ -200,7 +200,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         setBlank(false);
         return;
       }
-      if (/^[0-9]$/.test(e.key)) {
+      if (/^[0-9]$/u.test(e.key)) {
         typed.current = (typed.current + e.key).slice(-4);
         setToast(`Go to ${typed.current} ⏎`);
         return;

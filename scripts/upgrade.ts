@@ -26,7 +26,7 @@ if (!run("git remote", true).split("\n").includes("upstream")) {
 
 // upstream is the public kit: a push there could publish a team's private decks. Fetch-only is safest.
 const pushUrl = run("git remote get-url --push upstream", true).trim();
-if (pushUrl === run("git remote get-url upstream", true).trim() || /:\/\/|^[\w.-]+@[\w.-]+:|^[/.~]/.test(pushUrl) || existsSync(pushUrl)) {
+if (pushUrl === run("git remote get-url upstream", true).trim() || /:\/\/|^[\w.-]+@[\w.-]+:|^[/.~]/u.test(pushUrl) || existsSync(pushUrl)) {
   console.warn(
     `\nWarning: \`upstream\` can be pushed to (${pushUrl}), so a push there could publish your private decks.\n` +
       "Make it fetch-only: git remote set-url --push upstream DISABLED\n",

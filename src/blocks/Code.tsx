@@ -11,15 +11,15 @@ const KEYWORDS = new Set(
   ).split(" "),
 );
 const RULES: Array<[RegExp, string]> = [
-  [/^(\/\/.*|#(?!\[).*|\/\*[\s\S]*?\*\/)/, "tok-comment"],
-  [/^(`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/, "tok-string"],
+  [/^(?:\/\/.*|#(?!\[).*|\/\*[\s\S]*?\*\/)/u, "tok-comment"],
+  [/^(?:`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/u, "tok-string"],
   // A number with whatever letters follow it (120px, 0x1f, 1e9): every rule must leave nothing
   // unmatched, or tokenize never ends.
-  [/^\d(?:[eE][+-]\d|[\w.])*/, "tok-number"],
-  [/^[A-Za-z_$][\w$]*(?=\s*\()/, "tok-fn"],
-  [/^[A-Za-z_$][\w$]*/, "word"],
-  [/^\s+/, ""],
-  [/^[^\w\s]/, "tok-punct"],
+  [/^\d(?:[eE][+-]\d|[\w.])*/u, "tok-number"],
+  [/^[A-Za-z_$][\w$]*(?=\s*\()/u, "tok-fn"],
+  [/^[A-Za-z_$][\w$]*/u, "word"],
+  [/^\s+/u, ""],
+  [/^[^\w\s]/u, "tok-punct"],
 ];
 
 /**
@@ -37,7 +37,7 @@ export function tokenize(line: string, keywords: ReadonlySet<string> = KEYWORDS)
         continue;
       }
       const text = m[0];
-      const kind = cls === "word" ? (keywords.has(text) ? "tok-kw" : /^[A-Z]/.test(text) ? "tok-type" : "") : cls;
+      const kind = cls === "word" ? (keywords.has(text) ? "tok-kw" : /^[A-Z]/u.test(text) ? "tok-type" : "") : cls;
       out.push(
         kind ? (
           <span key={out.length} className={kind}>
@@ -102,8 +102,8 @@ export function Code({
   /** Your own highlighter: one line in, its nodes out (spans with the `tok-*` classes). Defaults to the built-in one. */
   tokenize?: (line: string) => Array<ReactNode>;
 }) {
-  const lines = children.replace(/^\s*\n|\n\s*$/g, "").split("\n");
-  const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => l.match(/^ */)![0].length));
+  const lines = children.replaceAll(/^\s*\n|\n\s*$/gu, "").split("\n");
+  const indent = Math.min(...lines.filter((l) => l.trim()).map((l) => /^ */u.exec(l)![0].length));
   const code = lines.map((l) => l.slice(indent));
   const stepsSets = highlight ? parseSteps(highlight, code.length) : null;
   const step = useBuildStep(stepsSets ? stepsSets.length - 1 : 0);

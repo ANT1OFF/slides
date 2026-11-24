@@ -97,7 +97,7 @@ async function selfContained(browser: Browser, file: string) {
     const faces = [...document.fonts].map((f) => ({ family: f.family, status: f.status }));
     const used = new Set<string>();
     for (const el of document.querySelectorAll("[data-stage] *")) {
-      used.add(getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim());
+      used.add(getComputedStyle(el).fontFamily.split(",")[0].replaceAll(/["']/gu, "").trim());
     }
     const images = [...document.images].map((img) => ({ src: img.currentSrc.slice(0, 40), ok: img.complete && img.naturalWidth > 0 }));
     const media = [...document.querySelectorAll<HTMLMediaElement>("video, audio")];
@@ -124,7 +124,7 @@ async function selfContained(browser: Browser, file: string) {
     "every font the slides use is embedded and loaded",
     report.used.every(
       (fam) =>
-        /^(ui-|system-ui|-apple-system|sans-serif|serif|monospace)/.test(fam) ||
+        /^(?:ui-|system-ui|-apple-system|sans-serif|serif|monospace)/u.test(fam) ||
         embedded.some((f) => f.family === fam && f.status === "loaded"),
     ),
     `${report.used.join(", ")} | ${report.faces.map((f) => `${f.family}:${f.status}`).join(", ")}`,
@@ -149,8 +149,8 @@ async function selfContained(browser: Browser, file: string) {
   check("every slide's content fits (its Frame body, and the stage)", overflowing.length === 0, `too tall: ${overflowing.join(", ")}`);
   // React's licence and a licence for every font file the deck can embed (the build lists them).
   const notices = (await page.locator("#third-party-notices").textContent()) ?? "";
-  check("React's MIT notice is in the file", /MIT License[\s\S]*Meta Platforms/.test(notices));
-  const unlicensed = [...notices.matchAll(/^(.+): NO LICENCE FILE$/gm)].map((m) => m[1]);
+  check("React's MIT notice is in the file", /MIT License[\s\S]*Meta Platforms/u.test(notices));
+  const unlicensed = [...notices.matchAll(/^.+(?=: NO LICENCE FILE$)/gmu)].map((m) => m[0]);
   check(
     "every embedded font file has a licence in the file",
     notices.includes("Embedded font files and their licences:") && unlicensed.length === 0,
@@ -455,7 +455,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
         // "fade-in new reverse 1500": the keyframes on each of the slide's two snapshots.
         running: document.getAnimations().flatMap((a) => {
           const effect = a.effect as KeyframeEffect;
-          const part = /^::view-transition-(old|new)\(slide\)$/.exec(effect.pseudoElement ?? "")?.[1];
+          const part = /^::view-transition-(?<part>old|new)\(slide\)$/u.exec(effect.pseudoElement ?? "")?.groups?.part;
           const timing = effect.getComputedTiming();
           return part ? [`${(a as CSSAnimation).animationName} ${part} ${timing.direction} ${timing.duration}`] : [];
         }),
@@ -487,7 +487,11 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await page.goto(`file://${file}`);
   await page.waitForTimeout(600);
   const subtitle = (await page.textContent("[data-deck-mode=present] [data-slide]")) ?? "";
-  test("motion files in the team library are found by name", /effects: verify-swoop · transitions: verify-wipe/.test(subtitle), subtitle);
+  test(
+    "motion files in the team library are found by name",
+    subtitle.includes("effects: verify-swoop · transitions: verify-wipe"),
+    subtitle,
+  );
 
   await key("ArrowRight", DURING);
   let s = await state();

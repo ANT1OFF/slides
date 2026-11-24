@@ -7,7 +7,7 @@ const STARTER = "src/decks/_starter";
 const PLACEHOLDER = "New deck";
 
 const name = process.argv[2];
-if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) {
+if (!name || !/^[a-z0-9][a-z0-9-]*$/u.test(name)) {
   console.error("Usage: npm run new <name>   (lowercase letters, digits and dashes, e.g. my-talk)");
   process.exit(1);
 }
@@ -24,13 +24,13 @@ if (!existsSync(`${STARTER}/index.tsx`)) {
   process.exit(1);
 }
 
-const title = name.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+const title = name.replaceAll("-", " ").replace(/^./u, (c) => c.toUpperCase());
 
 cpSync(STARTER, dir, { recursive: true });
 const file = `${dir}/index.tsx`;
 // Drop the starter's own header comment (everything above the first import), then set the title.
 const source = readFileSync(file, "utf8")
-  .replace(/^(?:\/\/.*\n)+(?=import )/, "")
+  .replace(/^(?:\/\/.*\n)+(?=import )/u, "")
   .replaceAll(PLACEHOLDER, title);
 // Format it like the rest of the repo, so `npm run check` passes on a fresh deck.
 writeFileSync(file, await format(source, { ...(await resolveConfig(file)), filepath: file }));

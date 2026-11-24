@@ -30,7 +30,7 @@ export function Table({
     numeric
       ? numeric.includes(c)
       : rows.every(
-          (r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/.test(r[c] as string)),
+          (r) => typeof r[c] === "number" || (typeof r[c] === "string" && /^[\s$€£+\-−]*[\d.,]+\s*[%×kKmMbB]?$/u.test(r[c] as string)),
         );
   const align = columns.map((_, c) => (isNum(c) ? "text-right tabular-nums" : "text-left"));
   const cellTone = (c: number) => (strong === undefined || c === 0 ? "" : c === strong ? "weight-strong" : "text-ink-2");
