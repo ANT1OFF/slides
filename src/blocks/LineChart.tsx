@@ -3,7 +3,7 @@ import { series as palette } from "./palette.ts";
 
 export interface LineSeries {
   name: string;
-  values: number[];
+  values: Array<number>;
   /** Tailwind stroke class; defaults to the theme's chart colours in order. */
   stroke?: string;
   /** Tailwind fill class for the end dot, matching the stroke. */
@@ -28,15 +28,15 @@ export function LineChart({
   height = 520,
   start = 300,
 }: {
-  x: string[];
-  series: LineSeries[];
+  x: Array<string>;
+  series: Array<LineSeries>;
   max: number;
-  ticks: number[];
+  ticks: Array<number>;
   tickLabel?: (t: number) => string;
   labelEvery?: number;
   reference?: { value: number; label: string };
   /** Vertical markers at x positions, labelled at the top (e.g. "Today", a crossover). */
-  markers?: { index: number; label: string; dot?: number }[];
+  markers?: Array<{ index: number; label: string; dot?: number }>;
   /** From this index on, lines are dashed: an estimate rather than history. */
   estimateFrom?: number;
   width?: number;

@@ -16,8 +16,8 @@ const blockFiles = import.meta.glob<Record<string, unknown>>("@library/blocks/*.
 const fileOf = (path: string) => path.split("/").pop()!;
 const isEntry = (s: unknown): s is SlideEntry => typeof s === "object" && s !== null && !isValidElement(s) && "content" in s;
 
-function librarySlides(): SlideEntry[] {
-  const out: SlideEntry[] = [];
+function librarySlides(): Array<SlideEntry> {
+  const out: Array<SlideEntry> = [];
   for (const [path, mod] of Object.entries(slideFiles)) {
     const file = fileOf(path);
     for (const [name, value] of Object.entries(mod)) {
@@ -36,9 +36,9 @@ function librarySlides(): SlideEntry[] {
         );
       } else if (name.endsWith("Slides")) {
         // A set may return plain JSX or slide() entries; keep an entry's own notes and options.
-        let set: SlideInput[];
+        let set: Array<SlideInput>;
         try {
-          set = (value as () => SlideInput[])();
+          set = (value as () => Array<SlideInput>)();
         } catch (e) {
           set = [<Broken name={`${file}: ${name}()`} hint={SLIDE_HINT} error={e} />];
         }
@@ -53,9 +53,9 @@ function librarySlides(): SlideEntry[] {
 }
 
 /** One slide per block file that exports an `example`; the files that don't are listed by name. */
-function libraryBlocks(): { slides: SlideEntry[]; without: string[] } {
-  const slides: SlideEntry[] = [];
-  const without: string[] = [];
+function libraryBlocks(): { slides: Array<SlideEntry>; without: Array<string> } {
+  const slides: Array<SlideEntry> = [];
+  const without: Array<string> = [];
   for (const [path, mod] of Object.entries(blockFiles)) {
     const file = fileOf(path);
     const example = mod.example as ReactNode | SlideEntry | undefined;
@@ -86,7 +86,7 @@ function libraryBlocks(): { slides: SlideEntry[]; without: string[] } {
 }
 
 /** One slide per effect (it plays when the slide opens, and again on →) and per transition (the slide arrives with it). */
-function libraryMotion(): SlideEntry[] {
+function libraryMotion(): Array<SlideEntry> {
   return [
     ...motion.effects.map((effect) =>
       slide(

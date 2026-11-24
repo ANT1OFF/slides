@@ -54,7 +54,7 @@ const pill = "rounded-xl bg-surface px-5 py-3 text-lg ring-1 ring-rule hover:rin
 const name = "rounded-lg px-3 py-2 font-mono text-sm text-ink-2";
 
 /** Library slides drawn small, in their final state; each opens that slide in the library view. */
-function Previews({ entries, from }: { entries: SlideEntry[]; from: number }) {
+function Previews({ entries, from }: { entries: Array<SlideEntry>; from: number }) {
   return (
     <DeckContext.Provider value={{ title: "Library", theme: settings.defaultTheme, scheme: "light", footer: "src/library" }}>
       {entries.map((entry, i) => (

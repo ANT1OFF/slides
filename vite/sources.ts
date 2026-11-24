@@ -8,7 +8,7 @@ import type { Plugin } from "vite";
 
 const SCAN_ALL = '@import "tailwindcss";';
 
-export function onlySources({ stylesheet, sources }: { stylesheet: string; sources: string[] }): Plugin {
+export function onlySources({ stylesheet, sources }: { stylesheet: string; sources: Array<string> }): Plugin {
   const from = dirname(stylesheet);
   const only = sources.map((s) => `@source ${JSON.stringify(relative(from, s).replaceAll("\\", "/"))};`).join("\n");
   return {

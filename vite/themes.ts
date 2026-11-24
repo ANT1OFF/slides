@@ -8,7 +8,7 @@ import type { Plugin } from "vite";
 
 const LOGOS = ["logo.svg", "logo.png", "logo.jpg", "logo.webp"];
 
-export function listThemes(themesDir: string): string[] {
+export function listThemes(themesDir: string): Array<string> {
   return readdirSync(themesDir, { withFileTypes: true })
     .filter((e) => e.isDirectory() && existsSync(resolve(themesDir, e.name, "theme.css")))
     .map((e) => e.name)
@@ -111,8 +111,8 @@ export function themes({ themesDir, deckFile, libraryDir }: { themesDir: string;
         }
         names = [...new Set(["default", wanted])];
       }
-      const lines: string[] = [];
-      const entries: string[] = [];
+      const lines: Array<string> = [];
+      const entries: Array<string> = [];
       names.forEach((name, i) => {
         const dir = resolve(themesDir, name).replaceAll("\\", "/");
         if (name !== "default") {

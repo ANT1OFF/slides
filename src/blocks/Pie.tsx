@@ -36,7 +36,7 @@ export function Pie({
   center,
   highlight,
 }: {
-  slices: Slice[];
+  slices: Array<Slice>;
   size?: number;
   ring?: boolean;
   start?: number;

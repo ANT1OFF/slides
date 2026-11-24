@@ -15,13 +15,13 @@ export function Table({
   build,
   start = 200,
 }: {
-  columns: ReactNode[];
-  rows: ReactNode[][];
+  columns: Array<ReactNode>;
+  rows: Array<Array<ReactNode>>;
   highlight?: number;
   /** The column to read (0-based): set in the strong weight, the others in ink-2. */
   strong?: number;
   /** Indexes of columns to right-align with tabular figures; defaults to those whose cells are all numbers. */
-  numeric?: number[];
+  numeric?: Array<number>;
   build?: BuildProp;
   start?: number;
 }) {

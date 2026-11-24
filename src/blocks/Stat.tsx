@@ -65,7 +65,7 @@ export function StatRow({
   build,
   start = 200,
 }: {
-  stats: (StatValue & { relative?: StatValue })[];
+  stats: Array<StatValue & { relative?: StatValue }>;
   build?: BuildProp;
   start?: number;
 }) {

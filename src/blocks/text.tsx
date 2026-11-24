@@ -17,7 +17,7 @@ export function Bullets({
   marker = "number",
   start = 200,
 }: {
-  items: Item[];
+  items: Array<Item>;
   build?: BuildProp;
   marker?: "number" | "square";
   start?: number;
@@ -44,7 +44,7 @@ export function Bullets({
 }
 
 /** The same rows as Bullets, for an agenda; `active` (0-based) keeps full ink and the rest drop to ink-2. */
-export function Agenda({ items, active, start = 200 }: { items: ReactNode[]; active?: number; start?: number }) {
+export function Agenda({ items, active, start = 200 }: { items: Array<ReactNode>; active?: number; start?: number }) {
   return (
     <ol className="rule-bottom flex max-h-[620px] flex-1 flex-col">
       {items.map((item, i) => {

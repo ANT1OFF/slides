@@ -12,7 +12,7 @@ export interface Milestone {
 }
 
 /** A roadmap: an ink line with a node per milestone, its date above and its title below. `build` reveals them in turn. */
-export function Timeline({ items, build, start = 300 }: { items: Milestone[]; build?: BuildProp; start?: number }) {
+export function Timeline({ items, build, start = 300 }: { items: Array<Milestone>; build?: BuildProp; start?: number }) {
   const current = items.findIndex((m) => !m.done);
   return (
     <div className="relative">

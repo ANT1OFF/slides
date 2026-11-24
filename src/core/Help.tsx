@@ -1,7 +1,7 @@
 import type { DeckKey } from "./nav.ts";
 
 /** Every built-in key of the deck window. The ? overlay and the README both list these. */
-export const KEYS: [keys: string, does: string][] = [
+export const KEYS: Array<[keys: string, does: string]> = [
   ["→  Space  ↓  PgDn  click right", "Next build step, then next slide"],
   ["←  ↑  PgUp  click left", "Previous build step, then previous slide"],
   ["Home  End", "First / last slide"],
@@ -16,7 +16,7 @@ export const KEYS: [keys: string, does: string][] = [
 ];
 
 /** The list of keys: the built-in ones, then the ones components added with useDeckKey(). */
-export function Help({ onClose, extra = [] }: { onClose: () => void; extra?: DeckKey[] }) {
+export function Help({ onClose, extra = [] }: { onClose: () => void; extra?: Array<DeckKey> }) {
   // A key added twice (the same component on screen twice) is listed once.
   const added = [...new Map(extra.map((k) => [k.key, k])).values()].map((k): [string, string] => [
     k.key.length === 1 ? k.key.toUpperCase() : k.key,

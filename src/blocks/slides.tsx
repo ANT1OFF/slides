@@ -268,7 +268,7 @@ export function EndSlide({
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
-  links?: ReactNode[];
+  links?: Array<ReactNode>;
   inverted?: boolean;
 }) {
   return (

@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 
-function licenceFiles(dir: string): string[] {
+function licenceFiles(dir: string): Array<string> {
   if (!existsSync(dir)) {
     return [];
   }
@@ -33,7 +33,7 @@ const stem = (licence: string) =>
  * licence file named after the font ("JetBrainsMono-LICENSE.txt" for "jetbrains-mono-….woff2"), or a
  * folder's only, or unnamed (LICENSE.txt, OFL.txt), licence. Otherwise every licence in the folder.
  */
-function fontFiles(dir: string, root: string): { font: string; licence?: string }[] {
+function fontFiles(dir: string, root: string): Array<{ font: string; licence?: string }> {
   if (!existsSync(dir)) {
     return [];
   }
@@ -56,14 +56,14 @@ function fontFiles(dir: string, root: string): { font: string; licence?: string 
     });
 }
 
-export function notices({ root, folders }: { root: string; folders: () => string[] }): Plugin {
+export function notices({ root, folders }: { root: string; folders: () => Array<string> }): Plugin {
   return {
     name: "slides:notices",
     apply: "build",
     transformIndexHtml: {
       order: "post",
       handler() {
-        const parts: { heading: string; text: string }[] = [];
+        const parts: Array<{ heading: string; text: string }> = [];
         for (const pkg of ["react", "react-dom", "scheduler"]) {
           const file = resolve(root, "node_modules", pkg, "LICENSE");
           if (existsSync(file)) {
@@ -76,7 +76,7 @@ export function notices({ root, folders }: { root: string; folders: () => string
           }
         }
         // Same text once, with every heading it applies to.
-        const byText = new Map<string, string[]>();
+        const byText = new Map<string, Array<string>>();
         for (const p of parts) {
           byText.set(p.text, [...(byText.get(p.text) ?? []), p.heading]);
         }

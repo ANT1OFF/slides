@@ -32,17 +32,17 @@ if (!files.length) {
 
 const executablePath = chromePath();
 
-const results: { deck: string; name: string; ok: boolean; detail?: string }[] = [];
+const results: Array<{ deck: string; name: string; ok: boolean; detail?: string }> = [];
 let deckName = "";
 const check = (name: string, ok: unknown, detail = "") => results.push({ deck: deckName, name, ok: !!ok, detail });
 
 /** A context that refuses every request that isn't the file itself or inline data. */
-async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: BrowserContext; blocked: string[] }> {
+async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: BrowserContext; blocked: Array<string> }> {
   const ctx = await browser.newContext({
     viewport: { width: 1600, height: 900 },
     reducedMotion: reducedMotion ? "reduce" : "no-preference",
   });
-  const blocked: string[] = [];
+  const blocked: Array<string> = [];
   await ctx.route("**/*", (route) => {
     const url = route.request().url();
     if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) {
@@ -68,7 +68,7 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
  * (FrameBody, data-frame-body) taller than the space it has, which pushes into the footer or crowds
  * the title, or anything on the slide taller than the 1920×1080 stage.
  */
-function tooTall(page: Page): Promise<string[]> {
+function tooTall(page: Page): Promise<Array<string>> {
   return page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>("[data-deck-mode=overview] [data-slide]")]
       .filter(
@@ -84,7 +84,7 @@ function tooTall(page: Page): Promise<string[]> {
 async function selfContained(browser: Browser, file: string) {
   const { ctx, blocked } = await offline(browser);
   const page = await ctx.newPage();
-  const errors: string[] = [];
+  const errors: Array<string> = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`file://${file.startsWith("/") ? file : resolve(dist, file)}#1`);
   await page.waitForTimeout(400);
@@ -434,7 +434,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   if (mode === "no View Transitions API") {
     await page.addInitScript(() => delete (Document.prototype as { startViewTransition?: unknown }).startViewTransition);
   }
-  const errors: string[] = [];
+  const errors: Array<string> = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   const test = (name: string, ok: unknown, detail: unknown = "") =>
     check(`${mode}: ${name}`, ok, typeof detail === "string" ? detail : JSON.stringify(detail));
@@ -474,7 +474,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
     await page.waitForTimeout(wait);
   };
   /** Several keys in the same frame: faster than a transition can apply its move. */
-  const burst = (keys: string[]) =>
+  const burst = (keys: Array<string>) =>
     page.evaluate((keys) => keys.forEach((key) => dispatchEvent(new KeyboardEvent("keydown", { key }))), keys);
   const go = async (n: number) => {
     await page.evaluate((n) => (location.hash = `#${n}`), n);
@@ -690,7 +690,7 @@ function themeDetection() {
       return `error: ${(e as Error).message}`;
     }
   };
-  const cases: [string, string, string][] = [
+  const cases: Array<[string, string, string]> = [
     [
       "the deck's own theme",
       `const deck: DeckDefinition = { title: "a", theme: "editorial", slides: [] };\nexport default deck;`,

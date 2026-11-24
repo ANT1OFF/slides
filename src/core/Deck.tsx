@@ -39,7 +39,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const [help, setHelp] = useState(false);
   const [blank, setBlank] = useState(false);
   // Keys that components added with useDeckKey(); the built-in ones are the switch below.
-  const [extraKeys, setExtraKeys] = useState<DeckKey[]>([]);
+  const [extraKeys, setExtraKeys] = useState<Array<DeckKey>>([]);
   const addKey = useCallback((key: DeckKey) => {
     setExtraKeys((keys) => [...keys, key]);
     return () => setExtraKeys((keys) => keys.filter((k) => k !== key));

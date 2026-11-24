@@ -8,7 +8,7 @@ declare module "virtual:deck" {
 
 declare module "virtual:library" {
   /** The entrance effects and slide transitions found in src/library/motion, by name. */
-  export const motion: { effects: string[]; transitions: string[] };
+  export const motion: { effects: Array<string>; transitions: Array<string> };
 }
 
 declare module "virtual:themes" {

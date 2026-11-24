@@ -4,7 +4,7 @@ import { series as palette } from "./palette.ts";
 
 export interface AreaSeries {
   name: string;
-  values: number[];
+  values: Array<number>;
   /** Tailwind fill class; defaults to the theme's chart colours in order. */
   fill?: string;
 }
@@ -26,10 +26,10 @@ export function StackedArea({
   height = 560,
   start = 300,
 }: {
-  x: string[];
-  series: AreaSeries[];
+  x: Array<string>;
+  series: Array<AreaSeries>;
   max: number;
-  ticks: number[];
+  ticks: Array<number>;
   tickLabel?: (t: number) => string;
   /** Label every nth x position on the axis, plus the last. */
   labelEvery?: number;

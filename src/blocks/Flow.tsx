@@ -18,7 +18,7 @@ export function Flow({
   height = 400,
   start = 300,
 }: {
-  nodes: FlowNode[];
+  nodes: Array<FlowNode>;
   width?: number;
   height?: number;
   start?: number;

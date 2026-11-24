@@ -21,7 +21,7 @@ const checking = process.argv.includes("--check");
 /** The decks that ship as committed HTML: everything in examples/, plus the showcase. */
 const decks = listDecks().filter((d) => d === "showcase" || existsSync(resolve(root, "examples", d, "index.tsx")));
 
-const stale: string[] = [];
+const stale: Array<string> = [];
 mkdirSync(outDir, { recursive: true });
 for (const deck of decks) {
   process.env.DECK = deck;

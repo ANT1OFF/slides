@@ -16,7 +16,7 @@ const src = resolve(import.meta.dirname, "src");
 const deckDirs = [resolve(src, "decks"), resolve(import.meta.dirname, "examples")];
 
 /** Deck folders: <dir>/<name>/index.tsx. Folders starting with _ (shared code) are not decks. */
-export function listDecks(): string[] {
+export function listDecks(): Array<string> {
   const names = deckDirs.flatMap((dir) =>
     existsSync(dir)
       ? readdirSync(dir, { withFileTypes: true })

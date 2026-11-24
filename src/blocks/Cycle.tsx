@@ -19,7 +19,7 @@ export function Cycle({
   start = 300,
   period = 10,
 }: {
-  nodes: CycleNode[];
+  nodes: Array<CycleNode>;
   width?: number;
   height?: number;
   cardWidth?: number;

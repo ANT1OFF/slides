@@ -24,7 +24,7 @@ export function BarSeries({
   stagger = 45,
   relativeTo,
 }: {
-  data: Bar[];
+  data: Array<Bar>;
   /** The value at the top of the chart; defaults to the largest bar. */
   max?: number;
   /** How a value is written on a bar and in the headline. */
@@ -47,7 +47,7 @@ export function BarSeries({
    */
   relativeTo?: { base: "first" | number; label: string; format?: "multiple" | "growth"; always?: boolean };
   /** Kept for older decks; values are written on the bars instead of a value axis. */
-  ticks?: number[];
+  ticks?: Array<number>;
   tickLabel?: (t: number) => string;
 }) {
   const [hover, setHover] = useState<number | null>(null);

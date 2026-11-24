@@ -9,7 +9,7 @@ export function HBars({
   highlight = 0,
   width = 1680,
 }: {
-  rows: { label: string; value: number }[];
+  rows: Array<{ label: string; value: number }>;
   max?: number;
   start?: number;
   barClass?: string;

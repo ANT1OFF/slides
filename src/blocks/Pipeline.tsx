@@ -14,7 +14,7 @@ export interface Step {
  * and a card under each node. Fits the 1680px content width.
  */
 /** `build` reveals one step's card per press of →. */
-export function Pipeline({ steps, build, start = 300 }: { steps: Step[]; build?: BuildProp; start?: number }) {
+export function Pipeline({ steps, build, start = 300 }: { steps: Array<Step>; build?: BuildProp; start?: number }) {
   const width = 1680;
   const n = steps.length;
   const col = width / n;

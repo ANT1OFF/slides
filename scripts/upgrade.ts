@@ -10,7 +10,7 @@ import { teamPaths } from "./team-paths.ts";
 
 const ref = process.argv[2] ?? "upstream/main";
 const run = (cmd: string, quiet = false) => execSync(cmd, { stdio: quiet ? "pipe" : "inherit", encoding: "utf8" });
-const git = (args: string[], quiet = false) =>
+const git = (args: Array<string>, quiet = false) =>
   execFileSync("git", args, { stdio: quiet ? ["ignore", "pipe", "ignore"] : "inherit", encoding: "utf8" });
 function fail(msg: string): never {
   console.error(`\n${msg}`);
@@ -66,7 +66,7 @@ try {
 }
 
 // Preserve the team's entire tree, including deletions, before committing the incoming history.
-const teamChanges = (...options: string[]) =>
+const teamChanges = (...options: Array<string>) =>
   git(["diff", "--cached", "--name-only", "--no-renames", "-z", ...options, "HEAD", "--", ...teamPaths], true)
     .split("\0")
     .filter(Boolean);

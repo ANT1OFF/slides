@@ -13,14 +13,14 @@ import { teamPaths } from "./team-paths.ts";
 const root = resolve(import.meta.dirname, "..");
 // `from "x"`, `import "x"` and `import("x")`.
 const IMPORT = `(?:from|import)\\s*\\(?\\s*["'\`]`;
-const rules: [string, RegExp][] = [
+const rules: Array<[string, RegExp]> = [
   ["src/core", new RegExp(`${IMPORT}(@blocks|@library|virtual:|\\.\\.\\/(blocks|library|decks|themes))`)],
   ["src/blocks", new RegExp(`${IMPORT}(@library|virtual:|\\.\\.\\/(library|decks|themes))`)],
   // Upstream's decks can't depend on the team's library, which a team may change or delete.
   ["examples", new RegExp(`${IMPORT}(@library|[./]*src\\/library)`)],
   ["src/decks/showcase", new RegExp(`${IMPORT}(@library|\\.\\.\\/\\.\\.\\/library)`)],
 ];
-const problems: string[] = [];
+const problems: Array<string> = [];
 for (const [dir, banned] of rules) {
   for (const e of readdirSync(resolve(root, dir), { recursive: true, withFileTypes: true })) {
     if (!e.isFile() || !/\.(ts|tsx)$/.test(e.name)) {
@@ -43,7 +43,8 @@ if (readFileSync(skill(".claude"), "utf8") !== readFileSync(skill(".agents"), "u
 }
 // Normal worktrees identify the upstream repo by its remotes. An isolated local merge gate has no
 // remotes and checks a synthetic merge whose first parent is the PR base.
-const git = (...args: string[]) => execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+const git = (...args: Array<string>) =>
+  execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 let remotes: string | undefined;
 try {
   remotes = git("remote", "-v");

@@ -91,7 +91,7 @@ function hasBlankLine(context: Context, prev: Statement, next: Statement): boole
   return between.slice(1, -1).some((line) => line.trim() === "");
 }
 
-function checkList(context: Context, statements: readonly Statement[], topLevel: boolean): void {
+function checkList(context: Context, statements: ReadonlyArray<Statement>, topLevel: boolean): void {
   for (const [index, next] of statements.entries()) {
     const prev = statements[index - 1];
 

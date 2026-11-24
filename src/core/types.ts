@@ -28,7 +28,7 @@ export type SlideInput = ReactNode | SlideEntry;
 
 export interface DeckDefinition {
   title: string;
-  slides: SlideInput[];
+  slides: Array<SlideInput>;
   /** A theme folder in src/themes, e.g. "editorial". Leave out for the default theme. Must be a string literal. */
   theme?: string;
   /** "dark" for the theme's dark colours. */
@@ -70,7 +70,7 @@ export const slideTags = (slide: DeckSlide, index: number) => ({
 });
 
 /** The deck's slides with their options, each with an id unique in the deck. */
-export function entries(deck: DeckDefinition): DeckSlide[] {
+export function entries(deck: DeckDefinition): Array<DeckSlide> {
   const taken = new Map<string, number>();
   return deck.slides.map((s, i) => {
     const entry: SlideEntry =
@@ -83,7 +83,7 @@ export function entries(deck: DeckDefinition): DeckSlide[] {
 }
 
 /** What the counter shows for slide `index`: its place among the visible slides, or among the backups if it is hidden. */
-export function slideLabel(slides: DeckSlide[], index: number): { label: string; progress: number } {
+export function slideLabel(slides: Array<DeckSlide>, index: number): { label: string; progress: number } {
   const visible = slides.filter((s) => !s.hidden).length;
   const before = slides.slice(0, index + 1);
   if (slides[index]?.hidden) {
@@ -95,7 +95,7 @@ export function slideLabel(slides: DeckSlide[], index: number): { label: string;
 }
 
 /** The number a footer shows for slide `index`: "07", or "B1" for the first hidden backup slide. */
-export function slideNumber(slides: DeckSlide[], index: number): string {
+export function slideNumber(slides: Array<DeckSlide>, index: number): string {
   const { label } = slideLabel(slides, index);
   return label.startsWith("backup") ? `B${label.split(" ")[1]}` : label.split(" / ")[0].padStart(2, "0");
 }

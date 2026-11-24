@@ -61,7 +61,7 @@ function read(file: string): DataFile | string {
 const lastLine = (text: string) => text.trim().split("\n").filter(Boolean).pop() ?? "";
 const age = (d: DataFile) => Math.floor((Date.now() - Date.parse(`${d.updated}T00:00:00Z`)) / 86_400_000);
 
-const todo: string[] = [];
+const todo: Array<string> = [];
 let failed = 0;
 for (const file of files) {
   const name = relative(root, file);

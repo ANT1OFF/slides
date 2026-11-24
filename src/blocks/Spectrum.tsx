@@ -19,7 +19,7 @@ export function Spectrum({
   floor,
   build = false,
 }: {
-  tiers: Tier[];
+  tiers: Array<Tier>;
   left: string;
   right: string;
   floor?: ReactNode;

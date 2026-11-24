@@ -8,7 +8,7 @@ import type { Browser } from "playwright-core";
 export async function exportPdf(browser: Browser, file: string, out: string): Promise<number> {
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   try {
-    const blocked: string[] = [];
+    const blocked: Array<string> = [];
     await ctx.route("**/*", (route) => {
       const url = route.request().url();
       if (url.startsWith("file:") || url.startsWith("data:") || url.startsWith("blob:")) {
@@ -23,7 +23,7 @@ export async function exportPdf(browser: Browser, file: string, out: string): Pr
       window.print = () => {};
     });
     const page = await ctx.newPage();
-    const errors: string[] = [];
+    const errors: Array<string> = [];
     page.on("pageerror", (e) => errors.push(String(e)));
     await page.goto(`file://${file}`);
     await page.waitForSelector("[data-deck-mode=present]");

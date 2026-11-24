@@ -6,7 +6,7 @@ import type { Plugin } from "vite";
 const MB = 1024 * 1024;
 
 // What a browser fetches: src/poster/srcset/data attributes or props, CSS url() and @import, <link href>.
-const REMOTE: [RegExp, string][] = [
+const REMOTE: Array<[RegExp, string]> = [
   [/\b(?:src|poster|srcSet|srcset|data)\s*[:=]\s*\{?\s*["'`]((?:https?:)?\/\/[^"'`\s]+)/g, "src/poster/srcset"],
   // SVG <image>, <use> and <feImage> fetch their href; links (<a href>) don't, so they are left alone.
   [/<(?:image|use|feImage)\b[^>]*\b(?:href|xlink:href)\s*=\s*["']((?:https?:)?\/\/[^"']+)/g, "SVG href"],
@@ -38,7 +38,7 @@ export function selfContained({ warnAtMB = 15 } = {}): Plugin {
     enforce: "post",
     // After vite-plugin-singlefile has inlined everything into the HTML.
     writeBundle(_options, bundle) {
-      const problems: string[] = [];
+      const problems: Array<string> = [];
       for (const [file, chunk] of Object.entries(bundle)) {
         if (!file.endsWith(".html")) {
           // Anything still emitted next to the HTML was not inlined and would be missing.

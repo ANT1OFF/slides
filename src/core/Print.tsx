@@ -6,7 +6,7 @@ import { slideNumber, slideTags, type DeckSlide } from "./types.ts";
  * Every visible slide on its own 1920×1080 page in its final state, then the print dialog.
  * Choose "Save as PDF" there; returns to the deck when the dialog closes.
  */
-export function Print({ slides, name, onDone }: { slides: DeckSlide[]; name: string; onDone: () => void }) {
+export function Print({ slides, name, onDone }: { slides: Array<DeckSlide>; name: string; onDone: () => void }) {
   useEffect(() => {
     let cancelled = false;
     const done = () => onDone();

@@ -10,7 +10,7 @@ export interface DeckNav {
   /** How many slides the deck has, hidden ones included. */
   count: number;
   /** Slide ids and backup status in deck order, including hidden slides. */
-  slides: readonly Readonly<{ id: string; hidden: boolean }>[];
+  slides: ReadonlyArray<Readonly<{ id: string; hidden: boolean }>>;
   /** One step forward (1) or back (-1): the next build step, then the next slide. What → and ← do. */
   nav: (dir: 1 | -1) => void;
   /** Jump by zero-based index or id, including to hidden slides. An unknown id leaves the deck in place. */

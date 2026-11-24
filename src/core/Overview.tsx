@@ -14,7 +14,7 @@ export function Overview({
   onPick,
   onClose,
 }: {
-  slides: DeckSlide[];
+  slides: Array<DeckSlide>;
   name: string;
   current: number;
   onPick: (index: number) => void;
@@ -22,7 +22,7 @@ export function Overview({
 }) {
   const { width } = useWindowSize();
   const scale = (width - PAD * 2 - GAP * (COLUMNS - 1)) / COLUMNS / STAGE_WIDTH;
-  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  const buttons = useRef<Array<HTMLButtonElement | null>>([]);
   // The slide the arrow keys have moved to; Enter jumps there. It starts on the current slide.
   const [focus, setFocus] = useState(current);
 

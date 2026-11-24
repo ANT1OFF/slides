@@ -12,7 +12,7 @@ import type { Plugin } from "vite";
 const ID = "\0virtual:library";
 
 /** The entrance effects and slide transitions a CSS file defines. */
-export function motionNames(css: string): { effects: string[]; transitions: string[] } {
+export function motionNames(css: string): { effects: Array<string>; transitions: Array<string> } {
   const frames = new Set([...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]));
   const classes = new Set([...css.matchAll(/^\s*\.([\w-]+)\s*[,{]/gm)].map((m) => m[1]));
   return {
