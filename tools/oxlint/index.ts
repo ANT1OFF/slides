@@ -1,5 +1,5 @@
 // Local oxlint rules, loaded by oxlint.config.ts. Written for this repo after two rules in the
-// anti-slop ruleset (github.com/dmmulroy/anti-slop), which is meant to be copied and adapted:
+// anti-slop ruleset for oxlint, which is meant to be copied and adapted:
 //   require-readable-spacing   blank lines between logical groups of statements (autofixed)
 //   require-assertion-reason   a `// SAFETY:` comment saying why each `as` cast holds
 import { definePlugin } from "@oxlint/plugins";
