@@ -32,8 +32,8 @@ From dogfooding a team copy:
 
 - **Team-owned paths are frozen upstream.** After the first clone, upstream never changes, adds or
   removes a file in `src/library/` or `src/decks/` (except the showcase), so `npm run upgrade` can't
-  conflict there. New examples ship in the docs or `examples/`; CI fails an upstream pull request
-  that touches those paths. (Until now, #5 had changed `Funnel.tsx`, `SplitFrame.tsx` and
+  conflict there. New examples ship in the docs or `examples/`; in upstream's repo, `npm run check`
+  (and CI) fails a change that touches those paths. (Until now, #5 had changed `Funnel.tsx`, `SplitFrame.tsx` and
   `src/library/README.md` and added `Sql.tsx` and `TimerBar.tsx`.)
 
 **Upgrade notes**

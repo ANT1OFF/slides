@@ -17,7 +17,7 @@ Keep pull requests small, and keep the README's key table and block table in syn
 and delete the starters there, so any upstream change to them is an upgrade conflict in every team
 copy. They are frozen as they were first shipped. A new example of a library block, layout or slide
 goes in the docs (to copy in by hand) or in `examples/`; a fix to a starter goes in the CHANGELOG
-as an upgrade note that teams can apply themselves. CI fails a pull request that touches these paths.
+as an upgrade note that teams can apply themselves. `npm run check` fails, in this repo, on a change that touches these paths (and so does CI).
 
 ## Releases
 
