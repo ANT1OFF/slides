@@ -20,7 +20,7 @@ your folders, so pulling its updates doesn't conflict with your work.
 ### 1. Make your private copy
 
 ```bash
-git clone <slides repo URL> our-slides && cd our-slides
+git clone https://github.com/ANT1OFF/slides.git our-slides && cd our-slides
 git remote rename origin upstream
 git remote add origin <your team's empty private repo URL>
 git push -u origin main
@@ -29,7 +29,7 @@ npm install
 
 Not "Use this template" (no shared history, so `npm run upgrade` can't merge) and not a public fork
 (it can't be private). Team members then clone your team's repo as usual; whoever runs upgrades adds
-the upstream remote once in their clone: `git remote add upstream <slides repo URL>`.
+the upstream remote once in their clone: `git remote add upstream https://github.com/ANT1OFF/slides.git`.
 
 ### 2. Add your theme
 

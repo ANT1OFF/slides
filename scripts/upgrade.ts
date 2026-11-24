@@ -17,7 +17,7 @@ const fail = (msg: string) => {
 if (run("git status --porcelain", true).trim())
   fail("Commit or stash your changes first: the upgrade happens on a new branch from a clean tree.");
 if (!run("git remote", true).split("\n").includes("upstream"))
-  fail("No `upstream` remote. Add it once: git remote add upstream <URL of the slides repo>");
+  fail("No `upstream` remote. Add it once: git remote add upstream https://github.com/ANT1OFF/slides.git");
 
 const from = run("git rev-parse --abbrev-ref HEAD", true).trim();
 run("git fetch upstream --tags");

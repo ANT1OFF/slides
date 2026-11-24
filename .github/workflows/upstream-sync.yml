@@ -21,6 +21,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: AndreasAugustin/actions-template-sync@v2
         with:
-          source_repo_path: OWNER/slides
+          source_repo_path: ANT1OFF/slides
           upstream_branch: main
           pr_title: "Upgrade from upstream"
