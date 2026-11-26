@@ -542,6 +542,65 @@ function flashes(frames: Array<Frame>): Array<string> {
   return found;
 }
 
+/** A part of the stage, as shares of its width and height. */
+interface Part {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * Runs in the page: the line of each number that counts up (`<CountUp>`, and so `Stat` and
+ * `<Fact count>`), from where the number starts to the end of its block, since the unit after it
+ * moves as digits are added.
+ */
+function countingLines(stageSelector: string): Array<Part> {
+  const stage = document.querySelector(stageSelector)?.getBoundingClientRect();
+
+  if (!stage) {
+    return [];
+  }
+
+  return [...document.querySelectorAll<HTMLElement>(`${stageSelector} [data-count]`)].map((el) => {
+    let block: HTMLElement = el;
+
+    while (block.parentElement && getComputedStyle(block).display.startsWith("inline")) {
+      block = block.parentElement;
+    }
+
+    const number = el.getBoundingClientRect();
+    const line = block.getBoundingClientRect();
+
+    return {
+      left: (Math.min(number.left, line.left) - stage.left) / stage.width,
+      top: (number.top - stage.top) / stage.height,
+      right: (line.right - stage.left) / stage.width,
+      bottom: (number.bottom - stage.top) / stage.height,
+    };
+  });
+}
+
+/** `grid` with the cells that touch any of `parts` blanked, so nothing there counts as a change. */
+function without(grid: Grid, parts: Array<Part>): Grid {
+  if (parts.length === 0) {
+    return grid;
+  }
+
+  const cells = Float64Array.from(grid.cells);
+
+  for (const part of parts) {
+    const [x0, x1] = [Math.floor(part.left * grid.cols), Math.ceil(part.right * grid.cols)];
+    const [y0, y1] = [Math.floor((part.top / KEEP_HEIGHT) * grid.rows), Math.ceil((part.bottom / KEEP_HEIGHT) * grid.rows)];
+
+    for (let y = Math.max(0, y0); y < Math.min(grid.rows, y1); y++) {
+      cells.fill(0, y * grid.cols + Math.max(0, x0), y * grid.cols + Math.min(grid.cols, x1));
+    }
+  }
+
+  return { ...grid, cells };
+}
+
 /** Intervals between frames of a move in which a lot of the picture moves far: candidates for a pop. */
 function jumpy(frames: Array<Frame>): Array<number> {
   return frames.slice(1).flatMap((f, i) => (gridDiff(frames[i].grid, f.grid, JUMP).changed > POP ? [i] : []));
@@ -740,6 +799,9 @@ export async function walkDeck(open: OpenContext, file: string, name: string, ch
       // it is declared motion, and a push moves everything every frame.
       const candidates = full && !hold.transition ? jumpy(frames.slice(1)).slice(0, 4) : [];
 
+      // A number counting up changes its digits every frame on purpose: its line is left out.
+      const counting = candidates.length > 0 ? await tab.evaluate(countingLines, PRESENT) : [];
+
       for (const i of candidates) {
         const [from, to] = [frames[i + 1], frames[i + 2]];
         let prev = from;
@@ -747,7 +809,7 @@ export async function walkDeck(open: OpenContext, file: string, name: string, ch
         for (let t = from.t + DISPLAY_FRAME; t < to.t + DISPLAY_FRAME / 2; t += DISPLAY_FRAME) {
           await qa.seek(Math.min(t, to.t));
           const next = { ...(await shoot()), t, label: `${Math.round(t)} ms` };
-          const d = gridDiff(prev.grid, next.grid, JUMP).changed;
+          const d = gridDiff(without(prev.grid, counting), without(next.grid, counting), JUMP).changed;
 
           if (d > POP) {
             pops.push(

@@ -28,6 +28,10 @@ browser, offline, no install needed. Press **F** for fullscreen, **?** for every
 - [example-pitch.html](examples/html/example-pitch.html): a seed pitch ("Ledgerly") in the `acme` theme.
 - [example-talk.html](examples/html/example-talk.html): a talk, "Small PRs, fast teams", in the `signal` theme, dark.
 - [example-update.html](examples/html/example-update.html): a support team update in the `editorial` theme, with refreshable data.
+- [example-simple.html](examples/html/example-simple.html): a plain nine-slide monthly update in the default theme. Start here
+  for a clean deck: no transition, no builds, every number from one data file.
+- [example-cinematic.html](examples/html/example-cinematic.html): a staged talk in `editorial`, dark, with a `Backdrop`, a
+  `Morph`, a timed step, `SplitText`, a `Crowd` of 3,835 dots and a motif that returns. Start here for a fancy one.
 
 ## A deck
 
@@ -72,7 +76,8 @@ on a press of →. Motion is CSS used by name: `<Reveal effect="pop">`, `<Build 
 between slides, there are nine transitions and `<Morph id>`, which carries one element from a slide
 to the next. Within a slide, `<Beat>` makes a step a short timeline in seconds, `<SplitText>`
 brings a line in word by word, and `<Ambient>` keeps a held photo moving. `<Backdrop>` (from
-`@blocks/backdrop`, opt-in) draws a slow picture behind a title in the theme's colours;
+`@blocks/backdrop`, opt-in) draws a slow picture behind a title in the theme's colours, and
+`<Crowd>` a number as thousands of dots;
 [docs/motion.md](docs/motion.md) shows them all and says when to keep it plain.
 
 ## Themes

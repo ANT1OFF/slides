@@ -44,7 +44,7 @@ import {
   TitleSlide,
   Video,
 } from "@blocks";
-import { Backdrop } from "@blocks/backdrop";
+import { Backdrop, Crowd } from "@blocks/backdrop";
 import dusk from "./assets/dusk.svg";
 import morning from "./assets/morning.svg";
 import chime from "./assets/chime.wav";
@@ -462,6 +462,7 @@ const deck: DeckDefinition = {
       <Frame section="StackedBar · Pie" title="Part to whole, two ways">
         <Columns ratio={[1, 1]}>
           <StackedBar
+            unit="%"
             segments={[
               { name: "Engineering", value: 46 },
               { name: "Sales", value: 22 },
@@ -735,6 +736,20 @@ const deck: DeckDefinition = {
       {
         id: "Backdrop-presets",
         notes: "Press → twice: with `steps`, each press shifts the pictures a little. Opt-in: import it from @blocks/backdrop.",
+      },
+    ),
+    slide(
+      <Frame section="Crowd" title="4,200 orders, one dot each">
+        <Columns ratio={[2, 5]} align="center">
+          <Lead detail="Each dot stands a little off its place and wanders on a path of its own, a function of its cell and the time. Thousands of them need a GPU; a few hundred are a DotGrid.">
+            Press →: the 630 late ones arrive.
+          </Lead>
+          <Crowd count={4200} highlight={630} build className="h-[560px]" />
+        </Columns>
+      </Frame>,
+      {
+        id: "Crowd",
+        notes: "From @blocks/backdrop, like Backdrop: one shader, no simulation. Print and reduced motion show the settled crowd.",
       },
     ),
     slide(

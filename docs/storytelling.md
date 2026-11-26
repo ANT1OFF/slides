@@ -13,7 +13,8 @@ two for next steps and one for the decision. Read the outline aloud before choos
 - **Write one headline of ten words or fewer.** Use a sentence that states the takeaway,
   such as “The smaller batch cleared the queue sooner.” Use a shorter title if your theme
   or house rules call for it.
-- **Make the picture carry the number.** Use `DotGrid` to show how many units out of a whole,
+- **Make the picture carry the number.** Use `DotGrid` to show how many units out of a whole
+  (for thousands, a [`Crowd`](motion.md#crowd-a-number-as-that-many-dots) draws one dot each),
   `Pie` for shares of one total, `BarSeries` or `HBars` to compare amounts on a common
   scale, and `LineChart` for change over time. Keep units and labels visible. For one
   standalone value, use `Stat`, which uses `CountUp` from `@core`. Pair a count with a
@@ -48,6 +49,10 @@ two for next steps and one for the decision. Read the outline aloud before choos
 - **Try a false ending when the story earns one.** Pause on an apparent close, then return
   to an earlier image and show one detail that changes its meaning. Give that callback
   a moment to register, then settle on a quiet final frame.
+
+Two worked examples: [example-simple](../examples/example-simple/index.tsx) is a plain monthly
+update written to the first list, and [example-cinematic](../examples/example-cinematic/index.tsx)
+a staged talk that uses the second, with its motif in a file of its own.
 
 Pick blocks from the [showcase](../src/decks/showcase/index.tsx). Use the
 [brief template](../templates/BRIEF.md) to plan the deck and the

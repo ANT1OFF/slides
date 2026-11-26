@@ -1,4 +1,4 @@
-# Transitions, Morph, timed steps and backdrops
+# Transitions, Morph, timed steps, backdrops and crowds
 
 How one slide becomes the next, and how a press of → can be a short timeline. A deck needs none of
 this: with no `transition`, no `Morph`, no `Backdrop` and plain `Build`s, each slide simply appears with a small
@@ -103,6 +103,13 @@ Rules, and what happens at the edges:
 Morph works best when the two versions look alike: the same background, the same words, a different
 size or place. Two unrelated things with one id only cross-fade while moving.
 
+- **Make the box hug what it holds.** A `div` is as wide as its column, so the box that flies is
+  mostly empty; `as="span"` with `className="inline-block"` (or `w-fit` on a div) flies the words
+  alone. Keep the words on one line on both slides (`whitespace-nowrap`), or they reflow in flight.
+- **A number that becomes a `Stat`:** `<Stat morph="trip" …>` wraps the Stat's number in a
+  `<Morph id="trip">` for you. Put the same id around the number on the slide before, and leave
+  the unit outside it on both (the "minutes" in `examples/example-cinematic` stays behind).
+
 ## Timed steps: Beat, SplitText and Ambient
 
 A `Build` step normally shows its content at once. Put `<Beat>`s inside it and the step becomes a
@@ -129,6 +136,10 @@ import { Beat, Build } from "@core";
 | `<SplitText effect at>` | A line arriving a word (or a letter) at a time: `mask` rises out of a clip, `blur` sharpens, `type` types, `scale` grows     |
 | `<Ambient effect>`      | Slow motion under a hold, for a photo or a background: `drift`, `creep` (a slow zoom) or `parallax` (leans from the pointer) |
 
+What is on the slide when it opens and leaves on the first press is `<Build at={0} until={1}>`.
+A `SplitText` takes one plain string. To emphasise its last word, follow it with a second one that
+starts when the first is done: `<SplitText>The fastest stop is the one you</SplitText>{" "}<em><SplitText at={1.1}>skip.</SplitText></em>`.
+
 A `Beat` outside any `Build` belongs to the slide's entrance: it plays when the slide is arrived at
 with →. Pieces of a `SplitText` follow one another by `--stagger` (a third of it per letter), and
 screen readers hear the whole line once. The pieces stay real text, so it can be selected, searched
@@ -144,11 +155,14 @@ line leaves), with `--stagger` for SplitText. A calmer deck: `vars: { "--beat-ga
 
 ### For a simple deck
 
-Use none of it. Plain `Build` steps, one idea per press, read well and print well. If you want one
+Use none of it (`examples/example-simple` doesn't). Plain `Build` steps, one idea per press, read well and print well. If you want one
 touch, make the payoff of one slide a `Beat`: the chart arrives on the press, the sentence that
 says what it means lands a beat after (the "Why now" slide of the example pitch does this).
 
 ### Going further
+
+`examples/example-cinematic` is a whole talk staged this way: one Morph, one timed step, two
+`SplitText` lines and a Backdrop on three slides.
 
 - **Picture first, words second.** In a timed step, start the thing that changes at `at={0}` and
   let the headline land 1 to 3 seconds later; the audience looks, then reads.
@@ -177,9 +191,12 @@ slide(
 ```
 
 Wrap a whole slide in it, or give it a size (`className="h-80 rounded-box"`) for a panel. Inside a
-Backdrop `bg-canvas` is see-through, so `TitleSlide`, `StatementSlide`, `SectionSlide` and `Frame`
-sit straight on the picture. For a dark picture in a light deck put `inverted` on the Backdrop, not
-on the slide inside it.
+Backdrop `bg-canvas` is see-through, so `TitleSlide`, `StatementSlide`, `SectionSlide`, `EndSlide`
+and `Frame` sit straight on the picture. The Backdrop decides the scheme: for a dark picture in a
+light deck put `inverted` on the Backdrop. A slide's own `inverted` does nothing inside one, which
+is why `SectionSlide` and `EndSlide`, inverted by default, don't cover the picture. Around a slide,
+the top and bottom rows (kicker, logo, byline, date, page number) get a short wash of the canvas
+colour of their own, whichever side the `scrim` is on.
 
 | Preset   | What it draws                                            | Use it for                              |
 | -------- | -------------------------------------------------------- | --------------------------------------- |
@@ -205,10 +222,76 @@ to the deck's URL to hold every backdrop at one second, for a screenshot. Withou
 browser refuses the shader, a CSS gradient from the same tokens stands in, and a lost GL context
 keeps the last frame.
 
-**What it costs.** About 8 KB in the deck's file. One GL context for the whole deck, however many
+**What it costs.** About 11 KB in the deck's file, `Crowd` and the `shader` hatch included. One GL context for the whole deck, however many
 backdrops it has; frames are capped at about 2 megapixels and 30 a second, and nothing is drawn
 for a slide that is not on screen. The shader is compiled when the deck opens, not when the first
 backdrop slide does.
+
+### Crowd: a number as that many dots
+
+`Crowd`, from the same import, is the one picture here that carries data: `count` dots, one for
+each thing counted, with the last `highlight` of them in the accent. It is what only a GPU draws:
+every dot stands a little off its place, has a size of its own and wanders on its own small path,
+thousands at once, each a function of its cell and the time, with nothing simulated or stored.
+
+```tsx
+import { Crowd } from "@blocks/backdrop";
+
+<Frame title="Riders came back" footer={asOf(route, "pilot report")}>
+  <Columns ratio={[3, 5]} align="center">
+    <Lead>Every dot is one weekday boarding.</Lead>
+    <Crowd count={route.values.ridersAfter} highlight={route.values.ridersAfter - route.values.ridersBefore} build className="h-[600px]" />
+  </Columns>
+</Frame>;
+```
+
+| Prop        | What it does                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| `count`     | How many dots. A few hundred are a `DotGrid`; `Crowd` is for thousands (up to about 20,000)      |
+| `highlight` | How many of them, the last ones, are in the accent                                               |
+| `build`     | The highlighted dots arrive on a press of →, in a wave; without it they are there from the start |
+| `colors`    | The highlight's colour token first: `["accent-2"]`                                               |
+| `label`     | What a screen reader says; "3,835 dots, 585 of them highlighted" by default                      |
+
+It fills its box, so give it a height (`className="h-[600px]"`), and keep it a panel beside the
+words rather than a ground under them: the dots are the evidence. Say what a dot is on the slide
+("every dot is one boarding"). Print, the overview and reduced motion show the settled crowd with
+the exact count. Without WebGL it is a plain dotted field with the same share highlighted, not an
+exact count, so the number itself belongs in the text too.
+
+### A picture of your own
+
+When no preset says what the slide says, `shader` draws your own picture with everything else kept:
+the theme's colours, the one shared GL context, the still frame in print and reduced motion,
+`?backdrop-time`, and a fallback without WebGL. It is a string of GLSL statements that colour `c`:
+
+```tsx
+// Stripes in the accent that drift: nine of them, from `values`.
+<Backdrop shader="c = mix(c, C[2], a * (.5 + .5 * sin(s.x * V.x + U.x)));" values={[9, 0, 0, 0]} fallback="var(--color-accent)" />
+```
+
+| It can read      | Which is                                                                                     |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| `s`              | The point being coloured: `y` from −0.5 (bottom) to 0.5, `x` the same scale, 0 in the middle |
+| `g`, `R`         | The pixel; `R.xy` the picture's size in pixels, `R.z` pixels per stage pixel                 |
+| `U.x`, `U.y`     | Seconds since the slide opened, and progress from 0 to 1 through the Backdrop's `steps`      |
+| `a`, `e`         | `intensity`, and the `seed` as an offset                                                     |
+| `V`              | Your four `values`: counts, positions, anything the picture needs from the deck's data       |
+| `C[0]`…`C[4]`    | The canvas, the ink and the three `colors`, in OKLab (mix them with `mix`; they stay clean)  |
+| `H(p)`, `W(p,t)` | A hash from 0 to 1 for a cell, and a slow warp of a point: noise without a texture           |
+
+It sets `c`, which starts as the canvas colour; the Backdrop turns it into sRGB and dithers it.
+Rules that keep the fallbacks true:
+
+- **A function of the inputs only.** No state, so second 0 can be drawn for print and any second
+  for a screenshot. Movement comes from `U.x`, a step's change from `U.y`.
+- **Give it a `fallback`,** a CSS background, for a browser without WebGL: a flat tint, a gradient,
+  a line. A shader that does not compile is reported in the console (`npm run verify` fails on it)
+  and shows the fallback.
+- **Give it a `label`** when the picture means something, and keep the meaning in the text as well.
+- **Keep it in a file of the deck's own** (`examples/example-cinematic/route-light.ts` draws the
+  talk's route as a line of light, with one glow per stop from the data). Each `shader` string
+  is compiled once and costs its own length in the deck's file.
 
 ### When to use it, and when not
 

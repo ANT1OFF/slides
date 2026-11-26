@@ -1,0 +1,39 @@
+{
+  "source": "manual",
+  "how": "Ask the transit planning office for the Route 9 pilot report: stop counts, end-to-end trip minutes by week and by activity, weekday boardings before and after, and the walking-distance survey.",
+  "updated": "2026-10-19",
+  "values": {
+    "km": 9,
+    "stopsBefore": 34,
+    "stopsAfter": 21,
+    "tripBefore": 41,
+    "tripAfter": 29,
+    "tripSplit": [
+      {
+        "name": "Moving",
+        "value": 19
+      },
+      {
+        "name": "At stops",
+        "value": 14
+      },
+      {
+        "name": "At lights",
+        "value": 8
+      }
+    ],
+    "weeks": ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8", "W9", "W10", "W11", "W12"],
+    "tripMinutes": [41, 40, 41, 42, 34, 31, 30, 30, 29, 29, 30, 29],
+    "changeWeek": 4,
+    "tripGoal": 32,
+    "ridersUp": 18,
+    "ridersBefore": 3250,
+    "ridersAfter": 3835,
+    "onTimeBefore": 61,
+    "onTimeAfter": 88,
+    "walkBefore": 190,
+    "walkAfter": 280,
+    "farShare": 0.04,
+    "farMetres": 400
+  }
+}

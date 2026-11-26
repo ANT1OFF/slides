@@ -21,8 +21,20 @@ First public version.
   or pointer parallax. Back, jumps, print, the overview and reduced motion show steps settled.
 - `<Backdrop>` (import it from `@blocks/backdrop`): an opt-in WebGL picture behind a slide in the
   theme's colours, in four presets (`aurora`, `grain`, `dots`, `depth`), with a `scrim` for text.
-  About 8 KB in a deck that uses it and nothing in one that doesn't. Print, the overview and
+  About 11 KB in a deck that uses it and nothing in one that doesn't. Print, the overview and
   reduced motion show one still frame, and without WebGL it is a CSS gradient.
+- `<Crowd count highlight build>` (from `@blocks/backdrop`): a number as that many dots, thousands
+  of them, each on a path of its own, with the highlighted ones arriving on a step. And
+  `<Backdrop shader values fallback label>`: a picture of the deck's own as a few lines of GLSL,
+  with the same shared context, still frames and fallbacks. Both cost nothing in a deck that
+  doesn't import them. A height given to a Backdrop by `className` now always wins.
+- Two more example decks: `example-simple` (a plain monthly update) and `example-cinematic` (a
+  staged talk with a Backdrop, a Morph, a timed step and SplitText). From building them: a slide
+  that is inverted by default (`EndSlide`, `SectionSlide`) no longer covers a `Backdrop` it sits
+  on, and a Backdrop around a slide washes the header and footer rows so small labels stay
+  readable; `Stat morph="id"` carries its number across slides; `HBars` and `StackedBar` take a
+  `unit`, and `StackedBar` a `highlight`; a `LineChart` reference label sits on its line; and
+  subtitles and lead paragraphs no longer leave a last word alone on a line.
 - **About 40 built-in blocks**, shown in the showcase: slides and layout pieces, text, code,
   tables, numbers, diagrams, charts, photos, video and sound. The same props (`start`, `build`,
   `inverted`) mean the same thing on each.

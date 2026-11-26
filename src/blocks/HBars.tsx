@@ -1,12 +1,13 @@
 import { delay } from "@core";
 
-/** Sorted horizontal bars, one series, direct value labels. Every bar is muted except `highlight`. */
+/** Sorted horizontal bars, one series, direct value labels with an optional `unit`. Every bar is muted except `highlight`. */
 export function HBars({
   rows,
   max,
   start = 300,
   barClass = "fill-muted",
   highlight = 0,
+  unit = "",
   width = 1680,
 }: {
   rows: Array<{ label: string; value: number }>;
@@ -15,6 +16,8 @@ export function HBars({
   barClass?: string;
   /** The row that matters (0-based), drawn in the chart-key colour; -1 for none. */
   highlight?: number;
+  /** Written after each value: "%", " min". */
+  unit?: string;
   /** Total width in px, labels included; the default is the full content width. */
   width?: number;
 }) {
@@ -61,6 +64,7 @@ export function HBars({
               style={delay(start + 500 + i * 60)}
             >
               {r.value.toLocaleString("en-US")}
+              {unit}
             </text>
           </g>
         );

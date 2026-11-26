@@ -35,7 +35,9 @@ export function Timeline({ items, build, start = 300 }: { items: Array<Milestone
       <div className="relative grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((m, i) => (
           <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} className="pr-10">
-            <div className="type-label text-ink-2">{m.when}</div>
+            <div data-not-fact="" className="type-label text-ink-2">
+              {m.when}
+            </div>
             <span className={`pop mt-8 block size-7 rounded-full ${dotTone(i === current, m.done)}`} style={delay(start + 300 + i * 120)} />
             <Reveal delay={build ? 0 : start + 400 + i * 120} className="mt-8">
               <div className="type-body weight-strong leading-tight">{m.title}</div>

@@ -22,6 +22,9 @@ footer: "Acme · Board meeting",           // bottom left of every slide (false 
 vars: { "--color-accent": "#0a7d5a" },    // any token, for this deck only
 ```
 
+`SectionSlide` and `EndSlide` are drawn on the theme's other scheme (`inverted`), so in a dark deck
+they are the light slides. To keep a deck dark throughout, give them `inverted={false}`.
+
 In `npm run dev`, add `&theme=signal&scheme=dark` to a deck's URL to preview it in another theme.
 
 ## Make your own theme

@@ -58,7 +58,8 @@ it saw to `dist/qa/<deck>/`. People and agents can read these the same way.
   - A **pop** is a red frame where a lot of the picture changes in a single frame, when nothing
     declared should move it there: a move that starts or ends away from the still picture, or a
     build that jumps between display frames. A cut, `transition: "none"` or a step back within a
-    slide (which lands settled) changes at once on purpose and is not a pop. Neither is ambient
+    slide (which lands settled) changes at once on purpose and is not a pop. Neither is a number
+    counting up (`Stat`, `CountUp`), whose digits change every frame. Neither is ambient
     drift, which is a loop.
   - A **flash** is a part of the slide (a 4×4 tile) that gets brighter and darker again by a tenth
     of the range more than three times in one second. Long before that point, motion like this

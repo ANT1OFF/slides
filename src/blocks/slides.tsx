@@ -1,17 +1,27 @@
 // Whole-slide layouts. Each fills the 1920×1080 stage; put content blocks inside Frame.
 // Sizes, fonts and colours all come from the theme's tokens (src/themes/default/tokens.css).
 // A layout of your own is a block built from the same pieces: Slide, SlideHeader, Footer, Kicker, Logo.
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 import { Reveal, useDeck, useSlideNumber } from "@core";
 import { Logo } from "./Logo.tsx";
 
+/** True inside a `<Backdrop>`: the picture is the slide's ground, and the Backdrop decides the scheme. */
+export const OnBackdrop = createContext(false);
+
 /**
  * The shell every whole-slide layout starts from: fills the stage with the theme's slide padding,
  * as a column. `inverted` uses the theme's other scheme. Lay out the inside with `className`.
+ * On a `<Backdrop>` the slide is see-through and `inverted` is the Backdrop's to set, so a slide
+ * that is inverted by default (`SectionSlide`, `EndSlide`) doesn't cover the picture.
  */
 export function Slide({ children, inverted = false, className = "" }: { children?: ReactNode; inverted?: boolean; className?: string }) {
+  const onBackdrop = useContext(OnBackdrop);
+
   return (
-    <section className={`slide-pad flex h-full flex-col ${inverted ? "inverted" : "bg-canvas text-ink"} ${className}`}>{children}</section>
+    <section className={`slide-pad flex h-full flex-col ${inverted && !onBackdrop ? "inverted" : "bg-canvas text-ink"} ${className}`}>
+      {children}
+    </section>
   );
 }
 
@@ -76,7 +86,7 @@ export function TitleSlide({
         {title}
       </Reveal>
       {subtitle && (
-        <Reveal delay={260} className="type-lead mt-11 max-w-[30ch] text-ink-2">
+        <Reveal delay={260} className="type-lead mt-11 max-w-[30ch] text-balance text-ink-2">
           {subtitle}
         </Reveal>
       )}
@@ -191,7 +201,7 @@ export function SectionSlide({
         {title}
       </Reveal>
       {subtitle && (
-        <Reveal delay={260} className="type-lead mt-10 max-w-[32ch] text-ink-2">
+        <Reveal delay={260} className="type-lead mt-10 max-w-[32ch] text-balance text-ink-2">
           {subtitle}
         </Reveal>
       )}
@@ -276,7 +286,7 @@ export function EndSlide({
         {title}
       </Reveal>
       {subtitle && (
-        <Reveal delay={160} className="type-lead mt-10 max-w-[36ch] text-ink-2">
+        <Reveal delay={160} className="type-lead mt-10 max-w-[36ch] text-balance text-ink-2">
           {subtitle}
         </Reveal>
       )}

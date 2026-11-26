@@ -1,0 +1,39 @@
+{
+  "source": "manual",
+  "how": "Ask the platform lead for the month's build dashboard export: median build minutes by week, deploys, red builds by cause, and the on-call page count.",
+  "updated": "2026-11-02",
+  "values": {
+    "weeks": ["W36", "W37", "W38", "W39", "W40", "W41", "W42", "W43", "W44"],
+    "buildMinutes": [14.2, 14.5, 13.9, 14.1, 9.8, 8.4, 7.9, 7.6, 7.3],
+    "cacheWeek": 4,
+    "buildGoal": 8,
+    "deploys": 412,
+    "previousDeploys": 338,
+    "pages": 6,
+    "previousPages": 11,
+    "redBuilds": [
+      {
+        "label": "Flaky tests",
+        "value": 41
+      },
+      {
+        "label": "Dependency updates",
+        "value": 23
+      },
+      {
+        "label": "Real failures",
+        "value": 19
+      },
+      {
+        "label": "Runner timeouts",
+        "value": 12
+      },
+      {
+        "label": "Other",
+        "value": 5
+      }
+    ],
+    "quarantined": 38,
+    "fixDays": 30
+  }
+}
