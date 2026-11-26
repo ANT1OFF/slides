@@ -37,6 +37,11 @@ First public version.
   upstream on a branch, then both).
 - The showcase gives DotGrid more room and uses taller Node cards.
 - Verify checks that the build refuses a remote image and a missing font file.
+- Verify walks every built deck: every step forwards and back, by URL hash and in fast bursts, must
+  land on the same picture. It audits motion for single-frame pops and flashes, checks that reduced
+  motion, the overview and print show final states, and writes film strips to `dist/qa/<deck>/`
+  (docs/checklist.md). Fixed along the way: with reduced motion, the progress bar and blocks'
+  own CSS transitions still eased.
 - `npm run lint` runs oxlint on upstream's code, and `npm run check` runs it. It skips `src/library/` and your decks, so it never fails on team code.
 - `npm run lint` is stricter: type-aware rules (floating promises, unsafe `any`, needless casts) through the beta `tsrs` backend, the `@cloudflare/oxlint-config` preset, oxlint's suspicious, pedantic and style categories, and two local rules (blank lines between groups of statements; a `// SAFETY:` comment on each cast). Upstream's code is rewritten to pass, with no change in behaviour; formatting stays with Prettier.
 - Spectrum accepts a build offset. With `build={0}`, the first tier starts visible.

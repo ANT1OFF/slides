@@ -631,12 +631,15 @@ html[data-transition]::view-transition-new(.morph) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Every entrance ends at once, and nothing eases between states (the progress bar, a block's own transition). */
   *,
   *::before,
   *::after {
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
   }
   .pulse-ring,
   .drift,
