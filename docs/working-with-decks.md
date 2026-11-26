@@ -188,6 +188,12 @@ and `examples/example-pitch` an agent one.
   release asset.
 - To present: open the file, press F. Press N for the presenter window on your laptop and drag the
   deck to the projector. For a PDF: press P, "Save as PDF".
+- Tap the stage or swipe left to advance. Swipe right or right-click to go back. A link or control
+  on a slide still responds to a tap. Share the URL hash (for example, `#5.2`) to open a slide at a
+  build step. Use `#5` to open it before its first build.
+- Press A to start or pause autoplay. Set `duration` on the deck or override it with
+  `slide(…, { duration: 8 })` to give a slide eight seconds across its initial state and build
+  steps. The fallback is six seconds per step. Manual navigation pauses autoplay.
 - See [Before you send a deck](../README.md#before-you-send-a-deck).
 
 ## Versioning

@@ -55,8 +55,8 @@ const deck: DeckDefinition = {
 export default deck;
 ```
 
-`slide(…, { notes, hidden, id, transition })` sets speaker notes, visibility, a stable id and a
-slide-specific transition. Import team slides and blocks through `@library/…`.
+`slide(…, { notes, hidden, id, transition, duration })` sets speaker notes, visibility, a stable id and a
+slide-specific transition and autoplay duration. Import team slides and blocks through `@library/…`.
 
 ## Building blocks
 
@@ -95,20 +95,21 @@ URL) and says what to import. Inlined files grow by a third, so compress them: p
 
 ## Presenting
 
-| Key                         | Does                                                                         |
-| --------------------------- | ---------------------------------------------------------------------------- |
-| → Space ↓ PgDn, click right | Next build step, then next slide                                             |
-| ← ↑ PgUp, click left        | Previous build step, then previous slide                                     |
-| Home / End                  | First / last slide                                                           |
-| a number, then Enter        | Jump to that slide                                                           |
-| F                           | Fullscreen                                                                   |
-| N                           | Presenter window: this and the next slide, notes, timer (R resets) and clock |
-| G                           | Overview grid: click, or arrow keys and Enter, to jump; Esc or G closes      |
-| P                           | Print every visible slide in its final state; choose "Save as PDF"           |
-| B or .                      | Blank the screen; any key brings it back                                     |
-| ?                           | List these keys                                                              |
+| Key                                | Does                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| → Space ↓ PgDn, tap, swipe left    | Next build step, then next slide                                             |
+| ← ↑ PgUp, right-click, swipe right | Previous build step, then previous slide                                     |
+| A                                  | Start or pause autoplay                                                      |
+| Home / End                         | First / last slide                                                           |
+| a number, then Enter               | Jump to that slide                                                           |
+| F                                  | Fullscreen                                                                   |
+| N                                  | Presenter window: this and the next slide, notes, timer (R resets) and clock |
+| G                                  | Overview grid: click, or arrow keys and Enter, to jump; Esc or G closes      |
+| P                                  | Print every visible slide in its final state; choose "Save as PDF"           |
+| B or .                             | Blank the screen; any key brings it back                                     |
+| ?                                  | List these keys                                                              |
 
-- The URL hash is the slide number (`deck.html#12`). Hidden slides (`slide(x, { hidden: true })`)
+- The URL hash saves the slide and build step (`deck.html#12.2`). Use `#12` for the start of slide 12. Hidden slides (`slide(x, { hidden: true })`)
   are skipped when presenting and printing; reach them from the overview.
 - **Growth mode:** M switches numbers between raw counts and growth for blocks given a `relative`
   value (`Stat`, `StatRow`, `BarSeries`, `StackedArea`).

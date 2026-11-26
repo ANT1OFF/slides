@@ -14,6 +14,8 @@ First public version.
 - **Presenting:** build steps, transitions between slides, presenter window with notes and timer,
   overview, print and `npm run pdf`, fullscreen, blank screen, jump to slide, growth mode, and a
   key list (`?`). All of it works from the file, offline.
+- Presenting saves build steps in the URL, ignores held navigation keys, and adds stage gestures,
+  an idle cursor, interruptible transitions, and autoplay (A).
 - **About 40 built-in blocks**, shown in the showcase: slides and layout pieces, text, code,
   tables, numbers, diagrams, charts, photos, video and sound. The same props (`start`, `build`,
   `inverted`) mean the same thing on each.

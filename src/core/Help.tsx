@@ -2,8 +2,11 @@ import type { DeckKey } from "./nav.ts";
 
 /** Every built-in key of the deck window. The ? overlay and the README both list these. */
 export const KEYS: Array<[keys: string, does: string]> = [
-  ["→  Space  ↓  PgDn  click right", "Next build step, then next slide"],
-  ["←  ↑  PgUp  click left", "Previous build step, then previous slide"],
+  ["→  Space  ↓  PgDn", "Next build step, then next slide"],
+  ["←  ↑  PgUp", "Previous build step, then previous slide"],
+  ["Tap  Swipe left", "Next build step, then next slide"],
+  ["Right-click  Swipe right", "Previous build step, then previous slide"],
+  ["A", "Start or pause autoplay"],
   ["Home  End", "First / last slide"],
   ["3  Enter", "Jump to slide 3"],
   ["F", "Fullscreen"],
@@ -29,11 +32,11 @@ export function Help({ onClose, extra = [] }: { onClose: () => void; extra?: Arr
         className="w-[min(640px,90vw)] rounded-2xl bg-neutral-900 p-8 font-sans text-neutral-100 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-5 font-mono text-xs tracking-[0.2em] text-neutral-400 uppercase">Keyboard</div>
+        <div className="mb-5 font-mono text-xs tracking-[0.2em] text-neutral-400 uppercase">Keys and gestures</div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 text-base">
           {[...KEYS, ...added].map(([keys, does]) => (
             <div key={keys} className="contents">
-              <dt className="font-mono whitespace-pre text-neutral-300">{keys}</dt>
+              <dt className="font-mono whitespace-normal text-neutral-300">{keys}</dt>
               <dd className="text-neutral-100">{does}</dd>
             </div>
           ))}

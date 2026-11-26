@@ -43,7 +43,7 @@ export function Overview({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) {
         return;
       }
 

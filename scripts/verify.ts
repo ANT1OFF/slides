@@ -289,6 +289,26 @@ async function features(browser: Browser, file: string) {
   check("the URL hash opens a slide", (await slideNo()) === at.code);
   check("the URL hash follows the slide", (await page.evaluate(() => location.hash)) === `#${at.code}`);
   check("Code's highlight steps are counted", (await builds()) === 3);
+  await go(at.bullets);
+  await page.evaluate((n) => (location.hash = `#${n}.2`), at.bullets);
+  await page.locator(`${sel}[data-build="2"]`).waitFor();
+  check("hashchange opens a build step", (await slideNo()) === at.bullets && (await build()) === 2);
+  await page.reload();
+  await page.locator(`${sel}[data-build="2"]`).waitFor();
+  check("reloading restores the build step", (await slideNo()) === at.bullets && (await build()) === 2);
+  await page.keyboard.down("ArrowLeft");
+  await page.keyboard.down("ArrowLeft");
+  await page.keyboard.up("ArrowLeft");
+  check("holding a navigation key moves only one step", (await slideNo()) === at.bullets && (await build()) === 1);
+
+  await go(at.bullets);
+  await key("a");
+  check("A confirms autoplay is on", await page.getByText("Autoplay on").isVisible());
+  await page.locator(`${sel}[data-build="1"]`).waitFor({ timeout: 4000 });
+  check("autoplay advances a build step", (await slideNo()) === at.bullets && (await build()) === 1);
+  await key("ArrowLeft", 800);
+  check("manual navigation pauses autoplay", (await slideNo()) === at.bullets && (await build()) === 0);
+
   await go(at.tokenize);
   const kw = (id: string) => page.$$eval(`${sel} #${id} .tok-kw`, (els) => els.map((e) => e.textContent));
   const ownTokens = await kw("own-tokens");
@@ -347,10 +367,23 @@ async function features(browser: Browser, file: string) {
   await key("Home");
   await page.mouse.click(1400, 450);
   await page.waitForTimeout(200);
-  check("click on the right → next", (await slideNo()) === 2);
-  await page.mouse.click(100, 450);
+  check("tap advances", (await slideNo()) === 2);
+  await page.mouse.click(100, 450, { button: "right" });
   await page.waitForTimeout(200);
-  check("click on the left → back", (await slideNo()) === 1);
+  check("right-click goes back", (await slideNo()) === 1);
+  const touch = await ctx.newCDPSession(page);
+
+  const swipe = async (from: number, to: number) => {
+    await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: from, y: 450 }] });
+    await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: to, y: 454 }] });
+    await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+
+  await swipe(1000, 800);
+  check("touch swipe left advances", (await slideNo()) === 2);
+  await swipe(800, 1000);
+  check("touch swipe right goes back", (await slideNo()) === 1);
+  await touch.detach();
 
   await key("f", 500);
   check("F → fullscreen", await page.evaluate(() => Boolean(document.fullscreenElement)));
@@ -642,9 +675,26 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
     await go(1);
     await key("ArrowRight", DURING);
     await page.mouse.click(1400, 450);
+    await page.waitForFunction(() => !document.documentElement.dataset.transition, undefined, { timeout: 1000 });
+    s = await state();
+    test("a click skips the running transition and advances a build", s.slide === "two" && s.build === "1", s);
+
+    await go(1);
+    await page.evaluate(() => {
+      dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+
+      // Two taps before the incoming slide has even registered its build.
+      for (let i = 0; i < 2; i++) {
+        for (const type of ["pointerdown", "pointerup"]) {
+          document.documentElement.dispatchEvent(
+            new PointerEvent(type, { bubbles: true, isPrimary: true, pointerId: 1, clientX: 1400, clientY: 450 }),
+          );
+        }
+      }
+    });
     await page.waitForTimeout(settle);
     s = await state();
-    test("a click during a transition still reaches the deck", s.slide === "two" && s.build === "1", s);
+    test("rapid taps during a transition apply every advance in order", s.slide === "three" && s.build === "0" && s.transition === null, s);
   }
 
   await go(2);
