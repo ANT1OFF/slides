@@ -8,22 +8,16 @@ import { Stage, fitScale, useWindowSize } from "./Stage.tsx";
 import { isMessage, postTarget, presenterUrl, sameOrigin } from "./sync.ts";
 import type { Message, Position } from "./sync.ts";
 import { Help } from "./Help.tsx";
-import { KeysContext, NavContext } from "./nav.ts";
+import { KeysContext, NavContext, positionFromHash, useStagePointer } from "./nav.ts";
 import type { DeckKey, DeckNav } from "./nav.ts";
 import { DeckContext, deckLook } from "./theme.ts";
 import { useSlideTransition } from "./transition.ts";
 import { entries, slideLabel, slideNumber, slideTags } from "./types.ts";
 import type { DeckDefinition } from "./types.ts";
 
-function indexFromHash(count: number): number {
-  const n = Number.parseInt(window.location.hash.slice(1), 10);
-
-  return Number.isFinite(n) ? Math.min(Math.max(n - 1, 0), count - 1) : 0;
-}
-
 /**
  * Presents a deck on a fixed 1920×1080 stage scaled to the window. The URL hash is the
- * 1-based slide number. Keys: → / Space / ← step through builds and slides, Home / End,
+ * 1-based slide number with an optional build step. Keys: → / Space / ← step through builds and slides, Home / End,
  * a number then Enter to jump, F fullscreen, N presenter window, G overview, P print to PDF,
  * B blank screen, M raw numbers or growth, ? the list of keys. See KEYS in Help.tsx.
  * A deck or a slide can name a `transition`; it runs as a view transition (see motion.css).
@@ -35,7 +29,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const slides = useMemo(() => entries(deck), [deck]);
   const look = useMemo(() => deckLook(deck), [deck]);
   const count = slides.length;
-  const [pos, setPos] = useState<Position>(() => ({ index: indexFromHash(count), step: 0 }));
+  const [pos, setPos] = useState<Position>(() => positionFromHash(count));
   const [mode, setMode] = useState<"present" | "overview" | "print">("present");
 
   const [display, setDisplay] = useState<Display>(() => {
@@ -47,6 +41,9 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const [toast, setToast] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
   const [blank, setBlank] = useState(false);
+  const [autoplay, setAutoplay] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
+  const presenting = mode === "present" && !help && !blank;
 
   // Keys that components added with useDeckKey(); the built-in ones are the switch below.
   const [extraKeys, setExtraKeys] = useState<Array<DeckKey>>([]);
@@ -75,28 +72,17 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     [pos.index],
   );
 
-  // The latest move asked for. A transition applies its move a frame later, and another key may
-  // land in between, so every apply, immediate or delayed, applies this one.
   const target = useRef(pos);
-  const { plain, changeSlide } = useSlideTransition();
+  const { plain, changeSlide, runNavigation } = useSlideTransition();
 
-  const goto = useCallback(
+  const moveTo = useCallback(
     (index: number, step = 0) => {
       const i = Math.min(Math.max(index, 0), count - 1);
       const from = target.current.index;
       target.current = { index: i, step };
 
-      const apply = () =>
-        setPos((p) => {
-          if (p.index !== target.current.index) {
-            steps.current = 0;
-          }
-
-          return target.current;
-        });
-
       if (i === from) {
-        apply();
+        setPos(target.current);
 
         return;
       }
@@ -104,9 +90,21 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       // Going back plays the transition the slide being left arrived with, reversed.
       const back = i < from;
       const transition = (back ? slides[from] : slides[i]).transition ?? deck.transition;
-      changeSlide(transition, back, apply);
+      const next = target.current;
+      changeSlide(transition, back, () => {
+        steps.current = 0;
+        setPos(next);
+      });
     },
     [count, slides, deck.transition, changeSlide],
+  );
+
+  const goto = useCallback(
+    (index: number, step = 0) => {
+      setAutoplay(false);
+      runNavigation(() => moveTo(index, step));
+    },
+    [moveTo, runNavigation],
   );
 
   const neighbour = useCallback(
@@ -122,39 +120,74 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     [count, slides],
   );
 
+  const advance = useCallback(
+    (dir: 1 | -1) => {
+      runNavigation(() => {
+        const { index, step: requested } = target.current;
+        const step = Math.min(requested, steps.current);
+
+        if (dir === 1 ? step < steps.current : step > 0) {
+          moveTo(index, step + dir);
+
+          return;
+        }
+
+        const next = neighbour(index, dir);
+
+        if (next !== index) {
+          moveTo(next, dir === -1 ? Number.POSITIVE_INFINITY : 0);
+        }
+      });
+    },
+    [runNavigation, moveTo, neighbour],
+  );
+
   const nav = useCallback(
     (dir: 1 | -1) => {
-      const step = Math.min(pos.step, steps.current);
-
-      if (dir === 1 && step < steps.current) {
-        goto(pos.index, step + 1);
-
-        return;
-      }
-
-      if (dir === -1 && step > 0) {
-        goto(pos.index, step - 1);
-
-        return;
-      }
-
-      const next = neighbour(pos.index, dir);
-
-      if (next !== pos.index) {
-        goto(next, dir === -1 ? Number.POSITIVE_INFINITY : 0);
-      }
+      setAutoplay(false);
+      advance(dir);
     },
-    [pos, goto, neighbour],
+    [advance],
   );
+
+  const buildCount = built.index === pos.index ? built.count : 0;
+  const step = Math.min(pos.step, buildCount);
+  const current = slides[pos.index];
+
+  useEffect(() => {
+    if (!autoplay || !presenting) {
+      return;
+    }
+
+    const atEnd = step >= buildCount && neighbour(pos.index, 1) === pos.index;
+    const duration = current.duration ?? deck.duration;
+
+    const seconds = duration && Number.isFinite(duration) && duration > 0 ? duration / (buildCount + 1) : 6;
+
+    const timer = setTimeout(
+      () => {
+        if (atEnd) {
+          setAutoplay(false);
+          setToast("Autoplay finished");
+        } else {
+          advance(1);
+        }
+      },
+      atEnd ? 0 : seconds * 1000,
+    );
+
+    return () => clearTimeout(timer);
+  }, [autoplay, presenting, pos, step, buildCount, current.duration, deck.duration, neighbour, advance]);
 
   useEffect(() => {
     document.title = deck.title;
   }, [deck.title]);
 
   useEffect(() => {
-    history.replaceState(null, "", `${location.pathname}${location.search}#${pos.index + 1}`);
-    presenter.current?.postMessage({ type: "slides:state", position: pos, display } satisfies Message, postTarget());
-  }, [pos, display]);
+    const hash = `#${pos.index + 1}${step ? `.${step}` : ""}`;
+    history.replaceState(null, "", hash);
+    presenter.current?.postMessage({ type: "slides:state", position: { index: pos.index, step }, display } satisfies Message, postTarget());
+  }, [pos.index, step, display]);
 
   useEffect(() => {
     if (!toast) {
@@ -167,7 +200,11 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   }, [toast]);
 
   useEffect(() => {
-    const onHashChange = () => goto(indexFromHash(count));
+    const onHashChange = () => {
+      const position = positionFromHash(count);
+      goto(position.index, position.step);
+    };
+
     window.addEventListener("hashchange", onHashChange);
 
     return () => window.removeEventListener("hashchange", onHashChange);
@@ -183,7 +220,10 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       const m = e.data;
 
       if (m.type === "slides:hello") {
-        presenter.current.postMessage({ type: "slides:state", position: pos, display } satisfies Message, postTarget());
+        presenter.current.postMessage(
+          { type: "slides:state", position: { index: pos.index, step }, display } satisfies Message,
+          postTarget(),
+        );
       } else if (m.type === "slides:nav") {
         nav(m.dir);
       }
@@ -192,24 +232,9 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     window.addEventListener("message", onMessage);
 
     return () => window.removeEventListener("message", onMessage);
-  }, [pos, display, nav]);
+  }, [pos.index, step, display, nav]);
 
-  // While a transition runs the browser sends every click to <html>, not to the deck under it.
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (e.target !== document.documentElement || !document.documentElement.dataset.transition) {
-        return;
-      }
-
-      if (mode === "present" && !help && !blank) {
-        nav(e.clientX > window.innerWidth / 3 ? 1 : -1);
-      }
-    };
-
-    window.addEventListener("click", onClick);
-
-    return () => window.removeEventListener("click", onClick);
-  }, [mode, help, blank, nav]);
+  useStagePointer(stage, presenting, nav);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -242,6 +267,10 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         return;
       }
 
+      if (e.repeat && (["Enter", "Home", "End", "a"].includes(key) || /^[0-9]$/u.test(key))) {
+        return;
+      }
+
       if (/^[0-9]$/u.test(e.key)) {
         typed.current = (typed.current + e.key).slice(-4);
         setToast(`Go to ${typed.current} ⏎`);
@@ -266,14 +295,22 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         case "PageDown":
         case " ": {
           e.preventDefault();
-          nav(1);
+
+          if (!e.repeat) {
+            nav(1);
+          }
+
           break;
         }
         case "ArrowLeft":
         case "ArrowUp":
         case "PageUp": {
           e.preventDefault();
-          nav(-1);
+
+          if (!e.repeat) {
+            nav(-1);
+          }
+
           break;
         }
         case "Home": {
@@ -282,6 +319,11 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         }
         case "End": {
           goto(neighbour(count, -1), Number.POSITIVE_INFINITY);
+          break;
+        }
+        case "a": {
+          setAutoplay(!autoplay);
+          setToast(autoplay ? "Autoplay paused" : "Autoplay on");
           break;
         }
         case "f": {
@@ -298,19 +340,23 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           break;
         }
         case "g": {
+          setAutoplay(false);
           setMode("overview");
           break;
         }
         case "p": {
+          setAutoplay(false);
           setMode("print");
           break;
         }
         case "b":
         case ".": {
+          setAutoplay(false);
           setBlank((b) => !b);
           break;
         }
         case "?": {
+          setAutoplay(false);
           setHelp(true);
           break;
         }
@@ -333,7 +379,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     window.addEventListener("keydown", onKey);
 
     return () => window.removeEventListener("keydown", onKey);
-  }, [mode, help, blank, display, nav, goto, neighbour, count, extraKeys]);
+  }, [mode, help, blank, display, nav, goto, neighbour, count, extraKeys, autoplay]);
 
   const slideInfo = useMemo(() => slides.map(({ id, hidden }) => ({ id, hidden: Boolean(hidden) })), [slides]);
 
@@ -357,13 +403,13 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const deckNav = useMemo<DeckNav>(
     () => ({
       index: pos.index,
-      step: Math.min(pos.step, built.index === pos.index ? built.count : 0),
+      step,
       count,
       slides: slideInfo,
       nav,
       goto: jump,
     }),
-    [pos, built, count, slideInfo, nav, jump],
+    [pos.index, step, count, slideInfo, nav, jump],
   );
 
   const provide = (children: ReactNode) => (
@@ -380,25 +426,23 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
     return provide(<Print slides={slides} name={name} onDone={() => setMode("present")} />);
   }
 
-  const current = slides[pos.index];
   const scale = fitScale(width, height);
   const { progress } = slideLabel(slides, pos.index);
-  const buildCount = built.index === pos.index ? built.count : 0;
 
   return provide(
     <>
       <div
         data-deck={name}
         data-deck-mode="present"
-        className="fixed inset-0 grid place-items-center overflow-hidden bg-black"
-        onClick={(e) => nav(e.clientX > window.innerWidth / 3 ? 1 : -1)}
+        className="fixed inset-0 grid touch-pan-y touch-pinch-zoom place-items-center overflow-hidden bg-black"
+        ref={stage}
       >
         <Stage scale={scale} number={slideNumber(slides, pos.index)}>
           <StepContext.Provider value={{ step: pos.step, register }}>
             <div
               key={pos.index}
               {...slideTags(current, pos.index)}
-              data-build={Math.min(pos.step, buildCount)}
+              data-build={step}
               data-build-count={buildCount}
               className={`absolute inset-0 ${plain.current ? "slide-enter" : ""}`}
               style={{ viewTransitionName: "slide" }}

@@ -13,6 +13,8 @@ export interface SlideOptions {
    * the name of one of your own (src/library/motion).
    */
   transition?: string;
+  /** Optional time in seconds for autoplay, shared across the build steps. */
+  duration?: number;
 }
 
 export interface SlideEntry extends SlideOptions {
@@ -47,6 +49,8 @@ export interface DeckDefinition {
    * (src/library/motion). A slide can name another with `slide(…, { transition })`. Leave out for none.
    */
   transition?: string;
+  /** Optional time in seconds for autoplay, shared across the build steps. */
+  duration?: number;
   /**
    * Drawn over the window for the whole deck while presenting: a timer bar, a laser pointer, a
    * watermark. A plain component; it reads the deck with `useDeckNav()` and adds keys with

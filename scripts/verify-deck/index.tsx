@@ -42,7 +42,7 @@ const deck: DeckDefinition = {
       <Frame title="Three builds">
         <Bullets build items={["One", "Two", "Three"]} />
       </Frame>,
-      { id: "Bullets" },
+      { id: "Bullets", duration: 2.4 },
     ),
     slide(<Frame title="After the builds" />, { id: "after" }),
     slide(
