@@ -1,8 +1,9 @@
-# Transitions and Morph
+# Transitions, Morph and timed steps
 
-How one slide becomes the next. A deck needs none of this: with no `transition` and no `Morph`, each
-slide simply appears with a small rise, and that is a good default. Add motion between slides when
-it says something about how the two slides relate.
+How one slide becomes the next, and how a press of → can be a short timeline. A deck needs none of
+this: with no `transition`, no `Morph` and plain `Build`s, each slide simply appears with a small
+rise and each step fades in, and that is a good default. Add motion when it says something about
+how two slides, or two moments on one slide, relate.
 
 For entrance effects inside a slide (`<Reveal>`, `<Build effect>`) and for writing your own motion
 files, see [extending.md](extending.md#motion).
@@ -102,6 +103,63 @@ Rules, and what happens at the edges:
 Morph works best when the two versions look alike: the same background, the same words, a different
 size or place. Two unrelated things with one id only cross-fade while moving.
 
+## Timed steps: Beat, SplitText and Ambient
+
+A `Build` step normally shows its content at once. Put `<Beat>`s inside it and the step becomes a
+short timeline in seconds: the picture moves first, the headline lands a moment later, and the old
+headline, a `<Build until>`, leaves within the first half second.
+
+```tsx
+import { Beat, Build } from "@core";
+
+<Build at={1} until={2}>
+  <h2>Six days to close</h2> {/* on step 1; leaves when step 2 arrives */}
+</Build>
+<Build at={2}>
+  <Beat at={0} effect="fade"><Chart /></Beat> {/* the picture, at once */}
+  <Beat><h2>One day after the change</h2></Beat> {/* one --beat-gap later */}
+  <Beat at={3} effect="fade"><p>The caveat, last</p></Beat> {/* 3 s in */}
+</Build>
+```
+
+| Piece                   | What it does                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `<Beat at={s} effect>`  | Plays an entrance effect `s` seconds into its step. Without `at`, one `--beat-gap` in (1.5 s by default)                     |
+| `<Build until={n}>`     | Leaves on step `n`, fading and lifting away over `--beat-leave` (500 ms). Stack two in one grid cell to swap headlines       |
+| `<SplitText effect at>` | A line arriving a word (or a letter) at a time: `mask` rises out of a clip, `blur` sharpens, `type` types, `scale` grows     |
+| `<Ambient effect>`      | Slow motion under a hold, for a photo or a background: `drift`, `creep` (a slow zoom) or `parallax` (leans from the pointer) |
+
+A `Beat` outside any `Build` belongs to the slide's entrance: it plays when the slide is arrived at
+with →. Pieces of a `SplitText` follow one another by `--stagger` (a third of it per letter), and
+screen readers hear the whole line once. The pieces stay real text, so it can be selected, searched
+and printed.
+
+**Only a step forward plays.** Going back, jumping (a number, the overview, the URL), reloading,
+print, the overview, the presenter window and reduced motion all show the step settled, exactly as
+it ends. A press of → during a timeline settles it at once and moves on, so an impatient presenter
+never waits. `Ambient` is off by default, and off in reduced motion, print and the overview.
+
+**Pacing** comes from the theme: `--beat-gap` (picture to headline) and `--beat-leave` (how fast a
+line leaves), with `--stagger` for SplitText. A calmer deck: `vars: { "--beat-gap": "2.5s" }`.
+
+### For a simple deck
+
+Use none of it. Plain `Build` steps, one idea per press, read well and print well. If you want one
+touch, make the payoff of one slide a `Beat`: the chart arrives on the press, the sentence that
+says what it means lands a beat after (the "Why now" slide of the example pitch does this).
+
+### Going further
+
+- **Picture first, words second.** In a timed step, start the thing that changes at `at={0}` and
+  let the headline land 1 to 3 seconds later; the audience looks, then reads.
+- **Two to four beats a step, a few timed steps a deck.** A timeline on every press is a film,
+  and the presenter is waiting for it.
+- **The old line leaves quickly.** Give a replaced headline `until`; the default half second clears
+  the stage before the new one lands.
+- **SplitText for one line a slide,** a title or a statement. Body text should simply be there.
+- **Ambient only behind a hold:** a title photo, a section divider, the slide you talk over longest.
+  Never on text people read, never on charts.
+
 ## When to keep it plain
 
 - **Most decks: `fade`, or nothing.** A reader's attention goes to whatever moves. If the content is
@@ -112,6 +170,7 @@ size or place. Two unrelated things with one id only cross-fade while moving.
   thing", `flip` for "the other side". If you can't say what it means, use the deck's default.
 - **One Morph per idea.** Carry the single thing the next slide is about: the number that becomes
   the headline, the card that becomes the topic. Three things flying at once is a tangle.
+- **A timed step must make sense settled.** Back, print and the overview never replay it.
 - **Ask what the PDF shows.** Print and the overview show each slide as it stands, so no slide may
   depend on the motion to make sense.
 

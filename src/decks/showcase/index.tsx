@@ -2,7 +2,7 @@
 // Each slide's `id` is the block it shows, so you can find it in the overview (G).
 // In `npm run dev`, add &theme=editorial (or signal, acme) and &scheme=dark to the URL to see
 // every block in another theme.
-import { Build, Morph, Reveal, slide } from "@core";
+import { Ambient, Beat, Build, Morph, Reveal, SplitText, slide } from "@core";
 import type { DeckDefinition } from "@core";
 import {
   Agenda,
@@ -579,6 +579,92 @@ const deck: DeckDefinition = {
         </StatementSlide>,
         { id: `transition-${name.toLowerCase()}`, transition, notes: "Press ← and it plays the other way round, a little faster." },
       ),
+    ),
+    // ── Timelines ─────────────────────────────────────────────────────────────
+    slide(
+      <section className="relative h-full overflow-hidden bg-black text-white">
+        <Ambient effect="creep" className="absolute inset-0">
+          <img src={dusk} alt="An illustrated mountain range at dusk" className="h-full w-full object-cover" />
+        </Ambient>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/0" />
+        <Build at={1} until={2} className="absolute top-[400px] left-[1260px]">
+          <Beat at={0} effect="pop" className="size-60 rounded-full border-4 border-white/90 shadow-[0_0_48px_rgb(255_255_255/0.45)]" />
+        </Build>
+        <Build at={2} className="absolute top-[490px] left-[1680px]">
+          <Beat at={0} effect="pop" className="size-28 rounded-full border-4 border-white/90 shadow-[0_0_48px_rgb(255_255_255/0.45)]" />
+        </Build>
+        <div className="relative flex h-full max-w-[1180px] flex-col justify-center px-30 py-24">
+          <p className="type-label text-white/80">Beat · SplitText · Ambient</p>
+          <div className="mt-8 grid *:col-start-1 *:row-start-1">
+            <Build at={0} until={1}>
+              <h2 className="type-title text-[calc(var(--text-title)*1.35)]">
+                <SplitText at={0.3}>A press can be a short timeline</SplitText>
+              </h2>
+              <p className="mt-8 max-w-[34ch] text-4xl leading-snug text-white/75">Press → and watch the order.</p>
+            </Build>
+            <Build at={1} until={2}>
+              <Beat>
+                <h2 className="type-title text-[calc(var(--text-title)*1.35)]">The picture moves first, the words after</h2>
+              </Beat>
+              <Beat at={2.4} effect="fade" className="mt-8 max-w-[34ch] text-4xl leading-snug text-white/75">
+                {"<Beat> lands one --beat-gap after the step; the old line leaves in half a second."}
+              </Beat>
+            </Build>
+            <Build at={2}>
+              <Beat>
+                <h2 className="type-title text-[calc(var(--text-title)*1.35)]">Press ← and it is simply there</h2>
+              </Beat>
+              <Beat at={2.4} effect="fade" className="mt-8 max-w-[34ch] text-4xl leading-snug text-white/75">
+                Back, a jump, print and reduced motion show each step settled. Nothing replays.
+              </Beat>
+            </Build>
+          </div>
+        </div>
+      </section>,
+      {
+        id: "Beat",
+        transition: "blur",
+        notes:
+          "Press → twice, and once more during a timeline: it settles at once and moves on. The photo creeps in slowly the whole time.",
+      },
+    ),
+    slide(
+      <Frame section="SplitText" title="A line can arrive a word or a letter at a time">
+        <div className="grid grid-cols-2 gap-x-(--gap-item) gap-y-16">
+          {(
+            [
+              ["mask", "Rises out of its own line", 0.4],
+              ["blur", "Comes into focus", 1.4],
+              ["type", "Types itself out", 2.4],
+              ["scale", "Grows into place", 3.6],
+            ] as const
+          ).map(([effect, line, at]) => (
+            <div key={effect} className="rule-top-ink pt-8">
+              <p className="type-label text-accent-text">{`effect="${effect}"`}</p>
+              <SplitText as="p" effect={effect} at={at} className="type-strong mt-6 text-[64px] leading-tight">
+                {line}
+              </SplitText>
+            </div>
+          ))}
+        </div>
+        <p className="type-small mt-(--gap-title) text-ink-2">
+          Screen readers hear each line once. The pieces stay real text you can select and print.
+        </p>
+      </Frame>,
+      { id: "SplitText" },
+    ),
+    slide(
+      <Frame section="Ambient" title="Holds need not freeze">
+        <Columns ratio={[7, 5]} align="center">
+          <Ambient effect="parallax" depth={22} className="h-[620px] rounded-box">
+            <img src={morning} alt="An illustrated green valley at sunrise" className="h-full w-full object-cover" />
+          </Ambient>
+          <Lead detail="Drift wanders a few pixels, creep zooms in slowly and parallax leans away from the pointer. Off by default, and off in reduced motion and print.">
+            Move the pointer: the photo leans away from it.
+          </Lead>
+        </Columns>
+      </Frame>,
+      { id: "Ambient" },
     ),
     slide(
       <Frame section="Your own" title="Yours to extend: one file each" density="compact">

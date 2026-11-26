@@ -32,6 +32,9 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const look = useMemo(() => deckLook(deck), [deck]);
   const count = slides.length;
   const [pos, setPos] = useState<Position>(() => positionFromHash(count));
+
+  // The step whose timeline plays: the one just stepped forward to. A deck opened without a hash plays its first slide.
+  const [played, setPlayed] = useState(() => (location.hash ? -1 : 0));
   const [mode, setMode] = useState<"present" | "overview" | "print">("present");
 
   const [display, setDisplay] = useState<Display>(() => {
@@ -79,13 +82,15 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
   const peek = useRef<MorphPeek>(null);
 
   const moveTo = useCallback(
-    (index: number, step = 0) => {
+    /** `play` is true for a step forward, whose timeline then plays; Back and jumps land settled. */
+    (index: number, step = 0, play = false) => {
       const i = Math.min(Math.max(index, 0), count - 1);
       const from = target.current.index;
       target.current = { index: i, step };
 
       if (i === from) {
         setPos(target.current);
+        setPlayed(play ? step : -1);
 
         return;
       }
@@ -100,6 +105,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         () => {
           steps.current = 0;
           setPos(next);
+          setPlayed(play ? step : -1);
         },
         () => peek.current?.(i),
       );
@@ -135,7 +141,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         const step = Math.min(requested, steps.current);
 
         if (dir === 1 ? step < steps.current : step > 0) {
-          moveTo(index, step + dir);
+          moveTo(index, step + dir, dir === 1);
 
           return;
         }
@@ -143,7 +149,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         const next = neighbour(index, dir);
 
         if (next !== index) {
-          moveTo(next, dir === -1 ? Number.POSITIVE_INFINITY : 0);
+          moveTo(next, dir === -1 ? Number.POSITIVE_INFINITY : 0, dir === 1);
         }
       });
     },
@@ -446,7 +452,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
         ref={stage}
       >
         <Stage scale={scale} number={slideNumber(slides, pos.index)}>
-          <StepContext.Provider value={{ step: pos.step, register }}>
+          <StepContext.Provider value={{ step: pos.step, played, register }}>
             <div
               key={pos.index}
               {...slideTags(current, pos.index)}

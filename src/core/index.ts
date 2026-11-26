@@ -1,7 +1,9 @@
 // The engine's public API. Blocks, decks and the library import only from here.
 export { Build, useBuildStep } from "./Build.tsx";
 
-export { useDisplay, useStatic, type Display } from "./context.ts";
+export { Ambient, Beat, SplitText, type AmbientEffect, type SplitEffect } from "./beat.tsx";
+
+export { useDisplay, usePlaying, useStatic, type Display } from "./context.ts";
 
 export { Deck } from "./Deck.tsx";
 
