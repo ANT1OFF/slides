@@ -4,7 +4,7 @@
 // A second fixture (verify-deck/motion.tsx, with verify-deck/library as the team library) checks
 // effects, slide transitions and team CSS in three modes: motion, reduced motion, no View Transitions.
 // A third (verify-deck/morph.tsx) checks <Morph> and every built-in transition, forwards and back, in
-// the same three modes, and saves a picture of each one half-way to dist/qa/transitions.
+// the same three modes, and saves a picture of each one in mid-flight to dist/qa/transitions.
 // The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
@@ -744,7 +744,7 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await ctx.close();
 }
 
-/** Half-way pictures of every transition, for a person to look at: dist/qa/transitions/<slide>-<forward|back>.png. */
+/** Mid-flight pictures of every transition, for a person to look at: dist/qa/transitions/<slide>-<forward|back>.png. */
 const shots = resolve(dist, "qa/transitions");
 
 /** Where a page is, the transition running on it, and every element that carries a Morph's name right now. */
@@ -811,8 +811,8 @@ async function morph(browser: Browser, file: string, mode: (typeof MODES)[number
 
   const state = () => morphState(page);
 
-  /** Holds the running transition half-way, takes its picture, then ends it at once. */
-  const shoot = async (name: string) => {
+  /** Holds the running transition 35% in (a flip is edge-on half-way), takes its picture, then ends it at once. */
+  const shoot = async (name?: string) => {
     await page.evaluate(() => {
       for (const a of document.getAnimations()) {
         // SAFETY: every animation on the page has a KeyframeEffect, as above.
@@ -820,11 +820,15 @@ async function morph(browser: Browser, file: string, mode: (typeof MODES)[number
 
         if (effect.pseudoElement?.startsWith("::view-transition")) {
           a.pause();
-          a.currentTime = Number(effect.getComputedTiming().duration) / 2;
+          a.currentTime = Number(effect.getComputedTiming().duration) * 0.35;
         }
       }
     });
-    await page.screenshot({ path: resolve(shots, `${name}.png`) });
+
+    if (name) {
+      await page.screenshot({ path: resolve(shots, `${name}.png`) });
+    }
+
     await page.evaluate(() => {
       for (const a of document.getAnimations()) {
         // SAFETY: as above.
@@ -1008,7 +1012,7 @@ async function morph(browser: Browser, file: string, mode: (typeof MODES)[number
     }
 
     await key("ArrowRight", DURING);
-    await shoot(`${id}-again`);
+    await shoot();
   }
 
   s = await state();
