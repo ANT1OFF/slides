@@ -26,7 +26,8 @@ two for next steps and one for the decision. Read the outline aloud before choos
 - **Put the source and caveat on screen.** Use `asOf(data, "source label")` in a `Frame`
   footer for the date and source. Put a qualifier that affects interpretation next to the
   claim, such as “Weekdays only” beside the chart. Draw the chart and any numeric wording
-  from the same [data file](working-with-decks.md#data-that-can-be-refreshed).
+  from the same [data file](working-with-decks.md#data-that-can-be-refreshed): `<Fact of>` puts
+  a value from it in a headline, and `npm run verify` lists numbers that were typed in instead.
 - **Close on one clear action.** Bring the opening question back with its answer, then leave
   a simple last frame with the decision or next step. `EndSlide` can carry that line.
 

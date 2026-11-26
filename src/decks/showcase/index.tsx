@@ -2,8 +2,8 @@
 // Each slide's `id` is the block it shows, so you can find it in the overview (G).
 // In `npm run dev`, add &theme=editorial (or signal, acme) and &scheme=dark to the URL to see
 // every block in another theme.
-import { Ambient, Beat, Build, Morph, Reveal, SplitText, slide } from "@core";
-import type { DeckDefinition } from "@core";
+import { Ambient, Beat, Build, Fact, Morph, Reveal, SplitText, asOf, slide } from "@core";
+import type { DataFile, DeckDefinition } from "@core";
 import {
   Agenda,
   Arrow,
@@ -52,12 +52,22 @@ import loop from "./assets/loop.webm";
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const SECTIONS = 6;
 
+// A deck imports this from a *.data.json file next to it; it is inline here because the showcase's numbers are made up.
+const reliability: DataFile<{ deploys: number; rollbacks: number; minutes: number }> = {
+  source: "manual",
+  how: "Ask the platform team for last quarter's deploy count, rollback rate and median merge-to-production time.",
+  updated: "2026-10-01",
+  values: { deploys: 18_400, rollbacks: 0.037, minutes: 11 },
+};
+
 const deck: DeckDefinition = {
   title: "Building blocks",
   footer: "Showcase · every block",
   // Every slide fades in; the section dividers push instead, the Motion slide zooms, and the six
   // slides after the Morph pair each arrive with one of the other built-in transitions.
   transition: "fade",
+  // The showcase's numbers are made up, so the facts check in npm run verify skips it (see the Fact slide).
+  facts: "off",
   slides: [
     slide(
       <TitleSlide
@@ -254,6 +264,31 @@ const deck: DeckDefinition = {
         />
       </Frame>,
       { id: "StatRow" },
+    ),
+    slide(
+      <Frame
+        section="Fact"
+        title={
+          <>
+            <Fact of={reliability.values.deploys} format="compact" /> deploys,{" "}
+            <Fact of={reliability.values.rollbacks} format="percent" digits={1} /> rolled back
+          </>
+        }
+        footer={asOf(reliability, "deploy log")}
+      >
+        <Columns ratio={[1, 1]} align="center">
+          <Stat
+            size="sm"
+            of={reliability.values.minutes}
+            suffix=" min"
+            label="from merge to production; Stat of reads data, Stat to is typed in"
+          />
+          <Lead detail="The headline, the Stat and the footer read one data file. A <Fact> marks its number for the facts check in npm run verify.">
+            <Fact of={reliability.values.deploys} count /> deploys last quarter.
+          </Lead>
+        </Columns>
+      </Frame>,
+      { id: "Fact", notes: "Fact and Stat of read the data file; asOf puts its date and source in the footer." },
     ),
 
     // ── Diagrams ──────────────────────────────────────────────────────────────

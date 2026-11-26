@@ -32,6 +32,10 @@ First public version.
   you'll add most. See [docs/extending.md](docs/extending.md).
 - **Refreshable data:** `*.data.json` files with their source, `asOf()` for the footer, and
   `npm run refresh`.
+- Facts from data: `<Fact of>` and `formatFact` show a value from a data file (percent, compact,
+  currency, units), and `Stat`/`StatRow` take `of` instead of `to`. `npm run verify` warns about
+  numbers typed on a slide instead of read from data. Set `facts: "strict"` on a deck to fail the
+  check, or `facts: "off"` to skip it.
 - **Checks:** `npm run check` (format, lint, layer boundaries, types, every deck builds, examples up to
   date), `npm run verify` (every deck offline in Chrome, every key), and `npm run upgrade` (merge
   upstream on a branch, then both).

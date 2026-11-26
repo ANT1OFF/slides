@@ -1,0 +1,16 @@
+{
+  "source": "manual",
+  "how": "Fixture values for npm run verify; nobody updates them.",
+  "updated": "2026-11-26",
+  "staleAfter": 100000,
+  "values": {
+    "tickets": 18400,
+    "hours": 2.1,
+    "csat": 0.94,
+    "change": 0.611,
+    "market": 3300000000,
+    "price": 300,
+    "growth": 12,
+    "users": 1234.5
+  }
+}

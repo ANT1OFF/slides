@@ -1,0 +1,13 @@
+{
+  "source": "agent",
+  "how": "In the helpdesk (Reports → First reply time, weekly, last quarter), read the median and 90th percentile first reply time in hours for each week, and the team's goal for the median.",
+  "updated": "2026-10-01",
+  "staleAfter": 90,
+  "values": {
+    "weeks": ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8", "W9", "W10", "W11", "W12", "W13"],
+    "median": [5.4, 5.1, 4.8, 4.2, 3.9, 3.6, 3.2, 2.9, 2.7, 2.5, 2.3, 2.2, 2.1],
+    "p90": [14, 13.5, 13, 12, 11, 10.2, 9.5, 8.8, 8.1, 7.5, 7.1, 6.8, 6.4],
+    "goal": 4,
+    "newRouting": 4
+  }
+}

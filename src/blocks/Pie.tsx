@@ -113,7 +113,9 @@ export function Pie({
             <Reveal key={s.name} delay={start + 400 + i * 220} className="flex items-start gap-5">
               <span className={`mt-5 size-5 shrink-0 ${look(s, i).swatch}`} style={{ opacity: look(s, i).opacity }} />
               <span>
-                <span className="type-stat block text-stat-sm">{s.value}%</span>
+                <span data-fact="chart" className="type-stat block text-stat-sm">
+                  {s.value}%
+                </span>
                 <span className="type-small block text-ink-2">{s.name}</span>
               </span>
             </Reveal>

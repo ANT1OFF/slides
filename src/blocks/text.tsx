@@ -30,7 +30,9 @@ export function Bullets({
         <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)} as="li" className="rule-top flex flex-1 flex-col justify-center">
           <Reveal delay={build ? 0 : start} order={build ? 0 : i} className="grid grid-cols-[140px_1fr] items-baseline py-6">
             {marker === "number" ? (
-              <span className="type-label text-[30px] tracking-[0.06em] text-accent-text">{String(i + 1).padStart(2, "0")}</span>
+              <span data-not-fact="" className="type-label text-[30px] tracking-[0.06em] text-accent-text">
+                {String(i + 1).padStart(2, "0")}
+              </span>
             ) : (
               <span className="inline-block size-[18px] translate-y-[-0.1em] bg-accent" />
             )}
@@ -54,7 +56,7 @@ export function Agenda({ items, active, start = 200 }: { items: Array<ReactNode>
 
         return (
           <Reveal key={i} as="li" delay={start} order={i} className="rule-top grid flex-1 grid-cols-[140px_1fr] items-center">
-            <span className={`type-label text-[30px] tracking-[0.06em] ${dim ? "text-ink-2" : "text-accent-text"}`}>
+            <span data-not-fact="" className={`type-label text-[30px] tracking-[0.06em] ${dim ? "text-ink-2" : "text-accent-text"}`}>
               {String(i + 1).padStart(2, "0")}
             </span>
             <span className={`type-strong ${dim ? "font-normal text-ink-2" : ""}`}>{item}</span>

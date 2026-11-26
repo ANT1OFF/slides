@@ -195,7 +195,9 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
 
   useEffect(() => {
     document.title = deck.title;
-  }, [deck.title]);
+    // Read by npm run verify's facts check.
+    document.documentElement.dataset.facts = deck.facts ?? "warn";
+  }, [deck.title, deck.facts]);
 
   useEffect(() => {
     const hash = `#${pos.index + 1}${step ? `.${step}` : ""}`;

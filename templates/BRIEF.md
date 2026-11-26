@@ -33,7 +33,10 @@ Put real-world figures in `*.data.json` alongside the deck, or in `src/library/d
 shared data. Record `source` as `script`, `agent` or `manual`, put the update instructions in
 `how`, and record `updated` as a date in `YYYY-MM-DD` format. Use the imported `values` for
 the chart and its numeric wording, and use `asOf(data, "source label")` for the visible source
-footer. For a refresh, `npm run refresh <deck>` runs scripts and lists agent lookups and manual
+footer. Show each figure with `<Fact of={data.values.…}>` (or `Stat of`) rather than typing it,
+and set `facts: "strict"` on the deck so `npm run verify` fails on any number typed by hand; see
+[every number on screen from the data](../docs/working-with-decks.md#every-number-on-screen-from-the-data).
+For a refresh, `npm run refresh <deck>` runs scripts and lists agent lookups and manual
 requests. Follow those instructions and ask for any missing figures.
 See [data provenance](../docs/working-with-decks.md#data-that-can-be-refreshed).
 
