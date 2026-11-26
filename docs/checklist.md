@@ -21,6 +21,10 @@
       Keep this window on your own screen.
 - [ ] Press **G** to see the overview and practice jumping to a slide. Check that the
       thumbnails show the finished content.
+- [ ] Tap the stage or swipe left to advance a build or slide. Swipe right or right-click
+      the stage to go back.
+- [ ] If using autoplay, press **A** to start it and check the pacing through builds and
+      slides. Press **A** again or navigate manually to pause.
 - [ ] Press **B** or **.** to blank the audience view during discussion. Press a key to restore it.
 - [ ] Press **?** to see the available shortcuts, including any added by the deck.
 
