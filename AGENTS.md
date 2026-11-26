@@ -87,7 +87,9 @@ to rehearse and review the built deck.
 Real-world numbers live in a `*.data.json` file next to the deck (or in `src/library/data/` when
 shared), imported by the deck: `{ "source": "script" | "agent" | "manual", "how": "…", "updated":
 "YYYY-MM-DD", "values": { … } }`. `how` is the command (script), the retrieval instructions (agent), or
-who to ask (manual). Use `asOf(data, "source")` from `@core` for the slide's footer.
+who to ask (manual). Use `asOf(data, "source")` from `@core` for the slide's footer, and `<Fact of={data.values.x}>`
+(or `Stat of`) to show a value in text, so a headline can't drift from its chart; `npm run verify`
+warns about numbers typed in instead (`facts: "strict"` on the deck fails).
 
 When asked to update or refresh a deck's data:
 

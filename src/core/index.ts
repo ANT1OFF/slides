@@ -21,4 +21,6 @@ export { slide, type DeckDefinition, type SlideEntry, type SlideInput, type Slid
 
 export { useDeck, useSlideNumber } from "./theme.ts";
 
-export { asOf, type DataFile } from "./data.ts";
+export { asOf, formatFact, type DataFile, type FactFormat } from "./data.ts";
+
+export { Fact } from "./Fact.tsx";

@@ -72,6 +72,12 @@ export interface DeckDefinition {
    * `useDeckKey()`. Not shown in print, the overview's thumbnails or the presenter window.
    */
   overlay?: ReactNode;
+  /**
+   * The facts check in `npm run verify`: it lists numbers on a slide that aren't read from data
+   * (`<Fact of>`, `Stat of`) or marked `data-not-fact`. "warn" (the default) lists them, "strict" fails
+   * the check, "off" skips the deck (for one whose numbers are all made up).
+   */
+  facts?: "warn" | "strict" | "off";
 }
 
 /** A slide with options (`slide(<A />, { notes })`), as opposed to a bare element. */

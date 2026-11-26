@@ -28,7 +28,9 @@ export function StackedBar({ segments, start = 400 }: { segments: Array<Segment>
           <Reveal key={m.name} effect="fade" delay={start + 500 + i * 80} className="type-small flex items-center gap-4">
             <span className={`size-6 rounded ${m.fill ?? series(i).bg}`} />
             <span>{m.name}</span>
-            <span className="font-semibold tabular-nums">{m.value}</span>
+            <span data-fact="chart" className="font-semibold tabular-nums">
+              {m.value}
+            </span>
           </Reveal>
         ))}
       </div>

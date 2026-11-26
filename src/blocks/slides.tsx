@@ -42,7 +42,7 @@ export function Footer({ note }: { note?: ReactNode }) {
   const left = note ?? (footer === false ? null : (footer ?? title));
 
   return (
-    <footer className="type-label flex min-h-[30px] items-center justify-between text-ink-2">
+    <footer data-not-fact="" className="type-label flex min-h-[30px] items-center justify-between text-ink-2">
       <span>{left}</span>
       <span className="tabular-nums">{number}</span>
     </footer>
@@ -184,7 +184,7 @@ export function SectionSlide({
     <Slide inverted={inverted} className="relative justify-end overflow-hidden pb-24">
       {label && (
         <Reveal effect="fade" className="type-label text-[30px] text-accent-text">
-          {label}
+          <span data-not-fact="">{label}</span>
         </Reveal>
       )}
       <Reveal delay={120} as="h2" className="type-section mt-7 max-w-[1500px]">

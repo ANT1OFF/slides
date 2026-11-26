@@ -172,6 +172,52 @@ import tickets from "./tickets.data.json";
 </Frame>;
 ```
 
+### Every number on screen from the data
+
+A number typed into a headline drifts when the data is refreshed and the chart moves on without it.
+Read it from the data file instead, with `<Fact of>` from `@core`:
+
+```tsx
+import { Fact, asOf } from "@core";
+import tickets from "./tickets.data.json";
+
+<Frame
+  title={
+    <>
+      Billing was <Fact of={tickets.values.billingShare} format="percent" /> of tickets
+    </>
+  }
+  footer={asOf(tickets, "helpdesk export")}
+>
+  <Stat of={tickets.values.total} label="tickets answered" />
+</Frame>;
+```
+
+| Prop                       | Shows                                                 |
+| -------------------------- | ----------------------------------------------------- |
+| `<Fact of={18400} />`      | 18,400 (as many decimals as the value has)            |
+| `format="percent"`         | 0.94 as 94% (a value already in percent: `unit="%"`)  |
+| `format="compact"`         | 18.4K, 3.3B                                           |
+| `currency="USD"`           | $300; with `format="compact"`, $3.3B                  |
+| `digits`, `prefix`, `unit` | `digits={1}`; `prefix="+"`; `unit="h"`, `unit=" min"` |
+| `count`                    | Counts up to it, like `CountUp`                       |
+
+`formatFact(value, options)` returns the same text as a string, for notes and string props. `Stat`
+and `StatRow` take `of` (read from data) instead of `to` (typed in). Charts (`LineChart`, `HBars`,
+`Pie` …) already draw their labels from the values you pass, so pass the data file's arrays.
+
+`npm run verify` opens each deck's overview and lists the numbers on a slide that aren't read this
+way: a warning, with the slide ids, in its output and in `dist/qa/facts/<deck>.txt`. It skips
+`<Fact>`, `Stat of`, charts, code, slide numbers, list and section numbers, years (1900–2099) and
+numbers glued to a letter (Q3, W12). Mark anything else that isn't a fact, such as a step number,
+with `data-not-fact` on its element: `<span data-not-fact="">Step 3</span>`. On the deck:
+
+- `facts: "strict"` makes the warning a failure, for a deck whose numbers must stay true
+  (`examples/example-update` does this).
+- `facts: "off"` skips the deck, for one whose numbers are all made up.
+
+Nothing is required: a deck without `Fact` builds and verifies as before, with a warning to read.
+
 `npm run refresh [deck]` runs every `script` source and lists the `agent` and `manual` ones with their
 instructions and age. `how` for a script is run as a shell command, so review it in pull requests like
 any code. With a deck named, it covers the deck's own data and follows local imports and re-exports

@@ -6,6 +6,8 @@
 // A third (verify-deck/morph.tsx) checks <Morph> and every built-in transition, forwards and back, in
 // the same three modes, and saves a picture of each one in mid-flight to dist/qa/transitions.
 // A fourth (verify-deck/beats.tsx) checks beat timelines, SplitText and Ambient, with and without reduced motion.
+// On every deck, the facts check lists numbers on a slide that aren't read from data: a warning, or a
+// failure for a deck with `facts: "strict"`. A fifth fixture (verify-deck/facts.tsx) checks it and <Fact>'s formats.
 // The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
@@ -21,6 +23,7 @@ import { deckTheme } from "../vite/themes.ts";
 import { chromePath } from "./chrome.ts";
 import { errorMessage } from "./error-message.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
+import { formatFact } from "../src/core/data.ts";
 
 const dist = resolve(import.meta.dirname, "../dist");
 const decks = listDecks();
@@ -39,9 +42,12 @@ if (files.length === 0) {
 
 const executablePath = chromePath();
 
-const results: Array<{ deck: string; name: string; ok: boolean; detail?: string }> = [];
+const results: Array<{ deck: string; name: string; ok: boolean; warn?: boolean; detail?: string }> = [];
 let deckName = "";
 const check = (name: string, ok: unknown, detail = "") => results.push({ deck: deckName, name, ok: Boolean(ok), detail });
+
+/** Something to look at that doesn't fail verify. */
+const warn = (name: string, detail: string) => results.push({ deck: deckName, name, ok: true, warn: true, detail });
 
 /** A context that refuses every request that isn't the file itself or inline data. */
 async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: BrowserContext; blocked: Array<string> }> {
@@ -76,6 +82,135 @@ async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: 
   });
 
   return { ctx, blocked };
+}
+
+/**
+ * The numbers in the open overview's slides that aren't read from data, by slide: digits in text
+ * outside `<Fact>` and `Stat of` (data-fact), `data-not-fact` (the footer, list and section numbers,
+ * or the deck's own marks), charts (an svg draws its labels from the same values as its geometry)
+ * and code. Years (1900 to 2099) and numbers glued to a letter (Q3, W12, v2) are labels, not facts.
+ */
+function untracedNumbers(page: Page): Promise<Array<{ slide: string; numbers: Array<string> }>> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("[data-deck-mode=overview] [data-slide]")].flatMap((s) => {
+      const stage = s.querySelector("[data-stage]");
+      const numbers: Array<string> = [];
+
+      if (stage) {
+        const walker = document.createTreeWalker(stage, NodeFilter.SHOW_TEXT);
+
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (node.parentElement?.closest("[data-fact], [data-not-fact], svg, pre, code") !== null) {
+            continue;
+          }
+
+          for (const [n] of (node.textContent ?? "").matchAll(/(?<![\p{L}\p{N}_.,])[$€£]?\d(?:[\d,.]*\d)?(?:\s?(?:%|×|[kKMB]\b))?/gu)) {
+            if (!/^(?:19|20)\d\d$/u.test(n)) {
+              numbers.push(n);
+            }
+          }
+        }
+      }
+
+      return numbers.length > 0 ? [{ slide: `${s.dataset.slideId} (slide ${s.dataset.slide})`, numbers }] : [];
+    }),
+  );
+}
+
+/** A page on `url` with the overview open, so every slide shows its final state at once. */
+async function inOverview(browser: Browser, url: string): Promise<{ ctx: BrowserContext; page: Page }> {
+  const { ctx } = await offline(browser);
+  const page = await ctx.newPage();
+
+  await page.goto(url);
+  await page.waitForTimeout(400);
+  await page.keyboard.press("g");
+  await page.waitForTimeout(1000);
+
+  return { ctx, page };
+}
+
+/**
+ * The facts check on a built deck: every number on a slide is read from data or marked as not a
+ * fact. A warning with the list (also written to dist/qa/facts/<deck>.txt); with `facts: "strict"`
+ * on the deck, a failure. `facts: "off"` skips it.
+ */
+async function facts(browser: Browser, file: string) {
+  const { ctx, page } = await inOverview(browser, `file://${resolve(dist, file)}#1`);
+  const mode = await page.evaluate(() => document.documentElement.dataset.facts ?? "warn");
+  const found = mode === "off" ? [] : await untracedNumbers(page);
+
+  await ctx.close();
+
+  const name = "every number on a slide is read from data (<Fact of>, Stat of) or marked data-not-fact";
+  const list = found.map((f) => `${f.slide}: ${f.numbers.join(", ")}`);
+  const report = `qa/facts/${file.replace(/\.html$/u, ".txt")}`;
+
+  rmSync(resolve(dist, report), { force: true });
+
+  if (mode === "strict") {
+    check(`${name} (facts: "strict")`, found.length === 0, list.join("; "));
+  } else if (found.length > 0) {
+    const count = found.reduce((sum, f) => sum + f.numbers.length, 0);
+
+    mkdirSync(resolve(dist, "qa/facts"), { recursive: true });
+    writeFileSync(resolve(dist, report), `${list.join("\n")}\n`);
+    warn(
+      `${count} number${count === 1 ? "" : "s"} typed in, not read from data`,
+      `${list.slice(0, 4).join("; ")}${list.length > 4 ? "; …" : ""}. All of them: dist/${report}. Set facts: "strict" on the deck to fail instead, or "off" to skip it`,
+    );
+  }
+}
+
+/** formatFact, which <Fact> renders with: each format gives the text a slide shows. */
+function factFormats() {
+  const cases: Array<[Parameters<typeof formatFact>, string]> = [
+    [[18_400], "18,400"],
+    [[2.1, { unit: "h" }], "2.1h"],
+    [[0.94, { format: "percent" }], "94%"],
+    [[0.611, { format: "percent", digits: 1 }], "61.1%"],
+    [[18_400, { format: "compact" }], "18.4K"],
+    [[3_300_000_000, { format: "compact", currency: "USD" }], "$3.3B"],
+    [[300, { currency: "USD" }], "$300"],
+    [[12, { prefix: "+", unit: "%" }], "+12%"],
+    [[1234.5, { digits: 0 }], "1,235"],
+  ];
+
+  const wrong = cases.flatMap(([args, want]) =>
+    formatFact(...args) === want ? [] : [`${JSON.stringify(args)} gave ${formatFact(...args)}, not ${want}`],
+  );
+
+  check("formatFact: number, percent, compact, currency, digits, prefix and unit", wrong.length === 0, wrong.join("; "));
+}
+
+/**
+ * The facts fixture: <Fact>'s formats as rendered (each [data-expect] reads its value), and the
+ * check lists exactly the typed numbers, slide by slide, and none of the exempt ones.
+ */
+async function factsFixture(browser: Browser, file: string) {
+  const { ctx, page } = await inOverview(browser, `file://${file}#1`);
+
+  const shown = await page.$$eval("[data-deck-mode=overview] [data-expect]", (els) =>
+    els.map((e) => ({ want: e.dataset.expect, got: e.textContent.trim() })),
+  );
+
+  const off = shown.filter((s) => s.want !== s.got);
+  const mode = await page.evaluate(() => document.documentElement.dataset.facts);
+  const untraced = await untracedNumbers(page);
+  const found = Object.fromEntries(untraced.map((f) => [f.slide.split(" ")[0], f.numbers.join(" ")]));
+
+  await ctx.close();
+  check(
+    "<Fact> shows each format, counted or not",
+    shown.length >= 9 && off.length === 0,
+    `${shown.length} shown; ${off.map((s) => `${s.got} ≠ ${s.want}`).join(", ")}`,
+  );
+  check('the deck\'s facts mode reaches the page (facts: "strict")', mode === "strict", String(mode));
+  check(
+    "the facts check lists typed numbers (headline, Stat to, table, text) and nothing read from data or exempt",
+    Object.keys(found).length === 1 && found.typed === "12% $89k 70 14% 1.2M 3",
+    JSON.stringify(found),
+  );
 }
 
 /**
@@ -1507,6 +1642,8 @@ deckName = "build (no browser)";
 
 themeDetection();
 
+factFormats();
+
 await upstreamDecksAlone();
 
 await rejectsExternalAssets();
@@ -1516,6 +1653,7 @@ const browser = await chromium.launch(executablePath ? { executablePath } : {});
 for (const file of files) {
   deckName = file;
   await selfContained(browser, file);
+  await facts(browser, file);
 }
 
 // The team library, as one deck: every library slide must render offline without errors or overflow.
@@ -1635,6 +1773,20 @@ for (const reduced of [false, true]) {
 
 rmSync(resolve(dist, ".verify-beats"), { recursive: true, force: true });
 
+process.env.DECK = "verify-facts";
+
+process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/facts.tsx");
+
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
+deckName = "verify-deck/facts (fixture: <Fact>, Stat of, data-not-fact and the facts check)";
+
+await selfContained(browser, resolve(dist, ".verify-facts/index.html"));
+
+await factsFixture(browser, resolve(dist, ".verify-facts/index.html"));
+
+rmSync(resolve(dist, ".verify-facts"), { recursive: true, force: true });
+
 delete process.env.LIBRARY_DIR;
 
 await browser.close();
@@ -1647,11 +1799,16 @@ for (const r of results) {
     console.log(`\n${deck}`);
   }
 
-  console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${r.name}${!r.ok && r.detail ? `  (${r.detail})` : ""}`);
+  const status = r.ok ? "PASS" : "FAIL";
+
+  console.log(`  ${r.warn ? "WARN" : status}  ${r.name}${(!r.ok || r.warn) && r.detail ? `  (${r.detail})` : ""}`);
 }
 
 const failed = results.filter((r) => !r.ok).length;
+const warned = results.filter((r) => r.warn).length;
 
-console.log(`\n${results.length - failed}/${results.length} passed`);
+console.log(
+  `\n${results.length - failed - warned}/${results.length - warned} passed${warned ? `, ${warned} warning${warned === 1 ? "" : "s"}` : ""}`,
+);
 
 process.exit(failed ? 1 : 0);

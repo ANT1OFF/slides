@@ -1,0 +1,24 @@
+{
+  "source": "manual",
+  "how": "Ask the support lead: last quarter's ticket total, this quarter's tickets by channel and repeat rate by area (with last quarter's), the Q4 estimates from the planning doc, and the first-reply goal proposed for Q4.",
+  "updated": "2026-10-01",
+  "staleAfter": 90,
+  "values": {
+    "previousTotal": 16430,
+    "channels": [
+      { "name": "Chat", "value": 58 },
+      { "name": "Email", "value": 31 },
+      { "name": "Phone", "value": 11 }
+    ],
+    "repeats": [
+      { "area": "Billing", "rate": 14, "previous": 15, "owner": "Finance tools" },
+      { "area": "Sign-in", "rate": 22, "previous": 19, "owner": "Identity" },
+      { "area": "Integrations", "rate": 9, "previous": 12, "owner": "Platform" },
+      { "area": "Data export", "rate": 11, "previous": 11, "owner": "Data" }
+    ],
+    "billingSaves": 1500,
+    "ssoSaves": 900,
+    "weekendHires": 2,
+    "nextGoal": 2
+  }
+}

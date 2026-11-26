@@ -9,14 +9,18 @@ function formatLike(target: number) {
   return (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
-export interface StatValue {
-  /** The number it counts up to. */
-  to: number;
+/** The number: `to` when typed in, `of` when read from a data file (the facts check in `npm run verify` trusts it). */
+type StatNumber = { to: number; of?: never } | { of: number; to?: never };
+
+export type StatValue = StatNumber & {
   label: ReactNode;
   prefix?: string;
   /** A unit after the number: "%", "×", " min". */
   suffix?: string;
-}
+};
+
+/** The number to show, and the attribute that marks one read from data. */
+const numberOf = (v: { to?: number; of?: number }) => ({ n: v.of ?? v.to ?? 0, fact: v.of === undefined ? undefined : "" });
 
 function useValue(absolute: StatValue, relative?: StatValue) {
   const display = useDisplay();
@@ -35,13 +39,14 @@ export function Stat({
   relative,
   ...absolute
 }: StatValue & { start?: number; size?: "hero" | "sm"; relative?: StatValue }) {
-  const { display, to, label, prefix = "", suffix = "" } = useValue(absolute, relative);
+  const { display, label, prefix = "", suffix = "", ...value } = useValue(absolute, relative);
+  const { n, fact } = numberOf(value);
 
   const number = (
-    <>
+    <span data-fact={fact}>
       {prefix}
-      <CountUp key={`${display}-${to}`} to={to} delay={start + 200} format={formatLike(to)} />
-    </>
+      <CountUp key={`${display}-${n}`} to={n} delay={start + 200} format={formatLike(n)} />
+    </span>
   );
 
   if (size === "sm") {
@@ -81,13 +86,16 @@ export function StatRow({
     <div className="grid gap-(--gap-column)" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}>
       {stats.map((s, i) => {
         const v = display === "relative" && s.relative ? s.relative : s;
+        const { n, fact } = numberOf(v);
 
         return (
           <Build key={i} at={stepOf(build, i)} enabled={Boolean(build)}>
             <Reveal delay={build ? 0 : start + i * 150} className="rule-top-ink pt-6">
               <div className={`type-stat ${stats.length <= 3 ? "text-[calc(var(--text-stat-sm)*1.5)]" : "text-stat-sm"}`}>
-                {v.prefix}
-                <CountUp key={`${display}-${v.to}`} to={v.to} delay={start + i * 150 + 200} format={formatLike(v.to)} />
+                <span data-fact={fact}>
+                  {v.prefix}
+                  <CountUp key={`${display}-${n}`} to={n} delay={start + i * 150 + 200} format={formatLike(n)} />
+                </span>
                 {v.suffix}
               </div>
               <div className="type-small mt-3 max-w-[22ch] text-ink-2">{v.label}</div>
