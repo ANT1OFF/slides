@@ -117,7 +117,7 @@ import { Beat, Build } from "@core";
 </Build>
 <Build at={2}>
   <Beat at={0} effect="fade"><Chart /></Beat> {/* the picture, at once */}
-  <Beat><h2>One day with Ledgerly</h2></Beat> {/* one --beat-gap later */}
+  <Beat><h2>One day after the change</h2></Beat> {/* one --beat-gap later */}
   <Beat at={3} effect="fade"><p>The caveat, last</p></Beat> {/* 3 s in */}
 </Build>
 ```
