@@ -659,7 +659,7 @@ const deck: DeckDefinition = {
           <Ambient effect="parallax" depth={22} className="h-[620px] rounded-box">
             <img src={morning} alt="An illustrated green valley at sunrise" className="h-full w-full object-cover" />
           </Ambient>
-          <Lead detail="drift wanders a few pixels, creep zooms in slowly, parallax leans away from the pointer. Off by default, and off in reduced motion and print.">
+          <Lead detail="Drift wanders a few pixels, creep zooms in slowly and parallax leans away from the pointer. Off by default, and off in reduced motion and print.">
             Move the pointer: the photo leans away from it.
           </Lead>
         </Columns>
