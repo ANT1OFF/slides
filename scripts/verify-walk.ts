@@ -613,7 +613,8 @@ async function openDeck(open: OpenContext, file: string, hash: string, options: 
   const { qa, shoot } = driver(tab, await ctx.newCDPSession(tab));
 
   const load = async (h: string) => {
-    await tab.goto(`file://${file}${h}`);
+    // A WebGL backdrop moves for as long as its slide is shown; held at one time, a slide is one picture.
+    await tab.goto(`file://${file}?backdrop-time=0${h}`);
     await tab.waitForSelector(PRESENT);
     await tab.evaluate(async () => {
       await document.fonts.ready;

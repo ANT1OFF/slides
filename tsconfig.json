@@ -17,6 +17,7 @@
     "paths": {
       "@core": ["./src/core/index.ts"],
       "@blocks": ["./src/blocks/index.ts"],
+      "@blocks/backdrop": ["./src/blocks/Backdrop.tsx"],
       "@library/*": ["./src/library/*"]
     }
   },

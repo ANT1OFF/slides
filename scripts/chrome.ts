@@ -22,3 +22,9 @@ export function chromePath(): string | undefined {
 
   return CHROMES.find((p) => existsSync(p));
 }
+
+/**
+ * Lets headless Chrome draw WebGL without a GPU (a CI machine), on its software renderer, so the
+ * backdrop block is checked there too. With a GPU these change nothing.
+ */
+export const chromeArgs = ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"];

@@ -101,7 +101,7 @@ export default defineConfig({
       // The browser checks and their fixture decks are this repo's tests: the relaxations
       // @cloudflare/oxlint-config gives *.test.ts files, plus narrowing casts. They read the DOM of
       // pages they built, and a wrong guess fails the check it's in. A cast still needs its SAFETY comment.
-      files: ["scripts/verify.ts", "scripts/verify-deck/**"],
+      files: ["scripts/verify.ts", "scripts/verify-backdrop.ts", "scripts/verify-deck/**"],
       rules: {
         "typescript/no-non-null-assertion": "off",
         "typescript/no-unsafe-type-assertion": "off",

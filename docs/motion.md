@@ -1,7 +1,7 @@
-# Transitions, Morph and timed steps
+# Transitions, Morph, timed steps and backdrops
 
 How one slide becomes the next, and how a press of → can be a short timeline. A deck needs none of
-this: with no `transition`, no `Morph` and plain `Build`s, each slide simply appears with a small
+this: with no `transition`, no `Morph`, no `Backdrop` and plain `Build`s, each slide simply appears with a small
 rise and each step fades in, and that is a good default. Add motion when it says something about
 how two slides, or two moments on one slide, relate.
 
@@ -160,6 +160,77 @@ says what it means lands a beat after (the "Why now" slide of the example pitch 
 - **Ambient only behind a hold:** a title photo, a section divider, the slide you talk over longest.
   Never on text people read, never on charts.
 
+## Backdrop: a drawn picture behind a slide
+
+`Backdrop` draws a slow, generated picture in the theme's colours, with a few kilobytes of WebGL
+and no image file. It is opt-in and has its own import, so a deck that doesn't use it carries none
+of it.
+
+```tsx
+import { Backdrop } from "@blocks/backdrop";
+
+slide(
+  <Backdrop preset="depth" scrim="left" inverted>
+    <StatementSlide kicker="Why now">The window is open for one more quarter</StatementSlide>
+  </Backdrop>,
+),
+```
+
+Wrap a whole slide in it, or give it a size (`className="h-80 rounded-box"`) for a panel. Inside a
+Backdrop `bg-canvas` is see-through, so `TitleSlide`, `StatementSlide`, `SectionSlide` and `Frame`
+sit straight on the picture. For a dark picture in a light deck put `inverted` on the Backdrop, not
+on the slide inside it.
+
+| Preset   | What it draws                                            | Use it for                              |
+| -------- | -------------------------------------------------------- | --------------------------------------- |
+| `aurora` | Soft pools of the accent colours, drifting               | A title, a closing slide                |
+| `grain`  | A quiet two-colour wash with film grain                  | Behind a statement or a quote           |
+| `dots`   | A halftone field whose dots swell and shrink in a wave   | A section divider, a panel beside text  |
+| `depth`  | Layered ridges that slide past each other at their paces | A title or a statement, with `inverted` |
+
+| Prop        | What it does                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| `scrim`     | `left`, `right`, `top`, `bottom` or `full`: washes that side with the canvas colour, under the text    |
+| `intensity` | 0 to 1: how much colour the picture has. `0.5` is a good "behind body text"                            |
+| `colors`    | One to three colour tokens instead of the three accents: `["accent"]` for one hue, `["ink"]` for greys |
+| `seed`      | Another number, another arrangement of the same picture                                                |
+| `steps`     | Gives the slide that many build steps: each press of → shifts the picture a little                     |
+| `time`      | Holds the picture at that second: a still, generated image                                             |
+| `inverted`  | Draws on the theme's other scheme                                                                      |
+
+**It is a pure function of time.** There is no simulation and no randomness, so the same second
+always draws the same frame. Print and `npm run pdf`, the overview, the presenter window's "next"
+slide and reduced motion all draw the frame at second 0 once and leave it. Add `?backdrop-time=12`
+to the deck's URL to hold every backdrop at one second, for a screenshot. Without WebGL, or if the
+browser refuses the shader, a CSS gradient from the same tokens stands in, and a lost GL context
+keeps the last frame.
+
+**What it costs.** About 8 KB in the deck's file. One GL context for the whole deck, however many
+backdrops it has; frames are capped at about 2 megapixels and 30 a second, and nothing is drawn
+for a slide that is not on screen. The shader is compiled when the deck opens, not when the first
+backdrop slide does.
+
+### When to use it, and when not
+
+- **On the slides people look at, not the ones they read:** the title, a section divider, one
+  statement, the closing slide. Two or three in a deck. On every slide it is wallpaper.
+- **Not behind a chart, a table, code or a paragraph.** Data needs a flat ground, and blocks that
+  cut shapes out with the canvas colour (pie gaps, timeline nodes) show the picture through them.
+  If text must sit on it, use `scrim`, or `grain` at `intensity={0.5}`.
+- **Not where a photo would say more.** A backdrop is mood; it is never the evidence.
+- **One preset a deck.** It is a motif, like the deck's one transition.
+- **A plain deck needs none of it.** A flat canvas is the default for a reason.
+
+### Accessibility
+
+- **Contrast.** The scrim puts back most of the canvas colour under the text, so the theme's
+  contrast holds there. Without one, check the lightest and the darkest place the text crosses: body
+  text needs 4.5:1, large titles 3:1. `aurora` and `dots` at full intensity are for large type only.
+- **Motion.** The picture moves slowly (a pool crosses the slide in about a minute) and never
+  flashes. With "reduce motion" set in the system it does not move at all.
+- **Screen readers** skip it: the canvas is decoration, and the slide's text is ordinary HTML on top.
+- **Print and PDF** show the still frame, so a handout matches the slide.
+
 ## When to keep it plain
 
 - **Most decks: `fade`, or nothing.** A reader's attention goes to whatever moves. If the content is
@@ -171,6 +242,7 @@ says what it means lands a beat after (the "Why now" slide of the example pitch 
 - **One Morph per idea.** Carry the single thing the next slide is about: the number that becomes
   the headline, the card that becomes the topic. Three things flying at once is a tangle.
 - **A timed step must make sense settled.** Back, print and the overview never replay it.
+- **A Backdrop on two or three slides,** the ones people look at. See [when to use it](#when-to-use-it-and-when-not).
 - **Ask what the PDF shows.** Print and the overview show each slide as it stands, so no slide may
   depend on the motion to make sense.
 

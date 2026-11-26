@@ -83,6 +83,8 @@ export default defineConfig(({ command }) => {
       alias: {
         "virtual:deck": deckFile,
         "@core": resolve(src, "core/index.ts"),
+        // The WebGL backdrop is apart from the other blocks, so only a deck that imports it carries it.
+        "@blocks/backdrop": resolve(src, "blocks/Backdrop.tsx"),
         "@blocks": resolve(src, "blocks/index.ts"),
         // Your team's library: import "@library/slides/team.tsx", "@library/blocks/Funnel.tsx" …
         // Also how src/styles.css finds the team's styles.css.
