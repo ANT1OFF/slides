@@ -38,6 +38,7 @@ First public version.
 - View Transition sequencing lives in its own module, with the same slide navigation.
 - The README is shorter and keeps the sharing warning in one place.
 - Built example decks in `examples/html/`, and a project skill for Claude Code and Codex.
+- Added a storytelling guide, a presentation checklist and a fill-in brief for deck authors.
 
 **Upgrade notes** (only for copies made before v0.1.0)
 
