@@ -2,7 +2,7 @@
 // Each slide's `id` is the block it shows, so you can find it in the overview (G).
 // In `npm run dev`, add &theme=editorial (or signal, acme) and &scheme=dark to the URL to see
 // every block in another theme.
-import { Build, Reveal, slide } from "@core";
+import { Build, Morph, Reveal, slide } from "@core";
 import type { DeckDefinition } from "@core";
 import {
   Agenda,
@@ -55,7 +55,8 @@ const SECTIONS = 6;
 const deck: DeckDefinition = {
   title: "Building blocks",
   footer: "Showcase · every block",
-  // Every slide fades in; the section dividers push instead, and the Motion slide zooms.
+  // Every slide fades in; the section dividers push instead, the Motion slide zooms, and the six
+  // slides after the Morph pair each arrive with one of the other built-in transitions.
   transition: "fade",
   slides: [
     slide(
@@ -522,6 +523,62 @@ const deck: DeckDefinition = {
         </p>
       </Frame>,
       { id: "Motion", transition: "zoom", notes: "Press ← and the zoom plays the other way round." },
+    ),
+    slide(
+      <Frame section="Morph" title="One thing can carry over to the next slide">
+        <div className="grid grid-cols-3 gap-(--gap-item)">
+          <Morph id="first-reply" className="rule-top-strong rounded-box bg-surface p-(--pad-box)">
+            <p className="type-label text-accent-text">First reply</p>
+            <p className="type-stat mt-6 text-stat-sm">2.1h</p>
+          </Morph>
+          {[
+            ["Tickets answered", "18,400"],
+            ["Satisfaction", "94%"],
+          ].map(([label, value], i) => (
+            <Reveal key={label} delay={200} order={i + 1} className="rule-top-ink rounded-box bg-surface p-(--pad-box)">
+              <p className="type-label text-ink-2">{label}</p>
+              <p className="type-stat mt-6 text-stat-sm">{value}</p>
+            </Reveal>
+          ))}
+        </div>
+        <p className="type-lead mt-(--gap-title)">
+          The first card is inside <code className="font-mono text-accent-text">{`<Morph id="first-reply">`}</code>. Press → and watch it.
+        </p>
+      </Frame>,
+      { id: "Morph", notes: "The next slide has a Morph with the same id. Nothing else links the two." },
+    ),
+    slide(
+      <Frame section="Morph" title="The same id on the next slide, and it flies there">
+        <Columns ratio={[1, 1]} align="center">
+          <Morph id="first-reply" origin className="rule-top-strong rounded-box bg-surface px-(--pad-box) py-20">
+            <p className="type-label text-accent-text">First reply</p>
+            <p className="type-stat mt-8 text-[240px] leading-none">2.1h</p>
+            <p className="type-small mt-8 text-ink-2">median, down from 5.4h</p>
+          </Morph>
+          <Lead detail="← sends it back. Print, the overview and reduced motion show each slide as it stands.">
+            It moves and resizes while the rest of the slide plays its transition.
+          </Lead>
+        </Columns>
+      </Frame>,
+      { id: "Morph-2", notes: "The card is also marked `origin`: the iris on the next slide opens out of it." },
+    ),
+    ...(
+      [
+        ["iris", "Iris", " opens from a point: here, the card you just saw."],
+        ["wipe", "Wipe", " sweeps a soft edge across. It takes a direction."],
+        ["shove up", "Shove", ": the new slide pushes the old one out."],
+        ["blur", "Blur", " passes through soft focus: a change of subject."],
+        ["flip", "Flip", " turns the slide over: the other side of the story."],
+        ["split", "Split", " parts the slide from the middle: a reveal."],
+      ] as const
+    ).map(([transition, name, rest], i) =>
+      slide(
+        <StatementSlide kicker={`transition: "${transition}"`} inverted={i % 2 === 0}>
+          <em>{name}</em>
+          {rest}
+        </StatementSlide>,
+        { id: `transition-${name.toLowerCase()}`, transition, notes: "Press ← and it plays the other way round, a little faster." },
+      ),
     ),
     slide(
       <Frame section="Your own" title="Yours to extend: one file each" density="compact">

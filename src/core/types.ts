@@ -1,6 +1,27 @@
 import { isValidElement } from "react";
 import type { ReactNode } from "react";
 
+type Direction = "left" | "right" | "up" | "down";
+
+/**
+ * A transition between slides, by name. Built in: "fade", "push", "zoom", "blur", "iris", and four
+ * that take a direction after a space ("wipe up"): "wipe", "shove", "flip" and "split". Or the name
+ * of one of your own (src/library/motion). "none" changes the slide at once.
+ */
+export type Transition =
+  | "none"
+  | "fade"
+  | "push"
+  | "zoom"
+  | "blur"
+  | "iris"
+  | "wipe"
+  | "shove"
+  | "flip"
+  | "split"
+  | `${"wipe" | "shove" | "flip" | "split"} ${Direction}`
+  | (string & Record<never, never>);
+
 export interface SlideOptions {
   /** Stable name for the slide, kept when slides move; defaults to its component's name. */
   id?: string;
@@ -8,11 +29,8 @@ export interface SlideOptions {
   notes?: string;
   /** Backup slide: skipped when presenting and printing, shown greyed in the overview (G). */
   hidden?: boolean;
-  /**
-   * How this slide arrives, instead of the deck's `transition`: "fade", "push", "zoom", "none", or
-   * the name of one of your own (src/library/motion).
-   */
-  transition?: string;
+  /** How this slide arrives, instead of the deck's `transition`. "none" changes it at once. */
+  transition?: Transition;
   /** Optional time in seconds for autoplay, shared across the build steps. */
   duration?: number;
 }
@@ -44,11 +62,8 @@ export interface DeckDefinition {
   vars?: Record<string, string>;
   /** How numbers show by default: raw counts, or growth and shares. M switches while presenting. */
   display?: "absolute" | "relative";
-  /**
-   * The transition between slides: "fade", "push", "zoom", or the name of one of your own
-   * (src/library/motion). A slide can name another with `slide(…, { transition })`. Leave out for none.
-   */
-  transition?: string;
+  /** The transition between slides. A slide can name another with `slide(…, { transition })`. Leave out for none. */
+  transition?: Transition;
   /** Optional time in seconds for autoplay, shared across the build steps. */
   duration?: number;
   /**

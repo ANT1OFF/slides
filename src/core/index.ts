@@ -7,13 +7,15 @@ export { Deck } from "./Deck.tsx";
 
 export { CountUp, Pulse, Reveal, Traveller, delay, loop, stagger, type Effect } from "./motion.tsx";
 
+export { Morph } from "./morph.tsx";
+
 export { useDeckKey, useDeckNav, type DeckNav } from "./nav.ts";
 
 export { Presenter } from "./Presenter.tsx";
 
 export { isPresenter } from "./sync.ts";
 
-export { slide, type DeckDefinition, type SlideEntry, type SlideInput, type SlideOptions } from "./types.ts";
+export { slide, type DeckDefinition, type SlideEntry, type SlideInput, type SlideOptions, type Transition } from "./types.ts";
 
 export { useDeck, useSlideNumber } from "./theme.ts";
 

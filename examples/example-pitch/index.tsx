@@ -1,5 +1,5 @@
 // Example: a short product pitch, in the acme example theme. The product and all numbers are invented.
-import { asOf, slide } from "@core";
+import { Morph, asOf, slide } from "@core";
 import type { DeckDefinition } from "@core";
 import {
   Cards,
@@ -31,13 +31,31 @@ const deck: DeckDefinition = {
       date="October 2026"
     />,
     <StatementSlide kicker="The problem">
-      Small finance teams spend <em>six days</em> every month closing the books.
+      Small finance teams spend{" "}
+      <Morph id="six-days" as="em" className="inline-block">
+        six days
+      </Morph>{" "}
+      every month closing the books.
     </StatementSlide>,
     <Frame section="The problem" title="Most of that time is matching, not thinking">
       <Columns ratio={[1, 1]} align="center">
         <DotGrid rows={8} cols={20} highlight={112} />
         <div>
-          <Stat size="sm" to={70} suffix="%" label="of close time is spent reconciling transactions by hand" />
+          {/* The one Morph in this deck: "six days" flies here from the slide before. */}
+          <Stat
+            size="sm"
+            to={70}
+            suffix="%"
+            label={
+              <>
+                of those{" "}
+                <Morph id="six-days" as="span" className="inline-block text-accent-text">
+                  six days
+                </Morph>{" "}
+                is spent reconciling transactions by hand
+              </>
+            }
+          />
         </div>
       </Columns>
     </Frame>,
