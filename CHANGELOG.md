@@ -19,6 +19,10 @@ First public version.
 - Timed steps: `<Beat at>` plays content seconds into a build step, `<Build until>` makes a step
   leave, `<SplitText>` reveals a line per word or letter, and `<Ambient>` adds opt-in drift, creep
   or pointer parallax. Back, jumps, print, the overview and reduced motion show steps settled.
+- `<Backdrop>` (import it from `@blocks/backdrop`): an opt-in WebGL picture behind a slide in the
+  theme's colours, in four presets (`aurora`, `grain`, `dots`, `depth`), with a `scrim` for text.
+  About 8 KB in a deck that uses it and nothing in one that doesn't. Print, the overview and
+  reduced motion show one still frame, and without WebGL it is a CSS gradient.
 - **About 40 built-in blocks**, shown in the showcase: slides and layout pieces, text, code,
   tables, numbers, diagrams, charts, photos, video and sound. The same props (`start`, `build`,
   `inverted`) mean the same thing on each.

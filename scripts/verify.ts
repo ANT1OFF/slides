@@ -8,6 +8,8 @@
 // A fourth (verify-deck/beats.tsx) checks beat timelines, SplitText and Ambient, with and without reduced motion.
 // On every deck, the facts check lists numbers on a slide that aren't read from data: a warning, or a
 // failure for a deck with `facts: "strict"`. A fifth fixture (verify-deck/facts.tsx) checks it and <Fact>'s formats.
+// A sixth (verify-deck/backdrop.tsx) checks the WebGL backdrop (verify-backdrop.ts): drawn, still at a
+// fixed time, one GL context, and its fallbacks in print, the overview, reduced motion and without WebGL.
 // The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Every built deck is also walked (verify-walk.ts): every step forwards and back, by URL hash, in fast
@@ -23,9 +25,10 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 import { build as viteBuild } from "vite";
 import { listDecks } from "../vite.config.ts";
 import { deckTheme } from "../vite/themes.ts";
-import { chromePath } from "./chrome.ts";
+import { chromeArgs, chromePath } from "./chrome.ts";
 import { errorMessage } from "./error-message.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
+import { BACKDROP_MODES, backdrop } from "./verify-backdrop.ts";
 import { walkDeck } from "./verify-walk.ts";
 import { formatFact } from "../src/core/data.ts";
 
@@ -1826,6 +1829,32 @@ await selfContained(browser, resolve(dist, ".verify-facts/index.html"));
 await factsFixture(browser, resolve(dist, ".verify-facts/index.html"));
 
 rmSync(resolve(dist, ".verify-facts"), { recursive: true, force: true });
+
+process.env.DECK = "verify-backdrop";
+
+process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/backdrop.tsx");
+
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
+const backdropFixture = resolve(dist, ".verify-backdrop/index.html");
+
+deckName = "verify-deck/backdrop (fixture: the WebGL backdrop and its fallbacks)";
+
+await selfContained(browser, backdropFixture);
+
+// Its own Chrome, allowed to draw WebGL in software, so a machine without a GPU (CI) checks the real
+// thing. Every other check keeps the plain browser: these switches change how Chrome composites.
+const glBrowser = await chromium.launch({ args: chromeArgs, executablePath });
+
+for (const mode of BACKDROP_MODES) {
+  await backdrop(glBrowser, backdropFixture, mode, (name, ok, detail) => {
+    check(name, ok, detail);
+  });
+}
+
+await glBrowser.close();
+
+rmSync(resolve(dist, ".verify-backdrop"), { recursive: true, force: true });
 
 delete process.env.LIBRARY_DIR;
 

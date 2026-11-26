@@ -44,6 +44,7 @@ import {
   TitleSlide,
   Video,
 } from "@blocks";
+import { Backdrop } from "@blocks/backdrop";
 import dusk from "./assets/dusk.svg";
 import morning from "./assets/morning.svg";
 import chime from "./assets/chime.wav";
@@ -700,6 +701,41 @@ const deck: DeckDefinition = {
         </Columns>
       </Frame>,
       { id: "Ambient" },
+    ),
+    slide(
+      <Backdrop preset="depth" scrim="left" inverted>
+        <StatementSlide kicker="Backdrop">
+          A picture that is <em>drawn</em>, not downloaded
+        </StatementSlide>
+      </Backdrop>,
+      {
+        id: "Backdrop",
+        notes: "A few kilobytes of WebGL, in the theme's colours. It moves slowly; print and reduced motion get one still frame.",
+      },
+    ),
+    slide(
+      <Frame section="Backdrop" title="Four pictures, each a step quieter than the content">
+        <div className="grid h-full grid-cols-4 gap-(--gap-item)">
+          {(
+            [
+              ["aurora", "Pools of colour, for a title or a closing slide"],
+              ["grain", "A quiet wash with film grain, behind text"],
+              ["dots", "A halftone field that breathes"],
+              ["depth", "Ridges that slide past each other"],
+            ] as const
+          ).map(([preset, line], i) => (
+            <Reveal key={preset} order={i} className="flex min-h-0 flex-col">
+              <Backdrop preset={preset} steps={2} className="min-h-0 flex-1 rounded-box" />
+              <p className="type-label mt-6 text-accent-text">{preset}</p>
+              <p className="type-small mt-2 text-ink-2">{line}</p>
+            </Reveal>
+          ))}
+        </div>
+      </Frame>,
+      {
+        id: "Backdrop-presets",
+        notes: "Press → twice: with `steps`, each press shifts the pictures a little. Opt-in: import it from @blocks/backdrop.",
+      },
     ),
     slide(
       <Frame section="Your own" title="Yours to extend: one file each" density="compact">
