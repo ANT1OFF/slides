@@ -977,7 +977,8 @@ async function beats(browser: Browser, file: string, reduced: boolean) {
   s = await state();
   test("Back shows the earlier step settled at once, nothing replayed", s.old === 1 && s.headline === 0 && s.running === 0, s);
   await key("ArrowRight", 300);
-  await key("ArrowRight", 60);
+  // Long enough for the next step's fade to have begun on a busy machine, well short of its end.
+  await key("ArrowRight", 120);
   s = await state();
   test(
     "a press during a timeline settles it and moves on",
@@ -1669,31 +1670,46 @@ for (const file of files) {
   await facts(browser, file);
 }
 
-// Every built deck walked, all at once: each waits on the browser most of the time. Their results are kept apart, then listed in order.
-const walked = await Promise.all(
-  files.map(async (file) => {
-    const own: typeof results = [];
-    const deck = `${file}: walk, motion and final states`;
+// Every built deck walked, four at a time: each waits on the browser most of the time, but with more
+// at once a slow machine falls behind the moves it is timing (a fade is over before it is held).
+// Their results are kept apart, then listed in order.
+const WALKS_AT_ONCE = 4;
 
-    try {
-      await walkDeck(
-        async (reducedMotion, viewport) => {
-          const { ctx } = await offline(browser, reducedMotion, viewport);
+const walkOne = async (file: string) => {
+  const own: typeof results = [];
+  const deck = `${file}: walk, motion and final states`;
 
-          return ctx;
-        },
-        resolve(dist, file),
-        file,
-        (name, ok, detail = "") => {
-          own.push({ deck, name, ok: Boolean(ok), detail });
-        },
-        resolve(dist, "qa"),
-      );
-    } catch (error) {
-      own.push({ deck, name: "the walk ran to the end", ok: false, detail: errorMessage(error) });
+  try {
+    await walkDeck(
+      async (reducedMotion, viewport) => {
+        const { ctx } = await offline(browser, reducedMotion, viewport);
+
+        return ctx;
+      },
+      resolve(dist, file),
+      file,
+      (name, ok, detail = "") => {
+        own.push({ deck, name, ok: Boolean(ok), detail });
+      },
+      resolve(dist, "qa"),
+    );
+  } catch (error) {
+    own.push({ deck, name: "the walk ran to the end", ok: false, detail: errorMessage(error) });
+  }
+
+  return own;
+};
+
+const walked: Array<typeof results> = [];
+let nextWalk = 0;
+
+await Promise.all(
+  Array.from({ length: Math.min(WALKS_AT_ONCE, files.length) }, async () => {
+    while (nextWalk < files.length) {
+      const index = nextWalk;
+      nextWalk += 1;
+      walked[index] = await walkOne(files[index]);
     }
-
-    return own;
   }),
 );
 

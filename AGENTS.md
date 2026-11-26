@@ -17,7 +17,8 @@ the user-facing details; this is the short version of how to work here.
   `Build` times a step in seconds, `<SplitText>` reveals a line per word, and `<Ambient>` keeps a held
   photo moving; all opt-in, and settled in print, the overview and reduced motion. `<Backdrop preset>` from
   `@blocks/backdrop` draws a slow WebGL picture behind a title or a statement slide (two or three a
-  deck, never behind data); a deck that doesn't import it carries none of it. The team's own
+  deck, never behind data), `<Crowd count>` from the same import draws a number as that many dots,
+  and `<Backdrop shader>` takes a picture of the deck's own; a deck that doesn't import it carries none of it. The team's own
   are files in `src/library/motion/`; team-wide CSS is `src/library/styles.css`.
 - A presenter extra (timer bar, pointer) is a component on the deck's `overlay`; it reads the deck
   with `useDeckNav()` and adds keys with `useDeckKey()` (both from `@core`). Never edit

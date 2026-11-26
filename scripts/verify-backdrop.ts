@@ -49,6 +49,9 @@ function look(page: Page, scope: string): Promise<Look> {
 
 const PRESENT = "[data-deck-mode=present]";
 
+/** A step eases the picture to its place over 1.6 s (also when its time is held), so look after that. */
+const STEP_MS = 1900;
+
 /** `count` backdrops, each with a picture on its canvas. */
 const drawn = (l: Look, count: number) => l.states.length === count && l.tones.every((t) => t > 8);
 
@@ -128,10 +131,18 @@ export async function backdrop(browser: Browser, file: string, mode: (typeof BAC
     await page.waitForTimeout(700);
     const pair = await look(page, PRESENT);
     test("without WebGL every backdrop on a slide falls back", pair.states.join(",") === "css,css" && pair.gradients.every(Boolean), pair);
+    await open("", "#4");
+    const own = await look(page, PRESENT);
+    const band = await page.evaluate((root) => getComputedStyle(document.querySelector(`${root} [data-backdrop] + div`)!).display, PRESENT);
+    test(
+      "without WebGL a Crowd is a dotted field with its share highlighted, and a shader of the deck's own its fallback",
+      own.states.join(",") === "css,css" && own.gradients[0] && band === "block",
+      { own, band },
+    );
     await page.keyboard.press("p");
     await page.waitForSelector("[data-deck-mode=print]");
     const printed = await look(page, "[data-deck-mode=print]");
-    test("without WebGL print shows the gradients", printed.states.length === 3 && printed.states.every((s) => s === "css"), printed);
+    test("without WebGL print shows the gradients", printed.states.length === 5 && printed.states.every((s) => s === "css"), printed);
     test("without WebGL nothing is reported as an error", errors.length === 0, errors);
     await ctx.close();
 
@@ -169,7 +180,7 @@ export async function backdrop(browser: Browser, file: string, mode: (typeof BAC
   const pair = await look(page, PRESENT);
   test("two backdrops on a slide both draw", drawn(pair, 2) && pair.prints[0] !== pair.prints[1], pair);
   await page.keyboard.press("ArrowRight");
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(STEP_MS);
   const stepped = await look(page, PRESENT);
   test("a build step shifts the picture", stepped.prints[0] !== pair.prints[0] && stepped.prints[1] !== pair.prints[1], [
     pair.prints,
@@ -179,19 +190,38 @@ export async function backdrop(browser: Browser, file: string, mode: (typeof BAC
   later = await look(page, PRESENT);
   test("a step's picture is the same when jumped to", later.prints.join(",") === stepped.prints.join(","), [stepped.prints, later.prints]);
 
+  // A Crowd and a picture from a shader of the deck's own: a second program on the same context.
+  await open("?backdrop-time=5", "#4");
+  const own = await look(page, PRESENT);
+  const band = await page.evaluate((root) => getComputedStyle(document.querySelector(`${root} [data-backdrop] + div`)!).display, PRESENT);
+  test("a Crowd and a shader of the deck's own both draw", drawn(own, 2) && own.prints[0] !== own.prints[1] && band === "none", {
+    own,
+    band,
+  });
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(STEP_MS);
+  const arrived = await look(page, PRESENT);
+  test("a Crowd's highlighted dots arrive on its step", arrived.prints[0] !== own.prints[0] && arrived.prints[1] === own.prints[1], [
+    own.prints,
+    arrived.prints,
+  ]);
+  await open("?backdrop-time=5", "#4.1");
+  later = await look(page, PRESENT);
+  test("a Crowd's step is the same when jumped to", later.prints.join(",") === arrived.prints.join(","), [arrived.prints, later.prints]);
+
   // The overview and print: every backdrop as one still frame, and still one GL context for all of it.
   await page.keyboard.press("g");
   await page.waitForSelector("[data-deck-mode=overview]");
   const overview = await look(page, "[data-deck-mode=overview]");
-  test("the overview shows each backdrop as one still frame", drawn(overview, 3) && overview.states.every((s) => s === "still"), overview);
+  test("the overview shows each backdrop as one still frame", drawn(overview, 5) && overview.states.every((s) => s === "still"), overview);
   await page.keyboard.press("Escape");
   await page.keyboard.press("p");
   await page.waitForSelector("[data-deck-mode=print]");
   const printed = await look(page, "[data-deck-mode=print]");
-  test("print shows each backdrop as one still frame", drawn(printed, 3) && printed.states.every((s) => s === "still"), printed);
+  test("print shows each backdrop as one still frame", drawn(printed, 5) && printed.states.every((s) => s === "still"), printed);
   test(
     "print draws a step's final picture, as the overview does",
-    printed.prints.length === 3 && printed.states.join(",") === overview.states.join(","),
+    printed.prints.length === 5 && printed.states.join(",") === overview.states.join(","),
     [overview.prints, printed.prints],
   );
 

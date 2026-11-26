@@ -49,6 +49,7 @@ interface Hold {
 interface Qa {
   frames: (n: number) => Promise<void>;
   at: () => At | null;
+  arm: () => void;
   started: () => Promise<void>;
   hold: () => Hold;
   seek: (t: number) => Promise<void>;
@@ -165,8 +166,33 @@ function installQa() {
   // The clock's time when the held move started.
   let zero = 0;
 
+  // Armed before a press: every animation the press starts is paused in the frame it starts in, so
+  // on a slow machine a short fade can't be over before `hold` gets to it (it would then look like a pop).
+  let armed = false;
+
+  const catchMove = () => {
+    if (!armed) {
+      return;
+    }
+
+    for (const a of document.getAnimations()) {
+      if (a.playState === "running" && Number.isFinite(endOf(a))) {
+        a.pause();
+      }
+    }
+  };
+
+  document.addEventListener("transitionrun", catchMove, true);
+  document.addEventListener("animationstart", catchMove, true);
+
   window.qa = {
     frames,
+    arm() {
+      armed = true;
+      // The clock stops here too, so motion driven by script (a count-up, a Backdrop's step) starts at
+      // the move's time 0 however long the machine takes to get from the press to `hold`.
+      frozen = performance.now();
+    },
     at() {
       const s = present();
 
@@ -189,6 +215,7 @@ function installQa() {
     },
     /** Pauses everything that is moving, and stops the loops. */
     hold() {
+      armed = false;
       stopLoops();
       held = document.getAnimations().filter((a) => a.playState !== "finished" && Number.isFinite(endOf(a)));
       let end = 0;
@@ -416,6 +443,7 @@ interface Shot {
 function driver(page: Page, cdp: CDPSession) {
   const qa = {
     at: () => page.evaluate(() => window.qa.at()),
+    arm: () => page.evaluate(() => window.qa.arm()),
     started: () => page.evaluate(() => window.qa.started()),
     hold: () => page.evaluate(() => window.qa.hold()),
     seek: (t: number) => page.evaluate((time) => window.qa.seek(time), t),
@@ -540,6 +568,65 @@ function flashes(frames: Array<Frame>): Array<string> {
   }
 
   return found;
+}
+
+/** A part of the stage, as shares of its width and height. */
+interface Part {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * Runs in the page: the line of each number that counts up (`<CountUp>`, and so `Stat` and
+ * `<Fact count>`), from where the number starts to the end of its block, since the unit after it
+ * moves as digits are added.
+ */
+function countingLines(stageSelector: string): Array<Part> {
+  const stage = document.querySelector(stageSelector)?.getBoundingClientRect();
+
+  if (!stage) {
+    return [];
+  }
+
+  return [...document.querySelectorAll<HTMLElement>(`${stageSelector} [data-count]`)].map((el) => {
+    let block: HTMLElement = el;
+
+    while (block.parentElement && getComputedStyle(block).display.startsWith("inline")) {
+      block = block.parentElement;
+    }
+
+    const number = el.getBoundingClientRect();
+    const line = block.getBoundingClientRect();
+
+    return {
+      left: (Math.min(number.left, line.left) - stage.left) / stage.width,
+      top: (number.top - stage.top) / stage.height,
+      right: (line.right - stage.left) / stage.width,
+      bottom: (number.bottom - stage.top) / stage.height,
+    };
+  });
+}
+
+/** `grid` with the cells that touch any of `parts` blanked, so nothing there counts as a change. */
+function without(grid: Grid, parts: Array<Part>): Grid {
+  if (parts.length === 0) {
+    return grid;
+  }
+
+  const cells = Float64Array.from(grid.cells);
+
+  for (const part of parts) {
+    const [x0, x1] = [Math.floor(part.left * grid.cols), Math.ceil(part.right * grid.cols)];
+    const [y0, y1] = [Math.floor((part.top / KEEP_HEIGHT) * grid.rows), Math.ceil((part.bottom / KEEP_HEIGHT) * grid.rows)];
+
+    for (let y = Math.max(0, y0); y < Math.min(grid.rows, y1); y++) {
+      cells.fill(0, y * grid.cols + Math.max(0, x0), y * grid.cols + Math.min(grid.cols, x1));
+    }
+  }
+
+  return { ...grid, cells };
 }
 
 /** Intervals between frames of a move in which a lot of the picture moves far: candidates for a pop. */
@@ -697,6 +784,7 @@ export async function walkDeck(open: OpenContext, file: string, name: string, ch
 
     /** One press, held at its first and last frame (every frame, the first time its kind shows up), then settled. */
     const move = async (dir: 1 | -1, before: Seen): Promise<Seen> => {
+      await qa.arm();
       await tab.keyboard.press(dir === 1 ? "ArrowRight" : "ArrowLeft");
       await qa.started();
       const hold = await qa.hold();
@@ -740,6 +828,9 @@ export async function walkDeck(open: OpenContext, file: string, name: string, ch
       // it is declared motion, and a push moves everything every frame.
       const candidates = full && !hold.transition ? jumpy(frames.slice(1)).slice(0, 4) : [];
 
+      // A number counting up changes its digits every frame on purpose: its line is left out.
+      const counting = candidates.length > 0 ? await tab.evaluate(countingLines, PRESENT) : [];
+
       for (const i of candidates) {
         const [from, to] = [frames[i + 1], frames[i + 2]];
         let prev = from;
@@ -747,7 +838,7 @@ export async function walkDeck(open: OpenContext, file: string, name: string, ch
         for (let t = from.t + DISPLAY_FRAME; t < to.t + DISPLAY_FRAME / 2; t += DISPLAY_FRAME) {
           await qa.seek(Math.min(t, to.t));
           const next = { ...(await shoot()), t, label: `${Math.round(t)} ms` };
-          const d = gridDiff(prev.grid, next.grid, JUMP).changed;
+          const d = gridDiff(without(prev.grid, counting), without(next.grid, counting), JUMP).changed;
 
           if (d > POP) {
             pops.push(

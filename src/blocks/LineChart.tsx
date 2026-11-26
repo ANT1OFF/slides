@@ -11,6 +11,20 @@ export interface LineSeries {
 }
 
 /**
+ * Where a reference line's label fits: above the line at an end where no series crosses it over the
+ * label's width (`points` data points, `band` high in the chart's units), else in the top corner with a key.
+ */
+function labelPlace(series: Array<LineSeries>, value: number, band: number, points: number): "left" | "right" | "corner" {
+  const clear = (values: Array<number>) => values.every((v) => v < value - band * 0.2 || v > value + band);
+
+  if (series.every((line) => clear(line.values.slice(0, points)))) {
+    return "left";
+  }
+
+  return series.every((line) => clear(line.values.slice(-points))) ? "right" : "corner";
+}
+
+/**
  * Lines that draw on from the left over one shared y axis, each labelled at its end, with an
  * optional dashed reference line (e.g. a policy limit).
  */
@@ -51,6 +65,10 @@ export function LineChart({
   const xs = (i: number) => pad.left + (i / (n - 1)) * innerW;
   const ys = (v: number) => pad.top + innerH - (v / max) * innerH;
 
+  const referenceAt = reference
+    ? labelPlace(series, reference.value, (60 / innerH) * max, Math.ceil(((reference.label.length * 16 + 24) / innerW) * (n - 1)) + 1)
+    : "corner";
+
   return (
     <svg width={width} height={height} className="overflow-visible">
       {ticks.map((t) => (
@@ -72,18 +90,32 @@ export function LineChart({
             strokeWidth={2.5}
             strokeDasharray="10 8"
           />
-          <line
-            x1={pad.left + 12}
-            x2={pad.left + 60}
-            y1={pad.top + 4}
-            y2={pad.top + 4}
-            className="stroke-accent-3"
-            strokeWidth={2.5}
-            strokeDasharray="10 8"
-          />
-          <text x={pad.left + 72} y={pad.top + 4} dy="0.35em" className="fill-accent-3 font-label text-label">
-            {reference.label}
-          </text>
+          {/* The label sits on the line itself, at the end where no series runs just above it; else in the top corner with a key. */}
+          {referenceAt === "corner" ? (
+            <>
+              <line
+                x1={pad.left + 12}
+                x2={pad.left + 60}
+                y1={pad.top + 4}
+                y2={pad.top + 4}
+                className="stroke-accent-3"
+                strokeWidth={2.5}
+                strokeDasharray="10 8"
+              />
+              <text x={pad.left + 72} y={pad.top + 4} dy="0.35em" className="fill-accent-3 font-label text-label">
+                {reference.label}
+              </text>
+            </>
+          ) : (
+            <text
+              x={referenceAt === "left" ? pad.left + 12 : pad.left + innerW - 12}
+              y={ys(reference.value) - 16}
+              textAnchor={referenceAt === "left" ? "start" : "end"}
+              className="fill-accent-3 font-label text-label"
+            >
+              {reference.label}
+            </text>
+          )}
         </g>
       )}
       {markers.map((m, i) => (

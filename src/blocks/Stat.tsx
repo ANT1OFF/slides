@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Build, CountUp, Reveal, useDisplay } from "@core";
+import { Build, CountUp, Morph, Reveal, useDisplay } from "@core";
 import { stepOf } from "./steps.ts";
 import type { BuildProp } from "./steps.ts";
 
@@ -31,22 +31,39 @@ function useValue(absolute: StatValue, relative?: StatValue) {
 /**
  * The one big number on a slide: it counts up, in the accent, with its unit beside it and a
  * caption to the right. `size="sm"` stacks a smaller number over its caption, for inside a column.
- * `relative` replaces it while the deck shows growth (press M).
+ * `relative` replaces it while the deck shows growth (press M). `morph` carries the number over from
+ * (or to) a `<Morph>` with that id on a neighbouring slide.
  */
 export function Stat({
   start = 0,
   size = "hero",
   relative,
+  morph,
   ...absolute
-}: StatValue & { start?: number; size?: "hero" | "sm"; relative?: StatValue }) {
+}: StatValue & {
+  start?: number;
+  size?: "hero" | "sm";
+  relative?: StatValue;
+  /** A `<Morph id>`: the number flies to or from the Morph with this id on the slide before or after. */
+  morph?: string;
+}) {
   const { display, label, prefix = "", suffix = "", ...value } = useValue(absolute, relative);
   const { n, fact } = numberOf(value);
 
-  const number = (
+  const counted = (
     <span data-fact={fact}>
       {prefix}
       <CountUp key={`${display}-${n}`} to={n} delay={start + 200} format={formatLike(n)} />
     </span>
+  );
+
+  // The number alone carries over: its own inline box, so it flies without the unit or the caption.
+  const number = morph ? (
+    <Morph id={morph} as="span" className="inline-block">
+      {counted}
+    </Morph>
+  ) : (
+    counted
   );
 
   if (size === "sm") {

@@ -151,6 +151,7 @@ body {
   font-size: var(--text-lead);
   line-height: 1.2;
   letter-spacing: -0.012em;
+  text-wrap: pretty; /* no last word alone on a line, where the browser can */
 }
 @utility type-strong {
   font-size: var(--text-lead);

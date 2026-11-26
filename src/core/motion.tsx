@@ -116,7 +116,11 @@ export function CountUp({
     return () => cancelAnimationFrame(frame);
   }, [to, duration, startDelay, reduced]);
 
-  return <span className="tabular-nums">{format(value)}</span>;
+  return (
+    <span data-count="" className="tabular-nums">
+      {format(value)}
+    </span>
+  );
 }
 
 /**

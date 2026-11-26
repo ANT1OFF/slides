@@ -13,6 +13,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useBuildStep, useStatic } from "@core";
+import { OnBackdrop } from "./slides.tsx";
 
 /** The pictures a Backdrop can draw. */
 export type BackdropPreset = "aurora" | "grain" | "dots" | "depth";
@@ -38,15 +39,19 @@ const VERTEX = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
 // small dots fade as pixels grow). U: time (s), progress (0–1), intensity, seed. K: preset. C: canvas, ink and
 // three voices, in OKLab, where mixes stay clean. H hashes a cell, W bends a point. Each preset
 // colours `c`; the tail turns OKLab into sRGB and dithers by ±1/255 so no gradient bands.
-const FRAGMENT = `precision highp float;
-uniform vec3 R;uniform vec4 U;uniform float K;uniform vec3 C[5];
+// A picture of your own (the `shader` prop) is the middle part: statements that colour `c`, with the
+// same inputs. V is its four `values`.
+const HEAD = `precision highp float;
+uniform vec3 R;uniform vec4 U;uniform float K;uniform vec3 C[5];uniform vec4 V;
 float H(vec2 p){p=fract(p*vec2(.2127,.3713)+.137);p+=dot(p,p.yx+41.79);return fract((p.x+p.y)*p.x*7.31);}
 vec2 W(vec2 w,float t){for(int i=1;i<4;i++){float n=float(i);w+=.55/n*sin(w.yx*n*1.25+vec2(t,-t*.8)+n*1.7);}return w;}
 void main(){
 vec2 g=gl_FragCoord.xy,s=(g/R.xy-.5)*vec2(R.x/R.y,1.);
 float t=U.x+U.y*6.,a=U.z,e=U.w*9.7;
 vec3 c=C[0];
-if(K<.5){
+`;
+
+const PICTURES = `if(K<.5){
 vec2 w=s+.3*sin(W(s*.8+e,t*.05));
 vec3 m=vec3(0);
 float z=0.,q=0.;
@@ -81,12 +86,35 @@ float h=.18-l*.13+(.11-l*.008)*(sin(x*2.1)+.5*sin(x*4.7+l)+.25*sin(x*9.3+2.*l));
 c=mix(c,mix(C[0],mix(C[2],C[1],l*.08),a*(.14+.13*l)*(1.-.5*smoothstep(0.,.3,h-s.y))),1.-smoothstep(-1.5,1.5,(s.y-h)*R.y));
 }
 }
-vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z,c.x-.1055613458*c.y-.0638541728*c.z,c.x-.0894841775*c.y-1.291485548*c.z);
+`;
+
+const TAIL = `vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z,c.x-.1055613458*c.y-.0638541728*c.z,c.x-.0894841775*c.y-1.291485548*c.z);
 l*=l*l;
 l=clamp(vec3(4.0767416621*l.x-3.3077115913*l.y+.2309699292*l.z,-1.2684380046*l.x+2.6097574011*l.y-.3413193965*l.z,-.0041960863*l.x-.7034186147*l.y+1.707614701*l.z),0.,1.);
 l=mix(l*12.92,1.055*pow(l,vec3(1./2.4))-.055,step(.0031308,l));
 gl_FragColor=vec4(l+(H(g+7.3)+H(g+71.9)-1.)/255.,1);
 }`;
+
+// The crowd: V.x dots in reading order, one to a cell, the last V.y of them in the first voice.
+// Each stands a little off its place, has a size of its own, wanders on a small loop and swells as a
+// slow wind passes: all a function of its cell and the time, so there is no state. A dot never
+// leaves its cell, so a pixel asks one cell only. Where a dot is smaller than a pixel (a thumbnail)
+// it is spread over the pixel at the same total coverage, so the crowd keeps its tone. With V.z set, the marked ones arrive in a wave
+// across the rows as the step's progress goes from 0 to 1, and the whole crowd swells and
+// brightens as the wave's front (G) passes through it.
+const CROWD = `float n=ceil(sqrt(V.x*R.x/R.y))+ceil(R.x/R.y*.5),w=R.x/R.y/n,o=ceil(V.x/n);
+vec2 d=vec2(s.x+.5*R.x/R.y,.5*o*w-s.y)/w,i=floor(d),f=d-i-.5;
+float id=i.y*n+i.x,r=H(i+e),j=H(i+e+17.3),x=n/R.x;
+float m=step(V.x-V.y-.5,id),k=i.x/n*.6+r*.25;
+float q=mix(1.,smoothstep(k,k+.15,U.y*U.y),m*V.z);
+float G=V.z*4.*U.y*(1.-U.y)*exp(-90.*(i.x/n*.6+.12-U.y*U.y)*(i.x/n*.6+.12-U.y*U.y));
+f+=.2*(vec2(j,fract(r*7.13))-.5)+.07*sin(U.x*(.5+r)+r*40.+vec2(0,1.57));
+float v=.5+.5*sin(W(i/n*3.+e,U.x*.08).x*2.4);
+float z=(.2+.07*j+.04*v+.14*G*(1.-m)+.3*m*q*(1.-q))*q;
+float p=max(z,.56*x);
+float h=step(0.,i.y)*step(id,V.x-.5)*z*z/(p*p)*(1.-smoothstep(p-.5*x,p+.5*x,length(f)));
+c=mix(c,mix(mix(C[0],C[1],.38+.3*v+.3*G),C[2],m),a*h);
+`;
 
 /** What one frame is a function of. */
 interface Frame {
@@ -99,12 +127,25 @@ interface Frame {
   density: number;
   /** Five colours in OKLab: canvas, ink and the three voices. */
   colors: Float32Array;
+  /** The picture's own statements, in place of the presets. */
+  shader?: string;
+  /** Four numbers for it. */
+  values: Values;
+}
+
+/** Four numbers a picture of your own reads as `V`. */
+type Values = [number, number, number, number];
+
+interface Program {
+  made: WebGLProgram;
+  uniforms: Record<"R" | "U" | "K" | "C" | "V", WebGLUniformLocation | null>;
 }
 
 interface Renderer {
   canvas: HTMLCanvasElement;
   gl: WebGLRenderingContext;
-  uniforms: Record<"R" | "U" | "K" | "C", WebGLUniformLocation | null>;
+  /** One program per picture: the presets' ("" here), and one for each `shader` in the deck. Null when it did not compile. */
+  programs: Map<string, Program | null>;
 }
 
 // The deck's one GL context: undefined until first asked for, null when WebGL is not there.
@@ -112,13 +153,13 @@ let shared: Renderer | null | undefined;
 let lost = false;
 let mounted = 0;
 
-/** Compiles the shader into `gl` and leaves it ready to draw. Null when the driver refuses it. */
-function program(gl: WebGLRenderingContext): Renderer["uniforms"] | null {
+/** Compiles the presets, or a picture of your own, into `gl`. Null when the driver refuses it. */
+function program(gl: WebGLRenderingContext, body: string): Program | null {
   const made = gl.createProgram();
 
   for (const [type, source] of [
     [gl.VERTEX_SHADER, VERTEX],
-    [gl.FRAGMENT_SHADER, FRAGMENT],
+    [gl.FRAGMENT_SHADER, HEAD + (body || PICTURES) + TAIL],
   ] as const) {
     const shader = gl.createShader(type);
 
@@ -129,30 +170,45 @@ function program(gl: WebGLRenderingContext): Renderer["uniforms"] | null {
     }
   }
 
+  gl.bindAttribLocation(made, 0, "a");
   gl.linkProgram(made);
 
   if (gl.getProgramParameter(made, gl.LINK_STATUS) !== true) {
     if (!gl.isContextLost()) {
-      reportError(new Error(`Backdrop: the shader did not compile. ${gl.getProgramInfoLog(made) ?? ""}`));
+      const log = [gl.getProgramInfoLog(made), ...(gl.getAttachedShaders(made) ?? []).map((shader) => gl.getShaderInfoLog(shader))];
+      reportError(new Error(`Backdrop: the shader did not compile. ${log.filter(Boolean).join(" ")}`));
     }
 
     return null;
   }
 
-  gl.useProgram(made);
+  return {
+    made,
+    uniforms: {
+      R: gl.getUniformLocation(made, "R"),
+      U: gl.getUniformLocation(made, "U"),
+      K: gl.getUniformLocation(made, "K"),
+      C: gl.getUniformLocation(made, "C"),
+      V: gl.getUniformLocation(made, "V"),
+    },
+  };
+}
 
-  // One triangle that covers the view.
+/** The program for a picture, compiled the first time it is asked for. */
+function pictureOf({ gl, programs }: Renderer, body: string): Program | null {
+  if (!programs.has(body)) {
+    programs.set(body, program(gl, body));
+  }
+
+  return programs.get(body) ?? null;
+}
+
+/** One triangle that covers the view, for every program. */
+function triangle(gl: WebGLRenderingContext) {
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-  return {
-    R: gl.getUniformLocation(made, "R"),
-    U: gl.getUniformLocation(made, "U"),
-    K: gl.getUniformLocation(made, "K"),
-    C: gl.getUniformLocation(made, "C"),
-  };
 }
 
 /** The shared renderer, made on first use. Null without WebGL, and while its context is lost. */
@@ -167,13 +223,19 @@ function renderer(): Renderer | null {
   canvas.height = 1;
 
   const gl = canvas.getContext("webgl", { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: "low-power" });
-  const uniforms = gl && program(gl);
 
-  if (!gl || !uniforms) {
+  if (!gl) {
     return null;
   }
 
-  const made: Renderer = { canvas, gl, uniforms };
+  const made: Renderer = { canvas, gl, programs: new Map() };
+
+  // Without the presets' program there is nothing to share.
+  if (!pictureOf(made, "")) {
+    return null;
+  }
+
+  triangle(gl);
   shared = made;
 
   // A lost context (the GPU was reset, or the tab sat in the background) keeps every backdrop's last
@@ -183,10 +245,10 @@ function renderer(): Renderer | null {
     lost = true;
   });
   canvas.addEventListener("webglcontextrestored", () => {
-    const again = program(gl);
+    made.programs.clear();
 
-    if (again) {
-      made.uniforms = again;
+    if (pictureOf(made, "")) {
+      triangle(gl);
       lost = false;
     }
   });
@@ -203,7 +265,14 @@ function draw(target: HTMLCanvasElement, frame: Frame): boolean {
     return false;
   }
 
-  const { canvas, gl, uniforms } = use;
+  const picture = pictureOf(use, frame.shader ?? "");
+
+  if (!picture) {
+    return false;
+  }
+
+  const { canvas, gl } = use;
+  const { uniforms } = picture;
   const { width, height } = target;
 
   if (canvas.width !== width || canvas.height !== height) {
@@ -211,7 +280,9 @@ function draw(target: HTMLCanvasElement, frame: Frame): boolean {
     canvas.height = height;
   }
 
+  gl.useProgram(picture.made);
   gl.viewport(0, 0, width, height);
+  gl.uniform4f(uniforms.V, ...frame.values);
   gl.uniform3f(uniforms.R, width, height, frame.density);
   gl.uniform4f(uniforms.U, frame.time, frame.progress, frame.intensity, frame.seed);
   gl.uniform1f(uniforms.K, frame.preset);
@@ -236,7 +307,10 @@ if (typeof document !== "undefined") {
   const warm = () => {
     const use = renderer();
 
-    if (use && mounted === 0) {
+    const presets = use && pictureOf(use, "");
+
+    if (use && presets && mounted === 0) {
+      use.gl.useProgram(presets.made);
       use.gl.drawArrays(use.gl.TRIANGLES, 0, 3);
       // Reading the pixel back makes the driver finish compiling now instead of on the first slide.
       use.gl.readPixels(0, 0, 1, 1, use.gl.RGBA, use.gl.UNSIGNED_BYTE, new Uint8Array(4));
@@ -332,7 +406,16 @@ function fallback(preset: BackdropPreset, [a, b]: Array<Token>): string {
   }
 }
 
+const NO_VALUES: Values = [0, 0, 0, 0];
+
+/** Fills its box, unless `className` gives it a height of its own (two height classes would leave the winner to chance). */
+const fill = (className: string) => (/(?:^|\s)(?:h|size)-/u.test(className) ? "" : "h-full");
+
 const SCRIMS = { left: "to right", right: "to left", bottom: "to top", top: "to bottom" };
+
+// Under a slide's header and footer rows (kicker, logo, byline, date, page number), which run the
+// full width whatever side the scrim is on: a short wash of the canvas, so small labels keep their contrast.
+const ROWS = `linear-gradient(to bottom, ${tint("canvas", 55)}, ${tint("canvas", 0)} 16%), linear-gradient(to top, ${tint("canvas", 70)}, ${tint("canvas", 0)} 20%)`;
 
 /**
  * A slow, generated picture behind its children, in the theme's colours: `aurora` (pools of colour),
@@ -342,6 +425,9 @@ const SCRIMS = { left: "to right", right: "to left", bottom: "to top", top: "to 
  * `scrim` lays the canvas colour back under the side the text is on. With `steps`, each press of →
  * shifts the picture a little. Print, the overview, the presenter's "next" and reduced motion show one still
  * frame; without WebGL it is a gradient. Import from "@blocks/backdrop".
+ *
+ * `shader` draws a picture of your own instead of a preset: GLSL statements that colour `c`, with
+ * the same uniforms, fallbacks and one shared context (docs/motion.md, "A picture of your own").
  */
 export function Backdrop({
   preset = "aurora",
@@ -352,6 +438,10 @@ export function Backdrop({
   steps = 0,
   colors = ["accent", "accent-2", "accent-3"],
   inverted = false,
+  shader,
+  values = NO_VALUES,
+  fallback: standIn,
+  label,
   className = "",
   style,
   children,
@@ -371,6 +461,14 @@ export function Backdrop({
   colors?: Array<string>;
   /** Draw on the theme's other scheme, like `inverted` on a slide. */
   inverted?: boolean;
+  /** A picture of your own, in place of the preset: GLSL statements that colour `c`. */
+  shader?: string;
+  /** Four numbers the shader reads as `V`. */
+  values?: Values;
+  /** A CSS background that stands in for the shader without WebGL; the preset's gradient when left out. */
+  fallback?: string;
+  /** What the picture shows, for a screen reader, when it carries meaning. Without it the picture is decoration. */
+  label?: string;
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
@@ -383,6 +481,7 @@ export function Backdrop({
   // What carries over when the effect below runs again: when the picture started, and where its progress is.
   const run = useRef<{ since?: number; progress?: number }>({});
   const voices = colors.join(" ");
+  const [v0, v1, v2, v3] = values;
 
   // Clamped, so Back (which lands on "every step") and print draw what the last step draws.
   const goal = steps > 0 ? Math.min(step, steps) / steps : 0;
@@ -397,7 +496,13 @@ export function Backdrop({
 
     mounted += 1;
     const tones = palette(el, voices.split(" "));
-    const held = time ?? pinned() ?? (still || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : undefined);
+
+    // One still frame: print, the overview, reduced motion. A time held from outside (`time`, or
+    // ?backdrop-time) stops the picture's own motion too, but a step still eases to its place.
+    const frozen = still || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const held = time ?? pinned() ?? (frozen ? 0 : undefined);
+    const from = frozen ? goal : (run.current.progress ?? goal);
+    const began = performance.now();
     let last = 0;
 
     const paint = (now: number) => {
@@ -423,11 +528,10 @@ export function Backdrop({
       }
 
       run.current.since ??= now;
-      const from = run.current.progress ?? goal;
 
-      // Ease towards the step's place; held, it is simply there.
-      const progress = held === undefined ? from + (goal - from) * (1 - Math.exp(-(now - last) / 1000 / (SETTLE / 4))) : goal;
-      run.current.progress = Math.abs(goal - progress) < 1e-4 ? goal : progress;
+      // Ease towards the step's place over SETTLE seconds, and then be exactly there.
+      const part = from === goal ? 1 : Math.min(1, (now - began) / 1000 / SETTLE);
+      run.current.progress = part === 1 ? goal : from + (goal - from) * (1 - (1 - part) ** 3);
       last = now;
 
       const drawn = draw(el, {
@@ -438,6 +542,8 @@ export function Backdrop({
         seed,
         density: ratio * fit,
         colors: tones,
+        shader,
+        values: [v0, v1, v2, v3],
       });
 
       // Until a first frame is drawn the gradient under the canvas is the picture.
@@ -456,17 +562,22 @@ export function Backdrop({
     const again = () => paint(performance.now());
     const watch = new ResizeObserver(again);
 
-    if (held === undefined) {
-      const tick = (now: number) => {
-        if (now - last >= FRAME_MS) {
-          paint(now);
-        }
+    // A held picture is drawn frame by frame only while a step is easing, then left alone.
+    const tick = (now: number) => {
+      if (now - last >= FRAME_MS) {
+        paint(now);
+      }
 
+      if (held === undefined || run.current.progress !== goal) {
         frame = requestAnimationFrame(tick);
-      };
+      }
+    };
 
+    if (held === undefined || from !== goal) {
       frame = requestAnimationFrame(tick);
-    } else {
+    }
+
+    if (held !== undefined) {
       watch.observe(el);
       window.addEventListener("resize", again);
     }
@@ -478,17 +589,25 @@ export function Backdrop({
       mounted -= 1;
       setTimeout(park, 0);
     };
-  }, [preset, intensity, seed, time, still, voices, goal]);
+  }, [preset, intensity, seed, time, still, voices, goal, shader, v0, v1, v2, v3]);
 
   const wash = "color-mix(in oklab, var(--color-canvas) 90%, transparent)";
 
   return (
     <div
       ref={box}
-      className={`relative h-full overflow-hidden ${inverted ? "inverted" : "bg-canvas text-ink"} ${className}`}
-      style={{ ...style, background: `${fallback(preset, colors)}, var(--color-canvas)` }}
+      data-arrived={steps > 0 ? goal >= 1 : undefined}
+      className={`relative overflow-hidden ${fill(className)} ${inverted ? "inverted" : "bg-canvas text-ink"} ${className}`}
+      style={{ ...style, background: `${standIn ?? fallback(preset, colors)}, var(--color-canvas)` }}
     >
-      <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" />
+      {/* The label is on the canvas, not the box: a box with role="img" would hide the slide's text inside it from a screen reader. */}
+      <canvas
+        ref={canvas}
+        role={label ? "img" : undefined}
+        aria-label={label}
+        aria-hidden={label ? undefined : true}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      />
       {scrim && (
         <div
           data-backdrop-scrim=""
@@ -498,9 +617,81 @@ export function Backdrop({
           }}
         />
       )}
+      {children !== undefined && scrim !== "full" && (
+        <div data-backdrop-scrim="rows" className="pointer-events-none absolute inset-0" style={{ background: ROWS }} />
+      )}
       <div className="relative h-full" style={{ "--color-canvas": "transparent" }}>
-        {children}
+        <OnBackdrop.Provider value>{children}</OnBackdrop.Provider>
       </div>
+    </div>
+  );
+}
+
+/** A field of dots in a token's colour, as a CSS background: what a crowd is without WebGL. */
+const dotted = (token: Token, percent: number) =>
+  `radial-gradient(circle, ${tint(token, percent)} 3px, ${tint(token, 0)} 4px) left bottom / 14px 14px`;
+
+/**
+ * A crowd: `count` dots, one for each thing counted, drawn on the GPU, so it can be thousands (use
+ * `DotGrid` for a few hundred). The last `highlight` of them are in the accent. Every dot wanders on
+ * a path of its own, a function of its place and the time, so nothing is simulated or stored.
+ * With `build`, the highlighted ones arrive on the next press of →. It fills its box; give it a size
+ * with `className`. Print, the overview and reduced motion show the settled crowd; without WebGL
+ * it is a dotted field with the same share highlighted, not an exact count.
+ */
+export function Crowd({
+  count,
+  highlight = 0,
+  build = false,
+  seed,
+  time,
+  colors,
+  intensity,
+  label,
+  className = "",
+  style,
+}: {
+  /** How many dots: one per person, order, ticket … */
+  count: number;
+  /** How many of them, the last ones, are in the accent colour. */
+  highlight?: number;
+  /** The highlighted dots arrive on a press of → instead of being there from the start. */
+  build?: boolean;
+  seed?: number;
+  time?: number;
+  /** The highlight's colour token first: `["accent-2"]`. */
+  colors?: Array<string>;
+  intensity?: number;
+  /** For a screen reader; a count of the dots by default. */
+  label?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const said = `${count.toLocaleString("en-US")} dots${highlight ? `, ${highlight.toLocaleString("en-US")} of them highlighted` : ""}`;
+
+  return (
+    <div className={`relative ${fill(className)} ${className}`} style={style}>
+      <Backdrop
+        shader={CROWD}
+        values={[count, highlight, build ? 1 : 0, 0]}
+        steps={build ? 1 : 0}
+        seed={seed}
+        time={time}
+        colors={colors}
+        intensity={intensity}
+        fallback={dotted("ink", 45)}
+        label={label ?? said}
+        className="peer"
+      />
+      {/* Without WebGL: the last rows of the dotted field, in the accent. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 hidden peer-data-[arrived=false]:opacity-0 peer-data-[backdrop=css]:block"
+        style={{
+          height: `${count > 0 ? Math.min(1, highlight / count) * 100 : 0}%`,
+          background: `${dotted(colors?.[0] ?? "accent", 100)}, var(--color-canvas)`,
+        }}
+      />
     </div>
   );
 }
