@@ -1,5 +1,5 @@
-// Example: a plain monthly team update, in the default theme. Nothing fancy: nine slides, one
-// build, no transition. All content is invented.
+// Example: a plain monthly team update, in the default theme. Nothing fancy: nine slides, no
+// builds, no transition. All content is invented.
 import { Fact, asOf, slide } from "@core";
 import type { DeckDefinition } from "@core";
 import { Bullets, Compare, EndSlide, Frame, HBars, LineChart, StatRow, Table, Timeline, TitleSlide } from "@blocks";

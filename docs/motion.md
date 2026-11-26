@@ -281,6 +281,8 @@ the theme's colours, the one shared GL context, the still frame in print and red
 | `H(p)`, `W(p,t)` | A hash from 0 to 1 for a cell, and a slow warp of a point: noise without a texture           |
 
 It sets `c`, which starts as the canvas colour; the Backdrop turns it into sRGB and dithers it.
+The one-letter names in the table (`s`, `g`, `t`, `a`, `e`, `c`, and the uniforms) are taken:
+don't declare a variable of your own with one of them, or the shader will not compile.
 Rules that keep the fallbacks true:
 
 - **A function of the inputs only.** No state, so second 0 can be drawn for print and any second

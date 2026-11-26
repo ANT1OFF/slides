@@ -49,6 +49,7 @@ interface Hold {
 interface Qa {
   frames: (n: number) => Promise<void>;
   at: () => At | null;
+  arm: () => void;
   started: () => Promise<void>;
   hold: () => Hold;
   seek: (t: number) => Promise<void>;
@@ -165,8 +166,30 @@ function installQa() {
   // The clock's time when the held move started.
   let zero = 0;
 
+  // Armed before a press: every animation the press starts is paused in the frame it starts in, so
+  // on a slow machine a short fade can't be over before `hold` gets to it (it would then look like a pop).
+  let armed = false;
+
+  const catchMove = () => {
+    if (!armed) {
+      return;
+    }
+
+    for (const a of document.getAnimations()) {
+      if (a.playState === "running" && Number.isFinite(endOf(a))) {
+        a.pause();
+      }
+    }
+  };
+
+  document.addEventListener("transitionrun", catchMove, true);
+  document.addEventListener("animationstart", catchMove, true);
+
   window.qa = {
     frames,
+    arm() {
+      armed = true;
+    },
     at() {
       const s = present();
 
@@ -189,6 +212,7 @@ function installQa() {
     },
     /** Pauses everything that is moving, and stops the loops. */
     hold() {
+      armed = false;
       stopLoops();
       held = document.getAnimations().filter((a) => a.playState !== "finished" && Number.isFinite(endOf(a)));
       let end = 0;
@@ -416,6 +440,7 @@ interface Shot {
 function driver(page: Page, cdp: CDPSession) {
   const qa = {
     at: () => page.evaluate(() => window.qa.at()),
+    arm: () => page.evaluate(() => window.qa.arm()),
     started: () => page.evaluate(() => window.qa.started()),
     hold: () => page.evaluate(() => window.qa.hold()),
     seek: (t: number) => page.evaluate((time) => window.qa.seek(time), t),
@@ -756,6 +781,7 @@ export async function walkDeck(open: OpenContext, file: string, name: string, ch
 
     /** One press, held at its first and last frame (every frame, the first time its kind shows up), then settled. */
     const move = async (dir: 1 | -1, before: Seen): Promise<Seen> => {
+      await qa.arm();
       await tab.keyboard.press(dir === 1 ? "ArrowRight" : "ArrowLeft");
       await qa.started();
       const hold = await qa.hold();

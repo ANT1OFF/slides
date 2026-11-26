@@ -100,18 +100,20 @@ gl_FragColor=vec4(l+(H(g+7.3)+H(g+71.9)-1.)/255.,1);
 // slow wind passes: all a function of its cell and the time, so there is no state. A dot never
 // leaves its cell, so a pixel asks one cell only. Where a dot is smaller than a pixel (a thumbnail)
 // it is spread over the pixel at the same total coverage, so the crowd keeps its tone. With V.z set, the marked ones arrive in a wave
-// across the rows as the step's progress goes from 0 to 1.
+// across the rows as the step's progress goes from 0 to 1, and the whole crowd swells and
+// brightens as the wave's front (G) passes through it.
 const CROWD = `float n=ceil(sqrt(V.x*R.x/R.y))+ceil(R.x/R.y*.5),w=R.x/R.y/n,o=ceil(V.x/n);
 vec2 d=vec2(s.x+.5*R.x/R.y,.5*o*w-s.y)/w,i=floor(d),f=d-i-.5;
 float id=i.y*n+i.x,r=H(i+e),j=H(i+e+17.3),x=n/R.x;
 float m=step(V.x-V.y-.5,id),k=i.x/n*.6+r*.25;
 float q=mix(1.,smoothstep(k,k+.15,U.y*U.y),m*V.z);
+float G=V.z*4.*U.y*(1.-U.y)*exp(-90.*(i.x/n*.6+.12-U.y*U.y)*(i.x/n*.6+.12-U.y*U.y));
 f+=.2*(vec2(j,fract(r*7.13))-.5)+.07*sin(U.x*(.5+r)+r*40.+vec2(0,1.57));
 float v=.5+.5*sin(W(i/n*3.+e,U.x*.08).x*2.4);
-float z=(.2+.07*j+.04*v+.3*m*q*(1.-q))*q;
+float z=(.2+.07*j+.04*v+.14*G*(1.-m)+.3*m*q*(1.-q))*q;
 float p=max(z,.56*x);
 float h=step(0.,i.y)*step(id,V.x-.5)*z*z/(p*p)*(1.-smoothstep(p-.5*x,p+.5*x,length(f)));
-c=mix(c,mix(mix(C[0],C[1],.38+.3*v),C[2],m),a*h);
+c=mix(c,mix(mix(C[0],C[1],.38+.3*v+.3*G),C[2],m),a*h);
 `;
 
 /** What one frame is a function of. */
@@ -529,7 +531,7 @@ export function Backdrop({
 
       // Ease towards the step's place over SETTLE seconds, and then be exactly there.
       const part = from === goal ? 1 : Math.min(1, (now - began) / 1000 / SETTLE);
-      run.current.progress = from + (goal - from) * (1 - (1 - part) ** 3);
+      run.current.progress = part === 1 ? goal : from + (goal - from) * (1 - (1 - part) ** 3);
       last = now;
 
       const drawn = draw(el, {
@@ -594,12 +596,18 @@ export function Backdrop({
   return (
     <div
       ref={box}
-      role={label ? "img" : undefined}
-      aria-label={label}
+      data-arrived={steps > 0 ? goal >= 1 : undefined}
       className={`relative overflow-hidden ${fill(className)} ${inverted ? "inverted" : "bg-canvas text-ink"} ${className}`}
       style={{ ...style, background: `${standIn ?? fallback(preset, colors)}, var(--color-canvas)` }}
     >
-      <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" />
+      {/* The label is on the canvas, not the box: a box with role="img" would hide the slide's text inside it from a screen reader. */}
+      <canvas
+        ref={canvas}
+        role={label ? "img" : undefined}
+        aria-label={label}
+        aria-hidden={label ? undefined : true}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      />
       {scrim && (
         <div
           data-backdrop-scrim=""
@@ -678,7 +686,7 @@ export function Crowd({
       {/* Without WebGL: the last rows of the dotted field, in the accent. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 hidden peer-data-[backdrop=css]:block"
+        className="pointer-events-none absolute inset-x-0 bottom-0 hidden peer-data-[arrived=false]:opacity-0 peer-data-[backdrop=css]:block"
         style={{
           height: `${count > 0 ? Math.min(1, highlight / count) * 100 : 0}%`,
           background: `${dotted(colors?.[0] ?? "accent", 100)}, var(--color-canvas)`,

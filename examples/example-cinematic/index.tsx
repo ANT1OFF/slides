@@ -1,7 +1,7 @@
 // Example: a staged talk, in the editorial theme, dark. It uses the opt-in motion: a Backdrop on
 // the three slides people look at, one Morph, one timed step, SplitText on two lines, and a motif
 // (the route line) that returns. Every number is read from route.data.json. All content is invented.
-import { Beat, Build, Fact, Morph, SplitText, asOf, slide } from "@core";
+import { Beat, Build, Fact, Morph, SplitText, asOf, formatFact, slide } from "@core";
 import type { DeckDefinition } from "@core";
 import {
   Columns,
@@ -141,7 +141,13 @@ const deck: DeckDefinition = {
             </Build>
           </div>
           {/* Only a GPU draws this: one dot per boarding, each on a path of its own. */}
-          <Crowd count={r.ridersAfter} highlight={r.ridersAfter - r.ridersBefore} build className="h-[600px]" />
+          <Crowd
+            count={r.ridersAfter}
+            highlight={r.ridersAfter - r.ridersBefore}
+            build
+            label={`${formatFact(r.ridersAfter)} weekday boardings, ${formatFact(r.ridersAfter - r.ridersBefore)} of them new`}
+            className="h-[600px]"
+          />
         </Columns>
       </Frame>,
       { notes: "Press once: the new riders walk in, then the number. Each dot is a boarding." },
