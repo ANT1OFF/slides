@@ -38,6 +38,10 @@ team-wide CSS in `src/library/styles.css`, never into `src/styles.css`; animatio
 
 ## Workflow
 
+Plan the deck with the [storytelling guide](docs/storytelling.md) or fill in the
+[deck brief](templates/BRIEF.md) for an agent. Use the [presentation checklist](docs/checklist.md)
+to rehearse and review the built deck.
+
 1. **Create the deck:** `npm run new <name>` (lowercase, dashes). It copies the team's starter,
    `src/decks/_starter/`.
 2. **Search the library before creating anything.** List `src/library/slides/` and

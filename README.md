@@ -137,6 +137,9 @@ decks, library and themes in the team-owned folders for clean upgrades.
 
 ## Guides
 
+- [Storytelling](docs/storytelling.md) for quick updates and staged talks.
+- [Before you present](docs/checklist.md) to rehearse, verify and export a deck.
+- [Deck brief template](templates/BRIEF.md) to give an agent the plan and source material.
 - [AGENTS.md](AGENTS.md): the short workflow and media rules for AI coding agents (and people).
 - [Working with decks as a team](docs/working-with-decks.md): private copy, library, data, upgrades.
 - [Themes](docs/themes.md): the four themes, per-deck options, making your own.
