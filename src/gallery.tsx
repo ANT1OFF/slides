@@ -157,7 +157,7 @@ export function Gallery() {
           <>
             Your own entrance effects and slide transitions, <code className="font-mono">src/library/motion/</code>, used by name. Open one
             to see it play. Built in: effects <code className="font-mono">rise fade pop</code>, transitions{" "}
-            <code className="font-mono">fade push zoom</code>
+            <code className="font-mono">fade push zoom blur iris wipe shove flip split</code>
           </>
         }
       >

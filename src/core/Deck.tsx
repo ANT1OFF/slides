@@ -8,6 +8,8 @@ import { Stage, fitScale, useWindowSize } from "./Stage.tsx";
 import { isMessage, postTarget, presenterUrl, sameOrigin } from "./sync.ts";
 import type { Message, Position } from "./sync.ts";
 import { Help } from "./Help.tsx";
+import { MorphProbe } from "./morph.tsx";
+import type { MorphPeek } from "./morph.tsx";
 import { KeysContext, NavContext, positionFromHash, useStagePointer } from "./nav.ts";
 import type { DeckKey, DeckNav } from "./nav.ts";
 import { DeckContext, deckLook } from "./theme.ts";
@@ -74,6 +76,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
 
   const target = useRef(pos);
   const { plain, changeSlide, runNavigation } = useSlideTransition();
+  const peek = useRef<MorphPeek>(null);
 
   const moveTo = useCallback(
     (index: number, step = 0) => {
@@ -91,10 +94,15 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
       const back = i < from;
       const transition = (back ? slides[from] : slides[i]).transition ?? deck.transition;
       const next = target.current;
-      changeSlide(transition, back, () => {
-        steps.current = 0;
-        setPos(next);
-      });
+      changeSlide(
+        transition,
+        back,
+        () => {
+          steps.current = 0;
+          setPos(next);
+        },
+        () => peek.current?.(i),
+      );
     },
     [count, slides, deck.transition, changeSlide],
   );
@@ -455,6 +463,7 @@ export function Deck({ deck, name }: { deck: DeckDefinition; name: string }) {
           </div>
         </Stage>
       </div>
+      <MorphProbe ref={peek} slides={slides} />
       {deck.overlay !== null && deck.overlay !== undefined && (
         // Over the window, themed like the stage. Clicks pass through unless the overlay asks for them.
         <div

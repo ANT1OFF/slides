@@ -3,6 +3,8 @@
 // (scripts/verify-deck) and checks every key and presenting feature on it, so decks can change freely.
 // A second fixture (verify-deck/motion.tsx, with verify-deck/library as the team library) checks
 // effects, slide transitions and team CSS in three modes: motion, reduced motion, no View Transitions.
+// A third (verify-deck/morph.tsx) checks <Morph> and every built-in transition, forwards and back, in
+// the same three modes, and saves a picture of each one in mid-flight to dist/qa/transitions.
 // The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
@@ -91,8 +93,11 @@ function tooTall(page: Page): Promise<Array<string>> {
   );
 }
 
-/** Self-contained: no network, every font face loaded, every image and media element loaded. */
-async function selfContained(browser: Browser, file: string) {
+/**
+ * Self-contained: no network, every font face loaded, every image and media element loaded.
+ * `morphIds: false` skips the check for a Morph id used twice on a slide, for the fixture that does it on purpose.
+ */
+async function selfContained(browser: Browser, file: string, morphIds = true) {
   const { ctx, blocked } = await offline(browser);
   const page = await ctx.newPage();
   const errors: Array<string> = [];
@@ -162,6 +167,19 @@ async function selfContained(browser: Browser, file: string) {
     broken.join(", "),
   );
   check("every slide's content fits (its Frame body, and the stage)", overflowing.length === 0, `too tall: ${overflowing.join(", ")}`);
+
+  if (morphIds) {
+    const twice = await page.$$eval("[data-deck-mode=overview] [data-slide]", (slides) =>
+      slides.flatMap((s) => {
+        const ids = [...s.querySelectorAll<HTMLElement>("[data-morph]")].map((m) => m.dataset.morph);
+
+        return ids.some((id, i) => ids.indexOf(id) !== i) ? [`${s.dataset.slideId} (slide ${s.dataset.slide})`] : [];
+      }),
+    );
+
+    check("a Morph id is used once per slide (two can't share a name, so neither would morph)", twice.length === 0, twice.join(", "));
+  }
+
   // React's licence and a licence for every font file the deck can embed (the build lists them).
   const notices = (await page.locator("#third-party-notices").textContent()) ?? "";
   check("React's MIT notice is in the file", /MIT License[\s\S]*Meta Platforms/u.test(notices));
@@ -726,6 +744,306 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await ctx.close();
 }
 
+/** Mid-flight pictures of every transition, for a person to look at: dist/qa/transitions/<slide>-<forward|back>.png. */
+const shots = resolve(dist, "qa/transitions");
+
+/** Where a page is, the transition running on it, and every element that carries a Morph's name right now. */
+function morphState(view: Page) {
+  return view.evaluate(() => {
+    const root = document.documentElement;
+
+    const effects = document.getAnimations().map((a) => ({
+      // SAFETY: every animation on the page is a CSS animation (view transitions are too).
+      name: (a as CSSAnimation).animationName,
+      // SAFETY: and so its effect is a KeyframeEffect.
+      effect: a.effect as KeyframeEffect,
+    }));
+
+    return {
+      slide: document.querySelector<HTMLElement>("[data-deck-mode=present] [data-slide]")?.dataset.slideId,
+      transition: root.dataset.transition ?? null,
+      back: Object.hasOwn(root.dataset, "transitionBack"),
+      leftover: root.getAttribute("style") ?? "",
+      morphs: document.querySelectorAll("[data-morph]").length,
+      named: [...document.querySelectorAll<HTMLElement>("*")].flatMap((el) => {
+        const name = getComputedStyle(el).getPropertyValue("view-transition-name");
+
+        return name.startsWith("morph-") ? [`${name}${el.closest("[data-deck-mode=present] [data-slide]") ? "" : " (off stage)"}`] : [];
+      }),
+      landed: [...document.querySelectorAll("[data-morph].static-motion")].length,
+      groups: [
+        ...new Set(
+          effects.flatMap(
+            ({ effect }) => /^::view-transition-group\((?<name>morph-.+)\)$/u.exec(effect.pseudoElement ?? "")?.groups?.name ?? [],
+          ),
+        ),
+      ],
+      // "wipe-in new normal 1500": the keyframes on each of the slide's two snapshots.
+      running: effects.flatMap(({ name, effect }) => {
+        const part = /^::view-transition-(?<part>old|new)\(slide\)$/u.exec(effect.pseudoElement ?? "")?.groups?.part;
+        const timing = effect.getComputedTiming();
+
+        return part ? [`${name} ${part} ${timing.direction} ${Math.round(Number(timing.duration))}`] : [];
+      }),
+    };
+  });
+}
+
+/**
+ * <Morph> and the built-in transitions on the morph fixture. A Morph has a view-transition-name only
+ * on the live stage and only while a transition runs; every transition lands on the right slide,
+ * forwards and back. With reduced motion, or without the API, every slide just changes.
+ */
+async function morph(browser: Browser, file: string, mode: (typeof MODES)[number]) {
+  const animated = mode === "motion";
+  const { ctx } = await offline(browser, mode === "reduced motion");
+  const page = await ctx.newPage();
+
+  if (mode === "no View Transitions API") {
+    await page.addInitScript(() => Reflect.deleteProperty(Document.prototype, "startViewTransition"));
+  }
+
+  const errors: Array<string> = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+
+  const test = (name: string, ok: unknown, detail: unknown = "") =>
+    check(`${mode}: ${name}`, ok, typeof detail === "string" ? detail : JSON.stringify(detail));
+
+  const state = () => morphState(page);
+
+  /** Holds the running transition 35% in (a flip is edge-on half-way), takes its picture, then ends it at once. */
+  const shoot = async (name?: string) => {
+    await page.evaluate(() => {
+      for (const a of document.getAnimations()) {
+        // SAFETY: every animation on the page has a KeyframeEffect, as above.
+        const effect = a.effect as KeyframeEffect;
+
+        if (effect.pseudoElement?.startsWith("::view-transition")) {
+          a.pause();
+          a.currentTime = Number(effect.getComputedTiming().duration) * 0.35;
+        }
+      }
+    });
+
+    if (name) {
+      await page.screenshot({ path: resolve(shots, `${name}.png`) });
+    }
+
+    await page.evaluate(() => {
+      for (const a of document.getAnimations()) {
+        // SAFETY: as above.
+        if ((a.effect as KeyframeEffect).pseudoElement?.startsWith("::view-transition")) {
+          a.finish();
+        }
+      }
+    });
+    await page.waitForTimeout(250);
+  };
+
+  // Into a transition (the fixture's last 1500 ms), and after it.
+  const DURING = 250;
+  const settle = animated ? 1900 : 250;
+
+  const key = async (k: string, wait: number) => {
+    await page.keyboard.press(k);
+    await page.waitForTimeout(wait);
+  };
+
+  const go = async (n: number) => {
+    await page.evaluate((slideNumber) => (location.hash = `#${slideNumber}`), n);
+    await page.waitForTimeout(settle);
+  };
+
+  await page.goto(`file://${file}`);
+  await page.waitForTimeout(600);
+  await key("g", 400);
+  const ids = await page.$$eval("[data-deck-mode=overview] [data-slide]", (els) => els.map((e) => e.dataset.slideId!));
+  let s = await state();
+  test("the overview shows Morphs as plain elements, none named", s.morphs > 4 && s.named.length === 0, s);
+  await key("Escape", 200);
+  s = await state();
+  test("no Morph is named while nothing moves", s.slide === "a" && s.named.length === 0, s);
+
+  if (!animated) {
+    await key("ArrowRight", settle);
+    s = await state();
+    test("a Morph just changes with its slide", s.slide === "b" && s.transition === null && s.named.length === 0 && s.landed === 0, s);
+
+    for (const id of ids.slice(2)) {
+      await key("ArrowRight", settle);
+      s = await state();
+
+      if (s.slide !== id || s.transition !== null) {
+        break;
+      }
+    }
+
+    test("every slide after it just changes too", s.slide === ids.at(-1) && s.transition === null && s.named.length === 0, s);
+    await key("ArrowLeft", settle);
+    s = await state();
+    test("and going back", s.slide === ids.at(-2) && s.transition === null, s);
+    test("no page errors", errors.length === 0, errors.join(" | "));
+    await ctx.close();
+
+    return;
+  }
+
+  mkdirSync(shots, { recursive: true });
+  await key("ArrowRight", DURING);
+  s = await state();
+  test(
+    "a Morph on both slides is named on the stage while the slide changes, and only it",
+    s.named.join(",") === "morph-hero" && s.groups.join(",") === "morph-hero",
+    s,
+  );
+  test(
+    "with no transition named, the rest of the slide fades",
+    s.transition === "fade" && s.running.some((r) => r.startsWith("fade-in new")),
+    s,
+  );
+  test("what lands is shown in its final state", s.landed === 1, s);
+  await shoot("morph-forward");
+  s = await state();
+  test(
+    "after it, nothing is named and nothing is left on <html>",
+    s.slide === "b" && s.named.length === 0 && !s.leftover && s.transition === null,
+    s,
+  );
+
+  await key("ArrowLeft", DURING);
+  s = await state();
+  test("going back, the Morph returns", s.back && s.named.join(",") === "morph-hero" && s.groups.join(",") === "morph-hero", s);
+  test("going back runs a fifth shorter", s.running.length === 2 && s.running.every((r) => r.endsWith(" 1200")), s.running);
+  await shoot("morph-back");
+  s = await state();
+  test("and lands on the slide before", s.slide === "a" && s.named.length === 0 && !s.leftover, s);
+
+  // An impatient second press: the running transition is skipped and the next one starts.
+  await key("ArrowRight", DURING);
+  await key("ArrowRight", DURING);
+  s = await state();
+  test(
+    "a second → during a Morph skips it and morphs on, while the slide pushes",
+    s.slide === "c" && s.transition === "push" && s.named.join(",") === "morph-hero" && s.running.some((r) => r.startsWith("push-in new")),
+    s,
+  );
+  await shoot("morph-with-push");
+  s = await state();
+  test("nothing is left named after the skipped one", s.slide === "c" && s.named.length === 0 && !s.leftover, s);
+
+  await key("ArrowRight", DURING);
+  s = await state();
+  test(
+    "an id twice on a slide: reported once, nothing named, and the transition still runs",
+    errors.length === 1 &&
+      errors[0].includes('<Morph id="hero"> is on one slide more than once') &&
+      s.named.length === 0 &&
+      s.transition === "fade",
+    { errors, s },
+  );
+  errors.length = 0;
+  await page.waitForTimeout(settle);
+  s = await state();
+  test("and lands", s.slide === "dupe" && s.transition === null, s);
+
+  // The spot the first iris opens from: the centre of the data-origin element, in the slide's own pixels.
+  const origin = await page.evaluate(() => {
+    const slide = document.querySelector<HTMLElement>("[data-deck-mode=present] [data-slide]")!;
+    const box = slide.getBoundingClientRect();
+    const spot = document.querySelector("#origin")!.getBoundingClientRect();
+    const scale = box.width / slide.offsetWidth;
+
+    return { x: (spot.left + spot.width / 2 - box.left) / scale, y: (spot.top + spot.height / 2 - box.top) / scale };
+  });
+
+  const steps = { left: "-1 0", right: "1 0", up: "0 -1", down: "0 1" };
+  const failed: Array<string> = [];
+  const fail = (id: string, what: string, detail: unknown) => failed.push(`${id} ${what}: ${JSON.stringify(detail)}`);
+
+  for (const [i, id] of ids.entries()) {
+    if (i < 4) {
+      continue;
+    }
+
+    const [kind, direction = "left"] = id.replace(/-\d+$/u, "").split("-");
+    await key("ArrowRight", DURING);
+    s = await state();
+
+    if (
+      s.transition !== kind ||
+      !s.running.includes(`${kind}-in new normal 1500`) ||
+      !s.running.includes(`${kind}-out old normal 1500`) ||
+      // SAFETY: the fixture's directions are these four.
+      !s.leftover.includes(`--dx: ${steps[direction as keyof typeof steps].replace(" ", "; --dy: ")};`)
+    ) {
+      fail(id, "forwards", s);
+    }
+
+    if (i === 4) {
+      const at = /--origin-x: (?<x>[\d.]+)px; --origin-y: (?<y>[\d.]+)px/u.exec(s.leftover)?.groups;
+      test(
+        "iris opens from the slide's data-origin element",
+        Math.abs(Number(at?.x) - origin.x) < 1 && Math.abs(Number(at?.y) - origin.y) < 1,
+        { origin, s },
+      );
+    } else if (kind === "iris") {
+      test("and from the centre when there is none", !s.leftover.includes("--origin"), s);
+    }
+
+    await shoot(`${id}-forward`);
+    s = await state();
+
+    if (s.slide !== id || s.transition !== null || s.leftover) {
+      fail(id, "lands", s);
+    }
+
+    await key("ArrowLeft", DURING);
+    s = await state();
+
+    if (!s.back || !s.running.includes(`${kind}-in old reverse 1200`) || !s.running.includes(`${kind}-out new reverse 1200`)) {
+      fail(id, "back", s);
+    }
+
+    await shoot(`${id}-back`);
+    s = await state();
+
+    if (s.slide !== ids[i - 1] || s.transition !== null) {
+      fail(id, "lands back", s);
+    }
+
+    await key("ArrowRight", DURING);
+    await shoot();
+  }
+
+  s = await state();
+  test(
+    "iris, wipe, shove, blur, flip and split each run their keyframes in their direction and land, forwards and back",
+    failed.length === 0 && s.slide === ids.at(-1),
+    failed.join(" | "),
+  );
+
+  // The presenter window and print render the same Morphs; neither may carry a name.
+  await go(1);
+  const [popup] = await Promise.all([page.waitForEvent("popup"), key("n", 100)]);
+  await popup.waitForTimeout(1000);
+  await key("ArrowRight", DURING);
+  s = await state();
+  const presenter = await morphState(popup);
+  test(
+    "the presenter window shows the Morphs unnamed while the deck's one flies",
+    s.named.join(",") === "morph-hero" && presenter.morphs > 0 && presenter.named.length === 0,
+    { deck: s.named, presenter },
+  );
+  await popup.close();
+  await page.waitForTimeout(settle);
+  await key("p", 300);
+  s = await state();
+  test("print shows the Morphs unnamed", s.morphs > 4 && s.named.length === 0, s);
+  await page.waitForTimeout(1500);
+  test("no page errors", errors.length === 0, errors.join(" | "));
+  await ctx.close();
+}
+
 /**
  * The library view of the fixture library: block examples and motion get a slide each, and a block
  * whose example can't render is reported by name.
@@ -1063,6 +1381,29 @@ for (const mode of MODES) {
 }
 
 rmSync(resolve(dist, ".verify-motion"), { recursive: true, force: true });
+
+// Morph and the built-in transitions, with the empty library so no team file stands in for a built-in.
+process.env.LIBRARY_DIR = resolve(import.meta.dirname, "../examples/_library");
+
+process.env.DECK = "verify-morph";
+
+process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/morph.tsx");
+
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
+const morphFixture = resolve(dist, ".verify-morph/index.html");
+
+deckName = "verify-deck/morph (fixture: Morph and every built-in transition)";
+
+await selfContained(browser, morphFixture, false);
+
+for (const mode of MODES) {
+  await morph(browser, morphFixture, mode);
+}
+
+rmSync(resolve(dist, ".verify-morph"), { recursive: true, force: true });
+
+delete process.env.LIBRARY_DIR;
 
 await browser.close();
 

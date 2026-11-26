@@ -44,7 +44,9 @@ Each is a file in a team folder, used by name or import; never edit `src/core/`,
    `@keyframes`; use `<Reveal effect="<name>">` or `<Build at={1} effect="<name>">`.
 4. Slide transition: `src/library/motion/<name>.css` with `@keyframes <name>-in` and `<name>-out`;
    use `transition: "<name>"` on the deck or `slide(…, { transition: "<name>" })`. Built in: `fade`,
-   `push`, `zoom`, `"none"`.
+   `push`, `zoom`, `blur`, `iris`, and `wipe`, `shove`, `flip`, `split` with an optional direction
+   (`"wipe up"`); `"none"`. `<Morph id>` from `@core` carries one element from a slide to the next.
+   One transition per deck, a second for section slides at most; see `docs/motion.md`.
 5. Use the motion tokens (`--duration-*`, `--ease-*`, `--rise`) in motion CSS; check it in the
    overview (G) and print (P), which must show the final state.
 6. Code in another language: a block in `src/library/blocks/` that passes `tokenize` to `Code`

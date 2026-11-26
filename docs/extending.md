@@ -97,12 +97,29 @@ const deck: DeckDefinition = {
 };
 ```
 
-Built in: `fade`, `push`, `zoom` (and `"none"`). A name with no keyframes behind it does nothing:
-the slide just changes.
+Built in: `fade`, `push`, `zoom`, `blur`, `iris`, and `wipe`, `shove`, `flip` and `split`, which take
+a direction (`"wipe up"`); `"none"` switches it off. [motion.md](motion.md) shows each and says when
+to use it. A name with no keyframes behind it does nothing: the slide just changes. A file of yours
+with a built-in's name replaces it, which the starter's `wipe.css` does.
 
-**Elements that carry over.** Give an element on two neighbouring slides the same
-`style={{ viewTransitionName: "hero" }}` and the browser moves and resizes it from one to the other
-while the transition runs. A name must be unique on its slide.
+**Direction and origin.** For the run, the deck sets on `<html>` what your keyframes can read:
+`--dx` and `--dy` (the direction after the name as -1, 0 or 1; left, the
+default, is `-1 0`), and, when the slide before has a `data-origin` element or a shared Morph,
+`--origin-x`, `--origin-y` and `--origin-r`: its centre and the distance to the farthest corner, in
+the slide's 1920×1080 pixels. So `transition: "curtain down"` runs your `curtain-in` and
+`curtain-out` with `--dy: 1`:
+
+```css
+@keyframes curtain-in {
+  from {
+    transform: translateY(calc(var(--dy) * -100%));
+  }
+}
+```
+
+**Elements that carry over.** Wrap the same thing on two neighbouring slides in
+`<Morph id="hero">` (from `@core`), and it moves and resizes from one to the other while the
+transition runs. [motion.md](motion.md#morph-one-element-two-slides) has the rules.
 
 **Timing comes from tokens.** Built-in motion reads `--duration-fast` (a build step),
 `--duration-base` (a block entering, a slide change), `--duration-slow` (bars, lines), `--rise`,
@@ -119,14 +136,15 @@ html[data-transition="wipe"]::view-transition-new(slide) {
 }
 ```
 
-`data-transition-back` is also set when going back. The two snapshots are
-`::view-transition-old(slide)` and `::view-transition-new(slide)`.
+`data-transition-back` is also set when going back, which runs a fifth shorter
+(`--transition-duration`). The two snapshots are `::view-transition-old(slide)` and
+`::view-transition-new(slide)`.
 
 **What happens in each mode**
 
 | Mode                                       | What happens                                                                                    |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Reduced motion                             | No transition runs; entrance effects end at once                                                |
+| Reduced motion                             | No transition runs and no Morph flies; entrance effects end at once                             |
 | Print (P), overview (G), presenter         | The final state: `.static-motion` switches animation off, and every `Build` is on its last step |
 | A browser without the View Transitions API | The slide changes with the plain entrance, as a deck with no transition does                    |
 
