@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
 import { listDecks } from "../vite.config.ts";
-import { chromeArgs, chromePath } from "./chrome.ts";
+import { chromePath } from "./chrome.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
 import { errorMessage } from "./error-message.ts";
 
@@ -63,7 +63,7 @@ try {
 let browser;
 
 try {
-  browser = await chromium.launch({ args: chromeArgs, executablePath });
+  browser = await chromium.launch(executablePath ? { executablePath } : {});
 } catch {
   console.error(
     "Chrome not found. Install Google Chrome or Chromium, or point CHROME_PATH at it\n" +

@@ -1661,7 +1661,7 @@ await upstreamDecksAlone();
 
 await rejectsExternalAssets();
 
-const browser = await chromium.launch({ args: chromeArgs, executablePath });
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
 
 for (const file of files) {
   deckName = file;
@@ -1842,11 +1842,17 @@ deckName = "verify-deck/backdrop (fixture: the WebGL backdrop and its fallbacks)
 
 await selfContained(browser, backdropFixture);
 
+// Its own Chrome, allowed to draw WebGL in software, so a machine without a GPU (CI) checks the real
+// thing. Every other check keeps the plain browser: these switches change how Chrome composites.
+const glBrowser = await chromium.launch({ args: chromeArgs, executablePath });
+
 for (const mode of BACKDROP_MODES) {
-  await backdrop(browser, backdropFixture, mode, (name, ok, detail) => {
+  await backdrop(glBrowser, backdropFixture, mode, (name, ok, detail) => {
     check(name, ok, detail);
   });
 }
+
+await glBrowser.close();
 
 rmSync(resolve(dist, ".verify-backdrop"), { recursive: true, force: true });
 

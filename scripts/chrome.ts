@@ -24,7 +24,7 @@ export function chromePath(): string | undefined {
 }
 
 /**
- * Lets headless Chrome draw WebGL without a GPU (a CI machine), on its software renderer, so the
- * backdrop block is checked there too. With a GPU these change nothing.
+ * Lets headless Chrome draw WebGL without a GPU (a CI machine), on its software renderer. Only the
+ * backdrop's own checks use them: they also change how Chrome composites everything else.
  */
 export const chromeArgs = ["--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"];
