@@ -41,6 +41,11 @@ First public version.
 - The README is shorter and keeps the sharing warning in one place.
 - Built example decks in `examples/html/`, and a project skill for Claude Code and Codex.
 - Added a storytelling guide, a presentation checklist and a fill-in brief for deck authors.
+- `<Morph id>` (from `@core`): the same id on two neighbouring slides, and that element moves and
+  resizes from one to the other while the slide changes; going back returns it. Six more transitions:
+  `iris` (from the centre, a `data-origin` element or a shared Morph), `blur`, and `wipe`, `shove`,
+  `flip` and `split`, which take a direction (`"wipe up"`). Going back now plays every transition a
+  fifth shorter. A deck that uses none of it looks as before. See [docs/motion.md](docs/motion.md).
 
 **Upgrade notes** (only for copies made before v0.1.0)
 
@@ -58,5 +63,8 @@ First public version.
   `width` to narrow it), `Flow` is taller (pass `height`), `Cycle` has arrowheads, smaller cards
   and a rounder ring, `StatRow` with three numbers or fewer is larger, and built-in motion is a
   little quicker and reads the theme's motion tokens.
+- `wipe` is now a built-in transition with a soft edge and a direction. Your library's
+  `src/library/motion/wipe.css` (the starter's example) still wins, as any file of yours with a
+  built-in's name does; delete it to get the built-in one.
 - The build now also fails on a CSS `url()` it can't resolve, such as a theme's `@font-face` whose
   font file was deleted: delete the rule, or put the font back.

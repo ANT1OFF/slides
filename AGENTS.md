@@ -11,7 +11,9 @@ the user-facing details; this is the short version of how to work here.
   deck uses is a local import from its own folder: media, data files, one-off components.
 - A theme is a folder in `src/themes/<name>/` (`theme.css`, optional `fonts/` and `logo.svg`).
 - Animation is CSS used by name: `<Reveal effect>`, `<Build effect>`, and `transition` on a deck or a
-  slide. Built in: effects `rise`, `fade`, `pop`; transitions `fade`, `push`, `zoom`. The team's own
+  slide. Built in: effects `rise`, `fade`, `pop`; transitions `fade`, `push`, `zoom`, `blur`, `iris`,
+  `wipe`, `shove`, `flip`, `split` (the last four take a direction: `"wipe up"`). `<Morph id>` from
+  `@core` carries one element from a slide to the next ([docs/motion.md](docs/motion.md)). The team's own
   are files in `src/library/motion/`; team-wide CSS is `src/library/styles.css`.
 - A presenter extra (timer bar, pointer) is a component on the deck's `overlay`; it reads the deck
   with `useDeckNav()` and adds keys with `useDeckKey()` (both from `@core`). Never edit

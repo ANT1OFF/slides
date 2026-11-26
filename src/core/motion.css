@@ -300,9 +300,9 @@
  *   html[data-transition="push"]::view-transition-new(slide) { animation-duration: 1s; }
  * Built in: fade, push, zoom, blur, iris, and wipe, shove, flip and split, which take a direction
  * ("wipe up"). Your own go in src/library/motion/<name>.css. Keyframes can read what the deck sets
- * on <html> for the run: --transition-dx and --transition-dy (the direction as -1, 0 or 1; left is
- * -1 0) and, when the slide has a point to open from, --origin-x, --origin-y and --origin-r (its
- * centre and the distance to the farthest corner, in the slide's 1920×1080 pixels).
+ * on <html> for the run: --dx and --dy (the direction as -1, 0 or 1; left is -1 0) and, when the
+ * slide has a point to open from, --origin-x, --origin-y and --origin-r (its centre and the
+ * distance to the farthest corner, in the slide's 1920×1080 pixels).
  * Going back runs a fifth shorter (--transition-duration).
  */
 @keyframes fade-in {
@@ -367,70 +367,61 @@
   }
 }
 /*
- * A soft edge sweeps across: the mask is a little over two slides long, clear then solid, and slides past.
- * The old slide drifts a little the same way.
+ * A soft edge sweeps across: a mask a little over two slides long, clear then solid, slides past
+ * (the mask itself is set below, with the transition's rules). The old slide drifts a little the same way.
  */
 @keyframes wipe-in {
   from {
-    mask-position: calc(50% + var(--transition-dx) * 50%) calc(50% + var(--transition-dy) * 50%);
-  }
-  to {
-    mask-position: calc(50% - var(--transition-dx) * 50%) calc(50% - var(--transition-dy) * 50%);
-  }
-  from,
-  to {
-    mask-image: linear-gradient(atan2(var(--transition-dx), -1 * var(--transition-dy)), #000 47.17%, #0000 52.83%);
-    mask-size: calc(100% + var(--transition-dx) * var(--transition-dx) * 112%)
-      calc(100% + var(--transition-dy) * var(--transition-dy) * 112%);
+    mask-position: calc(50% + var(--dx) * 50%) calc(50% + var(--dy) * 50%);
   }
 }
 @keyframes wipe-out {
   to {
-    transform: translate(calc(var(--transition-dx) * 5%), calc(var(--transition-dy) * 5%));
+    transform: translate(calc(var(--dx) * 5%), calc(var(--dy) * 5%));
   }
 }
 /* The new slide pushes the old one out; the old one gives way, pinned to the edge they share. */
 @keyframes shove-in {
   from {
-    transform: translate(calc(var(--transition-dx) * -100%), calc(var(--transition-dy) * -100%));
+    transform: translate(calc(var(--dx) * -100%), calc(var(--dy) * -100%));
   }
 }
 @keyframes shove-out {
   from,
   to {
-    transform-origin: calc(50% - var(--transition-dx) * 50%) calc(50% - var(--transition-dy) * 50%);
+    transform-origin: calc(50% - var(--dx) * 50%) calc(50% - var(--dy) * 50%);
   }
   to {
-    transform: translate(calc(var(--transition-dx) * 100%), calc(var(--transition-dy) * 100%)) scale(0.86);
+    transform: translate(calc(var(--dx) * 100%), calc(var(--dy) * 100%)) scale(0.86);
   }
 }
 /* The slide turns over like a card: the old one to its edge in the first half, the new one from its edge in the second. */
 @keyframes flip-out {
   from {
-    transform: perspective(3600px) scale(1) rotate3d(calc(var(--transition-dy) * -1), var(--transition-dx), 0, 0deg);
+    transform: perspective(3600px) scale(1) rotate3d(calc(var(--dy) * -1), var(--dx), 0, 0deg);
     animation-timing-function: ease-in;
   }
   50%,
   to {
-    transform: perspective(3600px) scale(0.84) rotate3d(calc(var(--transition-dy) * -1), var(--transition-dx), 0, 90deg);
+    transform: perspective(3600px) scale(0.84) rotate3d(calc(var(--dy) * -1), var(--dx), 0, 90deg);
   }
 }
 @keyframes flip-in {
   from {
-    transform: perspective(3600px) scale(0.84) rotate3d(calc(var(--transition-dy) * -1), var(--transition-dx), 0, -90deg);
+    transform: perspective(3600px) scale(0.84) rotate3d(calc(var(--dy) * -1), var(--dx), 0, -90deg);
   }
   50% {
-    transform: perspective(3600px) scale(0.84) rotate3d(calc(var(--transition-dy) * -1), var(--transition-dx), 0, -90deg);
+    transform: perspective(3600px) scale(0.84) rotate3d(calc(var(--dy) * -1), var(--dx), 0, -90deg);
     animation-timing-function: ease-out;
   }
   to {
-    transform: perspective(3600px) scale(1) rotate3d(calc(var(--transition-dy) * -1), var(--transition-dx), 0, 0deg);
+    transform: perspective(3600px) scale(1) rotate3d(calc(var(--dy) * -1), var(--dx), 0, 0deg);
   }
 }
 /* Two halves part from the middle: sideways for left and right, up and down otherwise. */
 @keyframes split-in {
   from {
-    clip-path: inset(calc(var(--transition-dy) * var(--transition-dy) * 50%) calc(var(--transition-dx) * var(--transition-dx) * 50%));
+    clip-path: inset(calc(var(--dy) * var(--dy) * 50%) calc(var(--dx) * var(--dx) * 50%));
   }
   to {
     clip-path: inset(0);
@@ -438,10 +429,7 @@
 }
 @keyframes split-out {
   to {
-    transform: scale(
-      calc(1 + var(--transition-dx) * var(--transition-dx) * 0.06),
-      calc(1 + var(--transition-dy) * var(--transition-dy) * 0.06)
-    );
+    transform: scale(calc(1 + var(--dx) * var(--dx) * 0.06), calc(1 + var(--dy) * var(--dy) * 0.06));
   }
 }
 html[data-transition] {
@@ -469,6 +457,13 @@ html[data-transition]::view-transition-new(slide) {
 html[data-transition]::view-transition-old(slide) {
   animation: var(--transition-out) var(--transition-duration) var(--ease-in-out) both var(--transition-direction, normal);
   mix-blend-mode: normal;
+}
+/* The wipe's mask: at rest it shows the whole slide, and wipe-in starts it one slide further back. */
+html[data-transition="wipe"]::view-transition-old(slide),
+html[data-transition="wipe"]::view-transition-new(slide) {
+  mask-image: linear-gradient(atan2(var(--dx), -1 * var(--dy)), #000 47.17%, #0000 52.83%);
+  mask-size: calc(100% + var(--dx) * var(--dx) * 112%) calc(100% + var(--dy) * var(--dy) * 112%);
+  mask-position: calc(50% - var(--dx) * 50%) calc(50% - var(--dy) * 50%);
 }
 /* Going back, the leaving slide is the one on top, as it was when it arrived. */
 html[data-transition-back]::view-transition-old(slide) {

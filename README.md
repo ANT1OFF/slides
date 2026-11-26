@@ -68,7 +68,9 @@ reveals a list-like block one item per press of → (`true` starts at step 1, a 
 `build={0}` shows the first item at once); `inverted` puts a slide on the theme's other scheme.
 Anything else is plain JSX with Tailwind classes; wrap any element in `<Build at={1}>` to reveal it
 on a press of →. Motion is CSS used by name: `<Reveal effect="pop">`, `<Build effect="pop">`, and
-`transition: "fade"` between slides ([docs/extending.md](docs/extending.md#motion)).
+`transition: "fade"` between slides ([docs/extending.md](docs/extending.md#motion)). For more
+between slides, there are nine transitions and `<Morph id>`, which carries one element from a slide
+to the next; [docs/motion.md](docs/motion.md) shows them and says when to keep it plain.
 
 ## Themes
 

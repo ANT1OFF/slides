@@ -6,7 +6,7 @@ import type { DeckDefinition, Transition } from "@core";
 import { Frame, StatementSlide } from "@blocks";
 
 /** Every built-in transition this deck adds a slide for, in order. */
-export const TRANSITIONS: Array<Transition> = [
+const TRANSITIONS: Array<Transition> = [
   "iris",
   "wipe",
   "wipe up",

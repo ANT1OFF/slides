@@ -93,6 +93,21 @@ export function morphs(scope: ParentNode | null): Map<string, HTMLElement> {
   return found;
 }
 
+/**
+ * Ends the entrance effects of everything around a Morph that has just landed, up to its slide.
+ * A box that is still fading in would hide what flies into it.
+ */
+export function settle(el: HTMLElement, slide: HTMLElement) {
+  for (let box = el.parentElement; box && box !== slide; box = box.parentElement) {
+    for (const entrance of box.getAnimations()) {
+      // A loop has no end to jump to.
+      if (Number.isFinite(entrance.effect?.getComputedTiming().endTime)) {
+        entrance.finish();
+      }
+    }
+  }
+}
+
 /** Asks which Morph ids slide `index` has, before the deck shows it. */
 export type MorphPeek = (index: number) => Set<string>;
 
