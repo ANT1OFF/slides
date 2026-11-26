@@ -189,6 +189,9 @@ function installQa() {
     frames,
     arm() {
       armed = true;
+      // The clock stops here too, so motion driven by script (a count-up, a Backdrop's step) starts at
+      // the move's time 0 however long the machine takes to get from the press to `hold`.
+      frozen = performance.now();
     },
     at() {
       const s = present();
