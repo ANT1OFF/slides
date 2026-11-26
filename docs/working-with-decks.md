@@ -121,7 +121,7 @@ Before you do:
 
 ```bash
 npm run check    # formatting, lint, types, every deck builds
-npm run verify   # every deck offline in Chrome: fonts, media, notices, every key
+npm run verify   # every deck offline in Chrome: fonts, media, notices, every key, every step and its motion
 ```
 
 A reviewer can open the library view and the showcase in `npm run dev` to see what changed.

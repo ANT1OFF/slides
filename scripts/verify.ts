@@ -8,6 +8,9 @@
 // A fourth (verify-deck/beats.tsx) checks beat timelines, SplitText and Ambient, with and without reduced motion.
 // The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
+// Every built deck is also walked (verify-walk.ts): every step forwards and back, by URL hash, in fast
+// bursts, and with reduced motion, in the overview and in print; with a motion audit (pops and flashes)
+// and pictures in dist/qa/<deck>/ (docs/checklist.md, "Reading the QA pictures").
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
 // (`npx playwright-core install chromium`).
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
@@ -21,6 +24,7 @@ import { deckTheme } from "../vite/themes.ts";
 import { chromePath } from "./chrome.ts";
 import { errorMessage } from "./error-message.ts";
 import { exportPdf, inspectPdf } from "./pdf-export.ts";
+import { walkDeck } from "./verify-walk.ts";
 
 const dist = resolve(import.meta.dirname, "../dist");
 const decks = listDecks();
@@ -43,10 +47,16 @@ const results: Array<{ deck: string; name: string; ok: boolean; detail?: string 
 let deckName = "";
 const check = (name: string, ok: unknown, detail = "") => results.push({ deck: deckName, name, ok: Boolean(ok), detail });
 
+const WINDOW = { width: 1600, height: 900 };
+
 /** A context that refuses every request that isn't the file itself or inline data. */
-async function offline(browser: Browser, reducedMotion = false): Promise<{ ctx: BrowserContext; blocked: Array<string> }> {
+async function offline(
+  browser: Browser,
+  reducedMotion = false,
+  viewport = WINDOW,
+): Promise<{ ctx: BrowserContext; blocked: Array<string> }> {
   const ctx = await browser.newContext({
-    viewport: { width: 1600, height: 900 },
+    viewport,
     reducedMotion: reducedMotion ? "reduce" : "no-preference",
   });
 
@@ -1517,6 +1527,36 @@ for (const file of files) {
   deckName = file;
   await selfContained(browser, file);
 }
+
+// Every built deck walked, all at once: each waits on the browser most of the time. Their results are kept apart, then listed in order.
+const walked = await Promise.all(
+  files.map(async (file) => {
+    const own: typeof results = [];
+    const deck = `${file}: walk, motion and final states`;
+
+    try {
+      await walkDeck(
+        async (reducedMotion, viewport) => {
+          const { ctx } = await offline(browser, reducedMotion, viewport);
+
+          return ctx;
+        },
+        resolve(dist, file),
+        file,
+        (name, ok, detail = "") => {
+          own.push({ deck, name, ok: Boolean(ok), detail });
+        },
+        resolve(dist, "qa"),
+      );
+    } catch (error) {
+      own.push({ deck, name: "the walk ran to the end", ok: false, detail: errorMessage(error) });
+    }
+
+    return own;
+  }),
+);
+
+results.push(...walked.flat());
 
 // The team library, as one deck: every library slide must render offline without errors or overflow.
 process.env.DECK = "library";
