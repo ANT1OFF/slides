@@ -125,13 +125,15 @@ URL) and says what to import. Inlined files grow by a third, so compress them: p
 ```bash
 npm run format   # fixes formatting (npm run check fails on it)
 npm run check    # formatting, lint (type-aware oxlint), layer boundaries, types, every deck builds, examples/html is up to date
-npm run verify   # opens every built deck offline in Chrome and checks fonts, media and every key
+npm run verify   # opens every built deck offline in Chrome: fonts, media, keys, every step and its motion
 npm run pdf x    # dist/x.pdf: one page per visible slide in its final state (no name: every deck)
 npm run refresh  # refreshes the data behind the slides (docs/working-with-decks.md, "Data")
 npm run upgrade  # merges upstream updates on a branch, then check and verify
 ```
 
-`verify` and `pdf` use your Chrome (or `CHROME_PATH`), else Playwright's Chromium
+`verify` also walks every step of every built deck forwards, back, by URL and in fast bursts,
+audits the motion for pops and flashes, and writes pictures to `dist/qa/<deck>/`
+([how to read them](docs/checklist.md#reading-the-qa-pictures)). `verify` and `pdf` use your Chrome (or `CHROME_PATH`), else Playwright's Chromium
 (`npx playwright-core install chromium`).
 
 ## Your own copy (for teams)
