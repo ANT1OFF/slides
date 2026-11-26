@@ -184,6 +184,8 @@
   --duration-slow: 900ms; /* bars growing, lines drawing, numbers counting */
   --stagger: 90ms; /* between siblings */
   --rise: 24px; /* how far a block travels as it enters */
+  --beat-gap: 1.5s; /* in a timed step, how long after the picture a <Beat> lands */
+  --beat-leave: 500ms; /* how quickly a <Build until> leaves */
 }
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -192,5 +194,7 @@
     --duration-slow: 0ms;
     --stagger: 0ms;
     --rise: 0px;
+    --beat-gap: 0s;
+    --beat-leave: 0ms;
   }
 }

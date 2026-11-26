@@ -5,6 +5,7 @@
 // effects, slide transitions and team CSS in three modes: motion, reduced motion, no View Transitions.
 // A third (verify-deck/morph.tsx) checks <Morph> and every built-in transition, forwards and back, in
 // the same three modes, and saves a picture of each one in mid-flight to dist/qa/transitions.
+// A fourth (verify-deck/beats.tsx) checks beat timelines, SplitText and Ambient, with and without reduced motion.
 // The team library itself is built as a deck (src/library-view.tsx) and must render: its slides, its
 // blocks' examples and its motion. The same view of the fixture library checks that a broken block is caught.
 // Run `npm run build` first. Uses your Chrome (or CHROME_PATH), else Playwright's Chromium
@@ -744,6 +745,219 @@ async function motion(browser: Browser, file: string, mode: (typeof MODES)[numbe
   await ctx.close();
 }
 
+/**
+ * Beat timelines, SplitText and Ambient on the beats fixture. A step forward plays its timeline;
+ * Back, a jump, a reload, the overview, print and reduced motion show the step settled, and a press
+ * during a timeline settles it and moves on.
+ */
+async function beats(browser: Browser, file: string, reduced: boolean) {
+  const mode = reduced ? "reduced motion" : "motion";
+  const { ctx } = await offline(browser, reduced);
+  const page = await ctx.newPage();
+  const errors: Array<string> = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+
+  const test = (name: string, ok: unknown, detail: unknown = "") =>
+    check(`${mode}: ${name}`, ok, typeof detail === "string" ? detail : JSON.stringify(detail));
+
+  /** Opacity and visibility of what wraps each element (its Beat, or the Build), and the animations running on the slide. */
+  const state = (scope = "[data-deck-mode=present] [data-slide]") =>
+    page.evaluate((root) => {
+      const slide = document.querySelector<HTMLElement>(root)!;
+
+      const look = (id: string) => {
+        const el = slide.querySelector(id);
+
+        if (!el) {
+          return -1;
+        }
+
+        let shown = 1;
+
+        for (let node: Element | null = el; node && node !== slide; node = node.parentElement) {
+          const css = getComputedStyle(node);
+          shown *= css.visibility === "hidden" ? 0 : Number(css.opacity);
+        }
+
+        return Math.round(shown * 100) / 100;
+      };
+
+      return {
+        slide: slide.dataset.slideId,
+        build: slide.dataset.build,
+        old: look("#old"),
+        picture: look("#picture"),
+        headline: look("#headline"),
+        after: look("#after"),
+        // What still moves in the steps: the slide's own entrance (its title) is not part of a timeline.
+        running: document.getAnimations().filter((a) => {
+          // SAFETY: every animation on the page is a CSS animation or transition, so its effect is a KeyframeEffect.
+          const { target } = a.effect as KeyframeEffect;
+
+          return a.playState === "running" && target && slide.contains(target) && target.closest(".build") !== null;
+        }).length,
+      };
+    }, scope);
+
+  const key = async (k: string, wait: number) => {
+    await page.keyboard.press(k);
+    await page.waitForTimeout(wait);
+  };
+
+  // The fixture's --beat-gap is 2 s and --beat-leave 1.2 s.
+  await page.goto(`file://${file}`);
+  await page.waitForTimeout(400);
+  await key("ArrowRight", 500);
+  await key("ArrowRight", 600);
+  let s = await state();
+  test("a Build until shows from its step", s.build === "1" && s.old === 1 && s.headline === 0, s);
+  await key("ArrowRight", 400);
+  s = await state();
+  test(
+    reduced
+      ? "a timeline step shows settled at once"
+      : "a timeline step plays: the picture first, the old headline leaving, the headline still to come",
+    reduced
+      ? s.picture === 1 && s.headline === 1 && s.old === 0
+      : s.picture > 0 && s.picture <= 1 && s.headline === 0 && s.old > 0 && s.old < 1,
+    s,
+  );
+  await page.waitForTimeout(3000);
+  s = await state();
+  test("the timeline settles: headline in, old headline gone", s.picture === 1 && s.headline === 1 && s.old === 0 && s.running === 0, s);
+  await key("ArrowLeft", 60);
+  s = await state();
+  test("Back shows the earlier step settled at once, nothing replayed", s.old === 1 && s.headline === 0 && s.running === 0, s);
+  await key("ArrowRight", 300);
+  await key("ArrowRight", 60);
+  s = await state();
+  test(
+    "a press during a timeline settles it and moves on",
+    s.build === "3" && s.headline === 1 && s.old === 0 && s.picture === 1 && s.after > 0,
+    s,
+  );
+  await page.evaluate(() => (location.hash = "#3"));
+  await page.waitForTimeout(400);
+  await page.evaluate(() => (location.hash = "#2.2"));
+  await page.waitForTimeout(60);
+  s = await state();
+  test("a jump to a timeline step shows it settled", s.build === "2" && s.headline === 1 && s.old === 0 && s.running === 0, s);
+  await page.goto("about:blank");
+  await page.goto(`file://${file}#2.2`);
+  await page.waitForTimeout(100);
+  s = await state();
+  test("a reload on a timeline step shows it settled", s.build === "2" && s.headline === 1 && s.old === 0 && s.running === 0, s);
+
+  // SplitText: the whole text read once, real text in the pieces, selectable as it reads.
+  await page.goto("about:blank");
+  await page.goto(`file://${file}#2.3`);
+  await page.waitForTimeout(200);
+  await key("ArrowRight", 300);
+
+  const split = await page.evaluate(() => {
+    const h2 = document.querySelector("[data-deck-mode=present] h2.split")!;
+    const pieces = [...h2.querySelectorAll<HTMLElement>(".split-piece")];
+    const range = document.createRange();
+    range.selectNodeContents(h2);
+    getSelection()!.removeAllRanges();
+    getSelection()!.addRange(range);
+    const selected = getSelection()!.toString();
+    getSelection()!.removeAllRanges();
+
+    return {
+      copy: h2.querySelector(".split-copy")?.textContent,
+      hidden: h2.querySelector(".split-copy + [aria-hidden=true]") !== null,
+      pieces: pieces.map((p) => p.textContent).join("|"),
+      delays: pieces.map((p) => getComputedStyle(p).animationDelay),
+      selected: selected.trim(),
+      letters: document.querySelectorAll("[data-deck-mode=present] #letters .split-piece").length,
+    };
+  });
+
+  const heading = await page.locator("[data-deck-mode=present] h2.split").ariaSnapshot();
+  test(
+    "SplitText keeps the whole text for screen readers and hides the pieces from them",
+    split.copy === "Words rise from a clip" && split.hidden && heading.includes('heading "Words rise from a clip"'),
+    { ...split, heading },
+  );
+  test(
+    "SplitText splits into words, or letters for type, and copies as one text",
+    split.pieces === "Words|rise|from|a|clip" && split.letters === 8 && split.selected === "Words rise from a clip",
+    split,
+  );
+  test(
+    reduced ? "SplitText shows set at once" : "SplitText staggers its pieces from its `at`",
+    reduced ? split.delays.every((d) => d === "0s") : split.delays.join(",") === "0.5s,0.7s,0.9s,1.1s,1.3s",
+    split.delays,
+  );
+
+  // Ambient: moving with motion, still with reduced motion.
+  await key("ArrowRight", 500);
+  await page.mouse.move(200, 200);
+  await page.mouse.move(1700, 900, { steps: 4 });
+  await page.waitForTimeout(400);
+
+  const ambient = await page.evaluate(() => {
+    // oxlint-disable-next-line unicorn/consistent-function-scoping -- runs in the page, which gets only this callback
+    const of = (id: string) => getComputedStyle(document.querySelector(`[data-deck-mode=present] ${id}`)!.parentElement!);
+
+    return { drift: of("#drift").animationName, parallax: of("#parallax").transform, still: of("#drift").transform };
+  });
+
+  test(
+    reduced ? "Ambient is off under reduced motion" : "Ambient drifts, and the parallax layer follows the pointer",
+    reduced
+      ? ambient.drift === "none" && ambient.parallax === "none" && ambient.still === "none"
+      : ambient.drift === "ambient-drift" && ambient.parallax.startsWith("matrix(1.04") && !ambient.parallax.endsWith(", 0, 0)"),
+    ambient,
+  );
+
+  // The overview and print show each slide's final state, still.
+  await key("g", 500);
+
+  const overview = await page.evaluate(() => {
+    const view = document.querySelector("[data-deck-mode=overview]")!;
+    const card = view.querySelector("[data-slide-id=timeline]") ?? view.querySelector("#headline")!.closest("[data-slide]")!;
+
+    return {
+      // SAFETY: every animation on the page is a CSS animation or transition, so its effect is a KeyframeEffect.
+      running: document.getAnimations().filter((a) => view.contains((a.effect as KeyframeEffect).target)).length,
+      headline: getComputedStyle(card.querySelector("#headline")!.closest(".build")!).opacity,
+      old: getComputedStyle(card.querySelector("#old")!.closest(".build")!).visibility,
+      ambient: getComputedStyle(view.querySelector("#drift")!.parentElement!).animationName,
+    };
+  });
+
+  test(
+    "the overview shows timelines settled and nothing ambient",
+    overview.running === 0 && overview.headline === "1" && overview.old === "hidden" && overview.ambient === "none",
+    overview,
+  );
+  await key("Escape", 200);
+  await key("p", 300);
+
+  const print = await page.evaluate(() => {
+    const sheet = document.querySelector("#headline")!.closest(".print-page")!;
+    const line = document.querySelector(".print-page h2.split")!;
+
+    return {
+      // SAFETY: as above.
+      running: document.getAnimations().filter((a) => document.body.contains((a.effect as KeyframeEffect).target)).length,
+      headline: getComputedStyle(sheet.querySelector("#headline")!.closest(".build")!).opacity,
+      old: getComputedStyle(sheet.querySelector("#old")!.closest(".build")!).visibility,
+      split: [...line.querySelectorAll(".split-piece")].map((p) => p.textContent).join(" "),
+    };
+  });
+
+  test(
+    "print shows timelines settled and SplitText set",
+    print.running === 0 && print.headline === "1" && print.old === "hidden" && print.split === "Words rise from a clip",
+    print,
+  );
+  test("no page errors", errors.length === 0, errors.join(" | "));
+  await ctx.close();
+}
+
 /** Mid-flight pictures of every transition, for a person to look at: dist/qa/transitions/<slide>-<forward|back>.png. */
 const shots = resolve(dist, "qa/transitions");
 
@@ -1402,6 +1616,24 @@ for (const mode of MODES) {
 }
 
 rmSync(resolve(dist, ".verify-morph"), { recursive: true, force: true });
+
+process.env.DECK = "verify-beats";
+
+process.env.DECK_FILE = resolve(import.meta.dirname, "verify-deck/beats.tsx");
+
+await viteBuild({ logLevel: "warn", configFile: resolve(import.meta.dirname, "../vite.config.ts") });
+
+const beatsFixture = resolve(dist, ".verify-beats/index.html");
+
+deckName = "verify-deck/beats (fixture: beat timelines, SplitText, Ambient)";
+
+await selfContained(browser, beatsFixture);
+
+for (const reduced of [false, true]) {
+  await beats(browser, beatsFixture, reduced);
+}
+
+rmSync(resolve(dist, ".verify-beats"), { recursive: true, force: true });
 
 delete process.env.LIBRARY_DIR;
 

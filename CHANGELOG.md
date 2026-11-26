@@ -16,6 +16,9 @@ First public version.
   key list (`?`). All of it works from the file, offline.
 - Presenting saves build steps in the URL, ignores held navigation keys, and adds stage gestures,
   an idle cursor, interruptible transitions, and autoplay (A).
+- Timed steps: `<Beat at>` plays content seconds into a build step, `<Build until>` makes a step
+  leave, `<SplitText>` reveals a line per word or letter, and `<Ambient>` adds opt-in drift, creep
+  or pointer parallax. Back, jumps, print, the overview and reduced motion show steps settled.
 - **About 40 built-in blocks**, shown in the showcase: slides and layout pieces, text, code,
   tables, numbers, diagrams, charts, photos, video and sound. The same props (`start`, `build`,
   `inverted`) mean the same thing on each.

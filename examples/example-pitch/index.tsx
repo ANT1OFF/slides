@@ -1,5 +1,5 @@
 // Example: a short product pitch, in the acme example theme. The product and all numbers are invented.
-import { Morph, asOf, slide } from "@core";
+import { Beat, Build, Morph, asOf, slide } from "@core";
 import type { DeckDefinition } from "@core";
 import {
   Cards,
@@ -69,13 +69,20 @@ const deck: DeckDefinition = {
         ]}
       />
     </Frame>,
+    // One timed step: → brings in the right-hand side, and the payoff lands a beat after it.
     <Frame section="Why now" title="Close in one day instead of six">
       <Compare
+        build={0}
         sides={[
           { title: "Today", items: ["Spreadsheets and exports", "Close takes six days", "Errors found by the auditor"] },
           { title: "With Ledgerly", items: ["One live ledger", "Close takes one day", "Errors flagged as they happen"], highlight: true },
         ]}
       />
+      <Build at={1}>
+        <Beat className="type-lead mt-(--gap-title)">
+          Five working days back, <em>every month</em>.
+        </Beat>
+      </Build>
     </Frame>,
     slide(
       <Frame section="Traction" title="Team plans overtook Starter in August" footer={asOf(mrr, "MRR by plan, $k")}>

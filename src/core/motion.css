@@ -291,6 +291,115 @@
   visibility: hidden;
 }
 
+/* A step that leaves (`<Build until>`): it fades and lifts away when stepped onto, else it is simply gone. */
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--rise) * -0.5));
+    visibility: hidden;
+  }
+}
+.build-leave {
+  animation: leave var(--beat-leave) var(--ease-in-out) both;
+}
+/* Back, a jump or a later step: the settled state at once, nothing replayed. */
+.build-still {
+  transition: none;
+}
+.build-gone {
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
+
+/*
+ * SplitText: real text in pieces. The whole text is read once from .split-copy; the pieces are
+ * aria-hidden, laid out the same playing or settled, and each plays its effect after its --d.
+ */
+.split-copy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  user-select: none;
+}
+.split-word,
+.split-piece {
+  display: inline-block;
+  white-space: nowrap;
+}
+.split-word:has(> .split-mask) {
+  clip-path: inset(-0.5em -0.2em -0.12em);
+}
+@keyframes split-mask {
+  from {
+    transform: translateY(115%);
+  }
+}
+.split-mask {
+  animation: split-mask var(--duration-slow) var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes split-blur {
+  from {
+    opacity: 0;
+    filter: blur(0.3em);
+  }
+}
+.split-blur {
+  animation: split-blur var(--duration-slow) var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+}
+/* Hidden through its delay (fill backwards), then simply there: no fade, like a key struck. */
+@keyframes split-type {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+.split-type {
+  animation: split-type 1ms linear backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes split-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+.split-scale {
+  transform-origin: 50% 70%;
+  animation: split-scale var(--duration-base) var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Ambient: slow motion under a hold, on a background or photo. It clips to its box. */
+.ambient {
+  overflow: clip;
+}
+.ambient > div {
+  width: 100%;
+  height: 100%;
+}
+@keyframes ambient-drift {
+  33% {
+    transform: scale(1.04) translate(-0.7%, 0.5%);
+  }
+  66% {
+    transform: scale(1.04) translate(0.6%, -0.5%);
+  }
+}
+.ambient-drift {
+  transform: scale(1.04);
+  animation: ambient-drift var(--dur, 30s) ease-in-out infinite alternate;
+}
+.ambient-parallax {
+  transform: scale(1.04) translate(calc(var(--px, 0) * var(--depth) * -1), calc(var(--py, 0) * var(--depth) * -1));
+  transition: transform 1.6s var(--ease-out);
+}
+
 /*
  * Slide transitions, on the browser's View Transitions API. A transition is a pair of @keyframes:
  * <name>-in for the arriving slide and <name>-out for the leaving one. Going back, the deck plays
@@ -536,9 +645,15 @@ html[data-transition]::view-transition-new(.morph) {
   .halo,
   .breathe,
   .kenburns,
+  .ambient-drift,
   .drift-y,
   .spin {
     animation: none !important;
+  }
+  .ambient-drift,
+  .ambient-parallax {
+    transform: none;
+    transition: none;
   }
   .build {
     transition: none;

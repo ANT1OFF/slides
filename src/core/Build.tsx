@@ -1,14 +1,16 @@
 import { useContext, useEffect } from "react";
 import type { CSSProperties, ElementType, ReactNode } from "react";
-import { StepContext } from "./context.ts";
+import { BeatContext, StepContext } from "./context.ts";
 import type { Effect } from "./motion.tsx";
 
 /**
- * Content revealed on the `at`-th press of → on this slide (1, 2, 3 …).
- * The deck finds a slide's step count from the Builds it contains.
+ * Content revealed on the `at`-th press of → on this slide (1, 2, 3 …), and gone again from the
+ * `until`-th. The deck finds a slide's step count from the Builds it contains. A step can be a short
+ * timeline: put `<Beat>`s inside, each landing some seconds after the step arrives.
  */
 export function Build({
   at,
+  until,
   children,
   as: Tag = "div",
   className = "",
@@ -17,6 +19,8 @@ export function Build({
   style,
 }: {
   at: number;
+  /** The step it leaves on, within the first `--beat-leave` of that step (half a second by default). */
+  until?: number;
   children: ReactNode;
   as?: ElementType;
   className?: string;
@@ -27,12 +31,12 @@ export function Build({
   /** An entrance effect to play when the step arrives ("pop", or one of your own), instead of the plain fade. */
   effect?: Effect;
 }) {
-  const { step, register } = useContext(StepContext);
+  const { step, played = -1, register } = useContext(StepContext);
   useEffect(() => {
     if (enabled) {
-      register(at);
+      register(Math.max(at, until ?? 0));
     }
-  }, [at, register, enabled]);
+  }, [at, until, register, enabled]);
 
   if (!enabled) {
     return (
@@ -42,18 +46,30 @@ export function Build({
     );
   }
 
+  // The entrance plays only on the way forward; Back, a jump, the overview and print show it settled.
+  const arrived = step >= at;
+  const entering = arrived && played === at;
+  let classes = `build ${arrived ? "build-on" : ""} ${entering ? "" : "build-still"}`;
+
   if (effect) {
-    return (
-      <Tag className={`${step >= at ? effect : "build-wait"} ${className}`} style={style}>
-        {children}
-      </Tag>
-    );
+    classes = arrived ? "" : "build-wait";
+
+    if (entering) {
+      classes = effect;
+    }
+  }
+
+  // Stepping forward onto `until` plays the exit; any other way there, it is simply gone.
+  if (until !== undefined && step >= until) {
+    classes += played === until ? " build-leave" : " build-gone";
   }
 
   return (
-    <Tag className={`build ${step >= at ? "build-on" : ""} ${className}`} style={style}>
-      {children}
-    </Tag>
+    <BeatContext.Provider value={at}>
+      <Tag className={`${classes} ${className}`} style={style}>
+        {children}
+      </Tag>
+    </BeatContext.Provider>
   );
 }
 

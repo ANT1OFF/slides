@@ -70,7 +70,9 @@ Anything else is plain JSX with Tailwind classes; wrap any element in `<Build at
 on a press of →. Motion is CSS used by name: `<Reveal effect="pop">`, `<Build effect="pop">`, and
 `transition: "fade"` between slides ([docs/extending.md](docs/extending.md#motion)). For more
 between slides, there are nine transitions and `<Morph id>`, which carries one element from a slide
-to the next; [docs/motion.md](docs/motion.md) shows them and says when to keep it plain.
+to the next. Within a slide, `<Beat>` makes a step a short timeline in seconds, `<SplitText>`
+brings a line in word by word, and `<Ambient>` keeps a held photo moving;
+[docs/motion.md](docs/motion.md) shows them all and says when to keep it plain.
 
 ## Themes
 

@@ -36,6 +36,10 @@ two for next steps and one for the decision. Read the outline aloud before choos
   screen first. Use `Build` from `@core` to reveal the change and then the headline, with
   time to read the result before advancing. If you need more steps, split the slide.
   Keep the full picture and takeaway clear together in the overview and PDF.
+- **Pace a step in seconds when the order matters.** Inside a `Build`, a `Beat` lands its
+  content a moment after the step arrives, so the picture moves first and the headline
+  follows a second or two later; `Build until` lets the previous headline leave. Keep holds
+  alive with `Ambient` behind a photo. See [timed steps](motion.md#timed-steps-beat-splittext-and-ambient).
 - **Carry the motif across a cut.** End one slide with a mark that the audience can find
   immediately on the next. For example, a highlighted bar can become the starting value
   on a slide that explains where it came from. Consistent placement can make the
